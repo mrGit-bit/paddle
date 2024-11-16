@@ -2,7 +2,9 @@
 
 ## 📖 Overview
 
-This is a web application built using Django and Django Rest Framework (DRF) for managing a "Hall of Fame" for paddle tennis players. The app features a front-end built with Django templates and JavaScript, enabling users to view player rankings and detailed match records.
+This is a web application built using Django and Django Rest Framework (DRF) for managing a "Hall of Fame" for paddle tennis players. 
+
+The app features a front-end built with Django templates and JavaScript. Users can view player rankings, detailed match records, and player profiles.
 
 ### ✨ Key Features
 
@@ -14,16 +16,20 @@ This is a web application built using Django and Django Rest Framework (DRF) for
 - **📋 Player Details**:
   - View a detailed profile for each player, including all matches they’ve played.
 - **🔒 Authentication**:
-  - Only registered users can add or update match results.
+  - Only registered users can:
+   - add or update match results;
+   - view player details.
 
 ---
 
 ## 🛠️ Technologies Used
 
 - **Backend**: Django Rest Framework (DRF)
+  - with ModelViewSets, ModelSerializers and Routers for simplicity managing the API.
+  - using built-in session authentication provided by DRF.
 - **Frontend**: Django Templates, JavaScript
-- **Database**: SQLite (for development)
-- **Authentication**: DRF session authentication
+- **Database**: SQLite for development and testing purposes.
+
 
 ---
 
@@ -89,7 +95,7 @@ This is a web application built using Django and Django Rest Framework (DRF) for
 
 ### 👤 Player Profiles
 
-1. Register to watch player details.
+1. Register to view player details.
 2. Click on a player’s name in the Hall of Fame to view their profile.
 3. The profile displays all matches involving the player and some personal data.
 
