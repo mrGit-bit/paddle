@@ -106,27 +106,26 @@ paddle/
 │   │   ├── views.py
 │   │   ├── models.py
 │   │   ├── urls.py
-│   │   └── tests/     # Tests for players API
+│   │   └── tests.py   # Tests for players API
 │   └── matches/       # API app for match-related endpoints
 │       ├── serializers.py
 │       ├── views.py
 │       ├── models.py
 │       ├── urls.py
-│       └── tests/     # Tests for matches API
-├── frontend/          # Front-end templates and JavaScript
+│       └── tests.py   # Tests for matches API
+├── frontend/          # Non Django templates and JavaScript
 │   ├── js/            # JavaScript files
 │   ├── css/           # Stylesheets
 │   └── html/          # Static HTML files
 ├── static/            # Static files (CSS, JS, images)
 │   ├── css/
 │   ├── js/
-│   ├── images/
-│   └── fonts/
+│   └── images/
 ├── templates/         # Django HTML templates
 │   ├── base.html
 │   ├── players/
-│   │   ├── detail.html
-│   │   └── list.html
+│   │   ├── list.html
+│   │   └── detail.html
 │   ├── matches/
 │       ├── list.html
 │       └── detail.html
