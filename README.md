@@ -96,25 +96,43 @@ This is a web application built using Django and Django Rest Framework (DRF) for
 ---
 
 ## 🗂️ Project Structure
+## 🗂️ Project Structure
 
-paddle/ 
-├── config/            # Project configuration and settings 
+paddle/
+├── config/            # Project configuration and settings
 ├── api/               # API apps
-  ├── players/         # API app for player-related endpoints 
-  └── matches/         # API app for match-related endpoints 
-├── frontend/          # Front-end non-Django templates and JavaScript 
-├── static/            # Static files (CSS, JS, images) 
-  ├── css/
-  ├── js/  
-  └── images/
-├── templates/         # Django HTML templates for the front-end
-  ├── base.html
-  ├── players/
-    └── detail.html
-  └── matches/
-    └── list.html
-├── requirements.txt   # Dependencies for the project 
+│   ├── players/       # API app for player-related endpoints
+│   │   ├── serializers.py
+│   │   ├── views.py
+│   │   ├── models.py
+│   │   ├── urls.py
+│   │   └── tests/     # Tests for players API
+│   └── matches/       # API app for match-related endpoints
+│       ├── serializers.py
+│       ├── views.py
+│       ├── models.py
+│       ├── urls.py
+│       └── tests/     # Tests for matches API
+├── frontend/          # Front-end templates and JavaScript
+│   ├── js/            # JavaScript files
+│   ├── css/           # Stylesheets
+│   └── html/          # Static HTML files
+├── static/            # Static files (CSS, JS, images)
+│   ├── css/
+│   ├── js/
+│   ├── images/
+│   └── fonts/
+├── templates/         # Django HTML templates
+│   ├── base.html
+│   ├── players/
+│   │   ├── detail.html
+│   │   └── list.html
+│   ├── matches/
+│       ├── list.html
+│       └── detail.html
+├── requirements.txt   # Dependencies for the project
 └── manage.py          # Django entry point
+
 
 ---
 
