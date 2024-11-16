@@ -96,8 +96,8 @@ This is a web application built using Django and Django Rest Framework (DRF) for
 ---
 
 ## 🗂️ Project Structure
-## 🗂️ Project Structure
 
+```
 paddle/
 ├── config/            # Project configuration and settings
 ├── api/               # API apps
@@ -132,7 +132,7 @@ paddle/
 │       └── detail.html
 ├── requirements.txt   # Dependencies for the project
 └── manage.py          # Django entry point
-
+```
 
 ---
 
