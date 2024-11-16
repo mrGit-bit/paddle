@@ -27,7 +27,10 @@ The app features a front-end built with Django templates and JavaScript. Users c
 - **Backend**: Django Rest Framework (DRF)
   - with ModelViewSets, ModelSerializers and Routers for simplicity managing the API.
   - using built-in session authentication provided by DRF.
-- **Frontend**: Django Templates, JavaScript
+- **Frontend**:
+  - Django Templates,
+  - JavaScript,
+  - Bootstrap.
 - **Database**: SQLite for development and testing purposes.
 
 
@@ -68,16 +71,6 @@ The app features a front-end built with Django templates and JavaScript. Users c
 8. Access the app at:  
    `http://127.0.0.1:8000/`
 
----
-
-## 📡 API Endpoints
-
-- **🏅 Player Rankings**: `/api/players/`
-- **👤 Player Profile**: `/api/players/<id>/`
-- **🎮 Match Results**: `/api/matches/`
-- **🎮 Match Deatils**: `/api/matches/<id>`
-
----
 
 ## 🕹️ Usage
 
@@ -113,12 +106,18 @@ paddle/
 │   │   ├── models.py
 │   │   ├── urls.py
 │   │   └── tests.py   # Tests for players API
-│   └── matches/       # API app for match-related endpoints
+│   ├── matches/       # API app for match-related endpoints
 │       ├── serializers.py
 │       ├── views.py
 │       ├── models.py
 │       ├── urls.py
 │       └── tests.py   # Tests for matches API
+│   └── users/         # App for managing registered users
+│       ├── serializers.py
+│       ├── views.py
+│       ├── models.py  # Optional custom user model 
+│       ├── urls.py
+│       └── tests.py   # Tests for users API
 ├── frontend/          # Non Django templates and JavaScript
 │   ├── js/            # JavaScript files
 │   ├── css/           # Stylesheets
@@ -135,9 +134,70 @@ paddle/
 │   ├── matches/
 │       ├── list.html
 │       └── detail.html
+│   └── users/
+│       ├── login.html
+│       ├── register.html
+│       └── profile.html
 ├── requirements.txt   # Dependencies for the project
 └── manage.py          # Django entry point
 ```
+
+---
+
+## 📋 App Explanations
+
+1. **`players/`**:
+   - Manages all player-related functionality, such as player data, rankings, and profiles.
+   - Players may or may not be associated with registered users.
+   - Key responsibilities:
+     - Store player information.
+     - Provide APIs for player rankings and profiles.
+
+2. **`matches/`**:
+   - Manages match-related functionality, including match creation and retrieval.
+   - Matches involve 2 vs. 2 players, and winners contribute to player rankings.
+   - Key responsibilities:
+     - Store match details, including teams, date, and winner.
+     - Provide APIs for match results and details.
+
+3. **`users/`**:
+   - Manages registered users, who are authenticated individuals allowed to add or update match results.
+   - Key responsibilities:
+     - Enable user registration, login, and profile management.
+     - Optionally link users to players for enhanced functionality.
+
+4. **`frontend/`**:
+   - Contains static HTML files and JavaScript for non-Django templates, as well as any client-side logic.
+   - Handles user interface elements like dynamic forms and asynchronous requests.
+
+5. **`config/`**:
+   - Contains project-wide settings and configurations, including database settings, middleware, and installed apps.
+
+---
+
+## 📡 API Endpoints
+
+- **🏅 Player Rankings**: `/api/players/`
+  - Retrieves a list of all players ranked by the number of matches won.
+
+- **👤 Player Profile**: `/api/players/<id>/`
+  - Retrieves details about a specific player, including their match history.
+
+- **🎮 Match Results**: `/api/matches/`
+  - Allows registered users to create and retrieve match results.
+
+- **📄 Match Details**: `/api/matches/<id>/`
+  - Retrieves details about a specific match, including the players and the winning team.
+
+- **🔒 User Registration**: `/api/users/register/`
+  - Allows new users to register.
+
+- **🔒 User Login**: `/api/users/login/`
+  - Allows users to log in and authenticate.
+
+- **👤 User Profile**: `/api/users/profile/`
+  - Retrieves details about the logged-in user.
+
 
 ---
 
