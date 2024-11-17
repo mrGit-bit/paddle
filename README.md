@@ -134,7 +134,7 @@ paddle/
 
 | Endpoint | User | Explanation |
 | ----------------------- | ---- | :------------------------------------------------------------------- |
-| **🏅 Player Rankings**  `/api/players/` | Any | Retrieves a list of all players ranked by the number of matches won |
+| **🏅 Player Rankings**\`/api/players/` | Any | Retrieves a list of all players ranked by the number of matches won |
 | **👤 Player Profile**  `/api/players/<id>/` | Authenticated | Retrieves details about a specific player, including their match history |
 | **🎮 Match Results**  `/api/matches/` | Authenticated | Create and retrieve match results |
 | **📄 Match Update**  `/api/matches/<id>/` | Authorized | Only registered players of that match can edit details about a specific match |
