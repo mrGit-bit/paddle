@@ -132,6 +132,8 @@ paddle/
 
 ## 📡 API Endpoints
 
+| Data sent | Endpoint | Explanation |
+| ----------------------- | --------------- | -------------------------------------------------------------------- |
 | **🏅 Player Rankings** | `/api/players/` | Retrieves a list of all players ranked by the number of matches won. |
 
 - **👤 Player Profile**: `/api/players/<id>/`
