@@ -140,8 +140,8 @@ paddle/
 | **📄 Match Update**  `/api/matches/<id>/` | Authorized | Only registered players of that match can edit details about a specific match |
 | **🔒 User Registration**  `/api/users/register/` | Any | Allows new users to register and link to a non registered player |
 | **🔒 User Login**  `/api/users/login/` | Any | Allows users to log in and authenticate |
-| **👤 User List** `/api/users/profile/` | Authenticated | Retrieves a list of users with some details like matches played, wins, % succes, date of registration |
-| **👤 User Update** `/api/users/profile/<id>` | Authorized | The user can update their own details |
+| **👤 User List**  `/api/users/profile/` | Authenticated | Retrieves a list of users with some details like matches played, wins, % succes, date of registration |
+| **👤 User Update**  `/api/users/profile/<id>` | Authorized | The user can update their own details |
   
 
 
