@@ -134,14 +134,14 @@ paddle/
 
 | Endpoint | User | Explanation |
 | ----------------------- | ---- | :------------------------------------------------------------------- |
-| **🏅 Player Rankings**\ `/api/players/` | Any | Retrieves a list of all players ranked by the number of matches won |
-| **👤 Player Profile**  `/api/players/<id>/` | Authenticated | Retrieves details about a specific player, including their match history |
-| **🎮 Match Results**  `/api/matches/` | Authenticated | Create and retrieve match results |
-| **📄 Match Update**  `/api/matches/<id>/` | Authorized | Only registered players of that match can edit details about a specific match |
-| **🔒 User Registration**  `/api/users/register/` | Any | Allows new users to register and link to a non registered player |
-| **🔒 User Login**  `/api/users/login/` | Any | Allows users to log in and authenticate |
-| **👤 User List**  `/api/users/profile/` | Authenticated | Retrieves a list of users with some details like matches played, wins, % succes, date of registration |
-| **👤 User Update**  `/api/users/profile/<id>` | Authorized | The user can update their own details |
+| **🏅 Player Rankings**<br />`/api/players/` | Any | Retrieves a list of all players ranked by the number of matches won |
+| **👤 Player Profile**<br />`/api/players/<id>/` | Authenticated | Retrieves details about a specific player, including their match history |
+| **🎮 Match Results**<br />`/api/matches/` | Authenticated | Create and retrieve match results |
+| **📄 Match Update**<br />`/api/matches/<id>/` | Authorized | Only registered players of that match can edit details about a specific match |
+| **🔒 User Registration**<br />`/api/users/register/` | Any | Allows new users to register and link to a non registered player |
+| **🔒 User Login**<br />`/api/users/login/` | Any | Allows users to log in and authenticate |
+| **👤 User List**<br />`/api/users/profile/` | Authenticated | Retrieves a list of users with some details like matches played, wins, % succes, date of registration |
+| **👤 User Update**<br />`/api/users/profile/<id>` | Authorized | The user can update their own details |
   
 
 
