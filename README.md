@@ -134,14 +134,14 @@ paddle/
 
 | Endpoint | User | Explanation |
 | ----------------------- | ---- | :------------------------------------------------------------------- |
-| **🏅 Player Rankings**<br />`/api/players/` | Any | Retrieves a list of all players ranked by the number of matches won |
+| **🏅 Hall of Fame**<br />`/api/players/` | Any | Retrieves a list of all players ranked by the number of matches won |
 | **👤 Player Profile**<br />`/api/players/<id>/` | Authenticated | Retrieves details about a specific player, including their match history |
-| **🎮 Match Results**<br />`/api/matches/` | Authenticated | Create and retrieve match results |
-| **📄 Match Update**<br />`/api/matches/<id>/` | Authorized | Only registered players of that match can edit details about a specific match |
-| **🔒 User Registration**<br />`/api/users/register/` | Any | Allows new users to register and link to a non registered player |
-| **🔒 User Login**<br />`/api/users/login/` | Any | Allows users to log in and authenticate |
-| **👤 User List**<br />`/api/users/profile/` | Authenticated | Retrieves a list of users with some details like matches played, wins, % succes, date of registration |
-| **👤 User Update**<br />`/api/users/profile/<id>` | Authorized | The user can update their own details |
+| **🎮 Match Results**<br />`/api/matches/` | Authenticated | List match results and create a new one|
+| **📄 Match Update**<br />`/api/matches/<id>/` | Authorized | Edit only for the  players of that specific match |
+| **🔒 User Registration**<br />`/api/users/register/` | Any | Allows new users to register and link the new registered user to an existent non registered player |
+| **🔒 User Login**<br />`/api/users/login/` | Any | Allows users to log in and authenticate using session authentication|
+| **👤 User List**<br />`/api/users/profile/` | Authenticated | Retrieves a list of users with some basic stats like matches played, wins, % success, date of registration |
+| **👤 User Update**<br />`/api/users/profile/<id>` | Authorized | The user can update their own personal details |
   
 
 
