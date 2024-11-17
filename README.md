@@ -25,6 +25,7 @@ The app features a front-end built with Django templates, JavaScript, and Bootst
 - [🤝 Contributing](#🤝-contributing)
 - [📄 License](#📄-license)
 
+---
 
 ### ✨ Key Features
 
