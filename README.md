@@ -18,8 +18,8 @@ The app features a front-end built with Django templates, JavaScript, and Bootst
   - View a detailed profile for each player, including all matches they’ve played.
 - **🔒 Authentication**:
   - Only registered users can:
-   - add or update match results;
-   - view player details.
+    - add or update match results;
+    - view player details.
 
 ---
 
