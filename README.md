@@ -6,6 +6,26 @@ This is a web application built using Django and Django Rest Framework (DRF) for
 
 The app features a front-end built with Django templates, JavaScript, and Bootstrap for styling. Users can view player rankings, detailed match records, and player profiles.
 
+### 🔗 Index
+
+- [📜 Overview](#📜-overview)
+- [✨ Key Features](#✨-key-features)
+- [⚙️ Technologies Used](#⚙️-technologies-used)
+- [🕹️ Usage](#🕹️-usage)
+  - [➕ Add Match Results](#➕-add-match-results)
+  - [📜 View Hall of Fame](#📜-view-hall-of-fame)
+  - [👤 Player Profiles](#👤-player-profiles)
+- [🗂️ Project Structure](#🗂️-project-structure)
+- [📄 App Explanations](#📄-app-explanations)
+- [📡 API Endpoints](#📡-api-endpoints)
+- [🚀 Future Enhancements](#🚀-future-enhancements)
+- [🚀 Installation](#🚀-installation)
+  - [📜 Prerequisites](#📜-prerequisites)
+  - [🏰 Steps](#🏰-steps)
+- [🤝 Contributing](#🤝-contributing)
+- [📄 License](#📄-license)
+
+
 ### ✨ Key Features
 
 - **🏅 Hall of Fame Rankings**:
