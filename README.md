@@ -4,7 +4,7 @@
 
 This is a web application built using Django and Django Rest Framework (DRF) for managing a "Hall of Fame" for paddle tennis players. 
 
-The app features a front-end built with Django templates and JavaScript. Users can view player rankings, detailed match records, and player profiles.
+The app features a front-end built with Django templates, JavaScript, and Bootstrap for styling. Users can view player rankings, detailed match records, and player profiles.
 
 ### ✨ Key Features
 
@@ -12,7 +12,7 @@ The app features a front-end built with Django templates and JavaScript. Users c
   - Displays a ranked list of paddle tennis players based on the number of matches won.
 - **🎮 Match Results**:
   - Registered users can add results for matches.
-  - Matches are between two teams of two players each.
+  - Each match involves two teams, with two players on each team.
   - Matches can include non-registered players by entering their names manually.
 - **📋 Player Details**:
   - View a detailed profile for each player, including all matches they’ve played.
@@ -119,29 +119,29 @@ paddle/
 
 2. **`users/`**:
    - Manages user registration, login, logout and profile management.
-   - Registered users are the same than registered players.
+   - Registered users are equivalent to registered players.
    - Registered players are allowed to:
      - Add or update match results;
      - Add non registered players when adding or updating a match;
      - Check other users details
-   - Non registered players can:
+   - Non-registered players have limited access compared to registered users. They can:
      - Check the hall of fame;
-     - Become registered players using user registration;     
+     - Become registered players using user registration to gain full access and benefits.     
 
 ---
 
 ## 📡 API Endpoints
 
 | Endpoint | User | Explanation |
-| ----------------------- | ---- | :------------------------------------------------------------------- |
-| **🏅 Hall of Fame**<br />`/api/players/` | Any | Retrieves a list of all players ranked by the number of matches won |
-| **👤 Player Profile**<br />`/api/players/<id>/` | Authenticated | Retrieves details about a specific player, including their match history |
-| **🎮 Match Results**<br />`/api/matches/` | Authenticated | List match results and create a new one|
-| **📄 Match Update**<br />`/api/matches/<id>/` | Authorized | Edit only for the  players of that specific match |
-| **🔒 User Registration**<br />`/api/users/register/` | Any | Allows new users to register and link the new registered user to an existent non registered player |
-| **🔒 User Login**<br />`/api/users/login/` | Any | Allows users to log in and authenticate using session authentication|
-| **👤 User List**<br />`/api/users/profile/` | Authenticated | Retrieves a list of users with some basic stats like matches played, wins, % success, date of registration |
-| **👤 User Update**<br />`/api/users/profile/<id>` | Authorized | The user can update their own personal details |
+| ----------------------- | :----: | :------------------------------------------------------------------- |
+| **🏅 Hall of Fame**  `/api/players/` | Any | Retrieves a list of all players ranked by the number of matches won |
+| **👤 Player Profile**  `/api/players/<id>/` | Authenticated | Retrieves details about a specific player, including their match history |
+| **🎮 Match Results**  `/api/matches/` | Authenticated | List match results and create a new one|
+| **📄 Match Update**  `/api/matches/<id>/` | Authorized | Allows editing only by players involved in that specific match |
+| **🔒 User Registration**  `/api/users/register/` | Any | Allows new users to register and link the new registered user to an existent non registered player |
+| **🔒 User Login**  `/api/users/login/` | Any | Allows users to log in and authenticate using session authentication|
+| **👤 User List**  `/api/users/profile/` | Authenticated | Retrieves a list of users with some basic stats like matches played, wins, % success, date of registration |
+| **👤 User Update**  `/api/users/profile/<id>` | Authorized | The user can update their own personal details |
   
 
 
