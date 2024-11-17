@@ -107,15 +107,15 @@ paddle/
 1. **`games/`**:
    - Manages players and matches
    - For players:
-     - Players functionalities are player data, rankings, and profiles.
-     - Players may or may not be associated with registered users.   
-     - Stores player information.
-     - Provide APIs for player rankings and profiles.
+      - Players functionalities are player data, rankings, and profiles.
+      - Players may or may not be associated with registered users.
+      - Stores player information.
+      - Provide APIs for player rankings and profiles.
     - For matches:
-     - Manages match-related functionality, including match creation and retrieval.
-     - Matches involve 2 vs. 2 players, and winners contribute to player rankings.   
-     - Store match details, including teams, date, and winners.
-     - Provide APIs for match results and details.
+      - Manages match-related functionality, including match creation and retrieval.
+      - Matches involve 2 vs. 2 players, and winners contribute to player rankings.   
+      - Store match details, including teams, date, and winners.
+      - Provide APIs for match results and details.
 
 2. **`users/`**:
    - Manages user registration, login, logout and profile management.
