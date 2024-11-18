@@ -1,29 +1,26 @@
+<!-- markdownlint-disable MD051 -->
+<!-- markdownlint-disable MD033 -->
 # 🏆 Paddle Tennis Hall of Fame
 
 ## 📖 Overview
 
-This is a web application built using Django and Django Rest Framework (DRF) for managing a "Hall of Fame" for paddle tennis players. 
+This is a web application built using Django and Django Rest Framework (DRF) for managing a "Hall of Fame" for paddle tennis players.
 
 The app features a front-end built with Django templates, JavaScript, and Bootstrap for styling. Users can view player rankings, detailed match records, and player profiles.
 
+<a id="index"></a>
+
 ### 🔗 Index
 
-- [📜 Overview](#📜-overview)
+- [📖 Overview](#📖-overview)
 - [✨ Key Features](#✨-key-features)
-- [⚙️ Technologies Used](#⚙️-technologies-used)
+- [🛠️ Technologies Used](#🛠️-technologies-used)
 - [🕹️ Usage](#🕹️-usage)
-  - [➕ Add Match Results](#➕-add-match-results)
-  - [📜 View Hall of Fame](#📜-view-hall-of-fame)
-  - [👤 Player Profiles](#👤-player-profiles)
 - [🗂️ Project Structure](#🗂️-project-structure)
-- [📄 App Explanations](#📄-app-explanations)
+- [📋 App Explanations](#📋-app-explanations)
 - [📡 API Endpoints](#📡-api-endpoints)
 - [🚀 Future Enhancements](#🚀-future-enhancements)
 - [🚀 Installation](#🚀-installation)
-  - [📜 Prerequisites](#📜-prerequisites)
-  - [🏰 Steps](#🏰-steps)
-- [🤝 Contributing](#🤝-contributing)
-- [📄 License](#📄-license)
 
 ---
 
@@ -42,6 +39,8 @@ The app features a front-end built with Django templates, JavaScript, and Bootst
     - add or update match results;
     - view player details.
 
+<div style="text-align: right"><a href="#index">Back to Index</a></div>
+
 ---
 
 ## 🛠️ Technologies Used
@@ -54,6 +53,8 @@ The app features a front-end built with Django templates, JavaScript, and Bootst
   - JavaScript,
   - Bootstrap.
 - **Database**: SQLite for development and testing purposes.
+
+<div style="text-align: right"><a href="#index">Back to Index</a></div>
 
 ---
 
@@ -77,11 +78,13 @@ The app features a front-end built with Django templates, JavaScript, and Bootst
 2. Click on a player’s name in the Hall of Fame to view their profile.
 3. The profile displays all matches involving the player and some personal data.
 
+<div style="text-align: right"><a href="#index">Back to Index</a></div>
+
 ---
 
 ## 🗂️ Project Structure
 
-```
+```bash
 paddle/
 ├── config/            # Project configuration and settings
 ├── api/               # API apps
@@ -121,6 +124,8 @@ paddle/
 └── manage.py          # Django entry point
 ```
 
+<div style="text-align: right"><a href="#index">Back to Index</a></div>
+
 ---
 
 ## 📋 App Explanations
@@ -132,9 +137,9 @@ paddle/
       - Players may or may not be associated with registered users.
       - Stores player information.
       - Provide APIs for player rankings and profiles.
-    - For matches:
+   - For matches:
       - Manages match-related functionality, including match creation and retrieval.
-      - Matches involve 2 vs. 2 players, and winners contribute to player rankings.   
+      - Matches involve 2 vs. 2 players, and winners contribute to player rankings.
       - Store match details, including teams, date, and winners.
       - Provide APIs for match results and details.
 
@@ -147,24 +152,26 @@ paddle/
      - Check other users details
    - Non-registered players have limited access compared to registered users. They can:
      - Check the hall of fame;
-     - Become registered players using user registration to gain full access and benefits.     
+     - Become registered players using user registration to gain full access and benefits.
+
+<div style="text-align: right"><a href="#index">Back to Index</a></div>
 
 ---
 
 ## 📡 API Endpoints
 
 | Endpoint | User | Explanation |
-| ----------------------- | :----: | :------------------------------------------------------------------- |
-| **🏅 Hall of Fame**  `/api/players/` | Any | Retrieves a list of all players ranked by the number of matches won |
-| **👤 Player Profile**  `/api/players/<id>/` | Authenticated | Retrieves details about a specific player, including their match history |
-| **🎮 Match Results**  `/api/matches/` | Authenticated | List match results and create a new one|
-| **📄 Match Update**  `/api/matches/<id>/` | Authorized | Allows editing only by players involved in that specific match |
-| **🔒 User Registration**  `/api/users/register/` | Any | Allows new users to register and link the new registered user to an existent non registered player |
-| **🔒 User Login**  `/api/users/login/` | Any | Allows users to log in and authenticate using session authentication|
-| **👤 User List**  `/api/users/profile/` | Authenticated | Retrieves a list of users with some basic stats like matches played, wins, % success, date of registration |
-| **👤 User Update**  `/api/users/profile/<id>` | Authorized | The user can update their own personal details |
-  
+| :------ | :----: | :------------------------------------------------------------------- |
+|  `/api/players/` | Any |**🏅 Hall of Fame** : Retrieves a list of all players ranked by the number of matches won |
+| `/api/players/<id>/` | Authenticated | **👤 Player Profile** : Retrieves details about a specific player, including their match history |
+|  `/api/matches/` | Authenticated | **🎮 Match Results** : List match results and create a new one|
+| `/api/matches/<id>/` | Authorized | **📄 Match Update** :  Allows editing only by players involved in that specific match |
+|  `/api/users/register/` | Any | **🔒 User Registration** : Allows new users to register and link the new registered user to an existent non registered player |
+| `/api/users/login/` | Any | **🔒 User Login** : Allows users to log in and authenticate using session authentication|
+| `/api/users/profile/` | Authenticated | **👤 User List** : Retrieves a list of users with some basic stats like matches played, wins, % success, date of registration |
+| `/api/users/profile/<id>` | Authorized | **👤 User Update** : The user can update their own personal details |
 
+<div style="text-align: right"><a href="#index">Back to Index</a></div>
 
 ---
 
@@ -174,6 +181,8 @@ paddle/
 - Enable advanced statistics for each player.
 - Integrate user profiles with customizable avatars.
 - Support live match updates using WebSockets.
+
+<div style="text-align: right"><a href="#index">Back to Index</a></div>
 
 ---
 
@@ -212,6 +221,8 @@ paddle/
 8. Access the app at:  
    `http://127.0.0.1:8000/`
 
+<div style="text-align: right"><a href="#index">Back to Index</a></div>
+
 ---
 
 ## 🤝 Contributing
@@ -224,9 +235,10 @@ Contributions are welcome! Please follow these steps:
 4. Push to the branch: `git push origin feature-name`.  
 5. Open a pull request.
 
+<div style="text-align: right"><a href="#index">Back to Index</a></div>
+
 ---
 
 ## 📄 License
 
 This project is licensed under the MIT License. See the LICENSE file for details.
-
