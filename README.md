@@ -4,7 +4,7 @@
 
 ## 📖 Overview
 
-This is a web application built using Django and Django Rest Framework (DRF) for managing a "Hall of Fame" for paddle tennis players.
+This is a web application built using Django and Django Rest Framework (DRF) in the backend for managing a "Hall of Fame" for a group of paddle tennis players.
 
 The app features a front-end built with Django templates, JavaScript, and Bootstrap for styling. Users can view player rankings, detailed match records, and player profiles.
 
@@ -13,9 +13,9 @@ The app features a front-end built with Django templates, JavaScript, and Bootst
 ### 🔗 Index
 
 - [📖 Overview](#📖-overview)
-- [✨ Key Features](#✨-key-features)
+- [✨ Key Features & Implementation](#✨-key-features--implementation)
 - [🛠️ Technologies Used](#🛠️-technologies-used)
-- [🕹️ Usage](#🕹️-usage)
+- [🕹️ Usage Verification](#🕹️-usage-verification)
 - [🗂️ Project Structure](#🗂️-project-structure)
 - [📋 App Explanations](#📋-app-explanations)
 - [📡 API Endpoints](#📡-api-endpoints)
@@ -24,20 +24,31 @@ The app features a front-end built with Django templates, JavaScript, and Bootst
 
 ---
 
-### ✨ Key Features
+### ✨ Key Features & Implementation
 
 - **🏅 Hall of Fame Rankings**:
-  - Displays a ranked list of paddle tennis players based on the number of matches won.
+  - *Feature*: Displays a ranked list of paddle tennis players based on the number of matches won.
+  - *Implementation*: The `PlayerViewSet` in `views.py` allows viewing players, and their `wins` field is serialized by `PlayerSerializer`. To rank players by the number of wins, the queryset includes ordering by `wins` field.
+
 - **🎮 Match Results**:
-  - Registered users can add results for matches.
-  - Each match involves two teams, with two players on each team.
-  - Matches can include non-registered players by entering their names manually.
+  - *Feature*: Registered users can add results for matches,each involving two teams of two players each. New players are created if they didn't exist before the match is created.
+  - *Implementation*:
+    - The `Match` model contains a `teams` field represented as a JSON dictionary, and the view allows for creation and updating of matches (`MatchViewSet`). Only registered users can create or update match records.
+    - The logic for creating new players (when they don't already exist) is into the `MatchSerializer` in the `create` and `update` methods of the serializer. There is also logic here to avoid player duplicates in the same match.
+    - A helper function called `extract_players` within the `MatchSerializer` is used for extracting player lists. This function is used in both the `validate`, `create`, and `update` methods.
+    - Match statistics are updated via the `perform_create()` and `perform_update()` methods in the `MatchViewSet`, ensuring that the stats for each player are kept current.
+
 - **📋 Player Details**:
-  - View a detailed profile for each player, including all matches they’ve played.
+  - *Feature*: Registered users can view a detailed profile for each player, including all matches they have played.
+  - *Implementation*:
+    - The `PlayerViewSet` provides access to the detailed profiles of each player. Player information such as wins, losses, and matches played are serialized and made available.
+    - `PlayerSerializer` includes a `matches` field that provides a list of matches involving each player. This is implemented using a `SerializerMethodField` that retrieves related matches for the given player.
+  
 - **🔒 Authentication**:
-  - Only registered users can:
-    - add or update match results;
-    - view player details.
+  - *Feature*: Only registered users can add or update match results and view player details.
+  - *Implementation*:
+    - The default permission is set to `IsAuthenticatedOrReadOnly`, which means non-registered users can view basic information such as the Hall of Fame rankings (so `PlayerViewSet` allows read access).
+    - The `permission_classes` in `MatchViewSet` is set to `[IsAuthenticated]`, which ensures that only authenticated users can create or update match results.
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 
@@ -58,25 +69,19 @@ The app features a front-end built with Django templates, JavaScript, and Bootst
 
 ---
 
-## 🕹️ Usage
+## 🕹️ Usage Verification
 
 ### ➕ Add Match Results
 
-1. Log in as a registered user.
-2. Navigate to the "Add Match" page.
-3. Enter match details, including player names (pick from registered users or introduce unregistered).
-4. Submit the form to update rankings.
+Users need to be registered to add match results, and they must manually enter player information, which is allowed by the `MatchSerializer`.
 
 ### 📜 View Hall of Fame
 
-1. Visit the "Hall of Fame" page.
-2. Browse through the ranked list of players.
+Anyone (including unauthenticated users) can view player rankings. The Hall of Fame rankings are accessible through the `PlayerViewSet`, which supports read-only access for non-authenticated users.
 
 ### 👤 Player Profiles
 
-1. Register to view player details.
-2. Click on a player’s name in the Hall of Fame to view their profile.
-3. The profile displays all matches involving the player and some personal data.
+Registered users can view detailed player information, including match history for each player.
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 
@@ -88,7 +93,7 @@ The app features a front-end built with Django templates, JavaScript, and Bootst
 paddle/
 ├── config/            # Project configuration and settings
 ├── api/               # API apps
-│   ├── games/          # API app for players & matches
+│   ├── games/         # API app for players & matches
 │   │   ├── serializers.py
 │   │   ├── views.py
 │   │   ├── models.py  # Models for players & matches
@@ -130,29 +135,19 @@ paddle/
 
 ## 📋 App Explanations
 
-1. **`games/`**:
-   - Manages players and matches
-   - For players:
-      - Players functionalities are player data, rankings, and profiles.
-      - Players may or may not be associated with registered users.
-      - Stores player information.
-      - Provide APIs for player rankings and profiles.
-   - For matches:
-      - Manages match-related functionality, including match creation and retrieval.
-      - Matches involve 2 vs. 2 players, and winners contribute to player rankings.
-      - Store match details, including teams, date, and winners.
-      - Provide APIs for match results and details.
+**`games/`**: The `games` app manages both players and matches.
 
-2. **`users/`**:
-   - Manages user registration, login, logout and profile management.
-   - Registered users are equivalent to registered players.
-   - Registered players are allowed to:
-     - Add or update match results;
-     - Add non registered players when adding or updating a match;
-     - Check other users details
-   - Non-registered players have limited access compared to registered users. They can:
-     - Check the hall of fame;
-     - Become registered players using user registration to gain full access and benefits.
+- **Player-Related**:
+  - Players may be registered or non-registered users.
+  - A non-registered player can be linked to a new user using the `player_id` provided in the `UserSerializer` (`serializers.py`).
+  - If a new user links with a non-registered player, they inherit their stats.
+- **Match-Related**: Matches involve two teams of two players each, and the `winning_team` field is used to update player stats accordingly
+
+**`users/`**: Manages user registration, login, logout, linking of existing non-registered players, and user profiles management.
+
+- **User Registration**:
+  - The `UserViewSet` allows anyone to create a new user (`permission_classes` = [`AllowAny`]).
+  - The `UserSerializer` includes a `player_id` field that allows new users to link with existing non-registered players.
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 
@@ -160,16 +155,21 @@ paddle/
 
 ## 📡 API Endpoints
 
-| Endpoint | User | Explanation |
-| :------ | :----: | :------------------------------------------------------------------- |
-|  `/api/players/` | Any |**🏅 Hall of Fame** : Retrieves a list of all players ranked by the number of matches won |
-| `/api/players/<id>/` | Authenticated | **👤 Player Profile** : Retrieves details about a specific player, including their match history |
-|  `/api/matches/` | Authenticated | **🎮 Match Results** : List match results and create a new one|
-| `/api/matches/<id>/` | Authorized | **📄 Match Update** :  Allows editing only by players involved in that specific match |
-|  `/api/users/register/` | Any | **🔒 User Registration** : Allows new users to register and link the new registered user to an existent non registered player |
-| `/api/users/login/` | Any | **🔒 User Login** : Allows users to log in and authenticate using session authentication|
-| `/api/users/profile/` | Authenticated | **👤 User List** : Retrieves a list of users with some basic stats like matches played, wins, % success, date of registration |
-| `/api/users/profile/<id>` | Authorized | **👤 User Update** : The user can update their own personal details |
+`/api/players/`: Provides access to the Hall of Fame (list of all players). The endpoint is open to anyone, which complies with the requirement to allow unauthenticated users to view the Hall of Fame.
+
+`/api/players/<id>/`: Provides detailed information about a specific player. Only authenticated users can access it.
+
+`/api/matches/`: Allows registered users to list matches and create new ones.
+
+`/api/matches/<id>/`: Allows editing of match details, restricted to authorized users.
+
+`/api/users/register/`: Allows new users to register.
+
+`/api/users/login/`: Login endpoint to authenticate users.
+
+`/api/users/profile/`: Allows authenticated users to view a list of other users' profiles, including stats.
+
+`/api/users/profile/<id>/`: Place where users can update their details.
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 
