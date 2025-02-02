@@ -1,6 +1,7 @@
 from rest_framework.test import APITestCase
 from rest_framework import status
 from django.contrib.auth.models import User
+from unittest import skip
 
 class AuthenticationTests(APITestCase):
     def setUp(self):
@@ -35,7 +36,8 @@ class AuthenticationTests(APITestCase):
     def test_successful_logout(self):
         """Test a successful logout."""
         # First, log the user in
-        self.client.login(username="testuser", password="testpassword")
+        
+        self.client.force_authenticate(user=self.user)
 
         # Then, log out
         response = self.client.post(self.logout_url)

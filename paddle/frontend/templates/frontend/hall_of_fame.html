@@ -1,0 +1,55 @@
+{% extends 'frontend/base.html' %} {% block title %}Hall of Fame{% endblock %}
+{% block content %}
+<div class="text-center mb-4">
+  <h1 class="display-4">🏆 Hall of Fame 🏆</h1>
+  {% if user.is_authenticated %}
+  <p class="lead">Any new <a href="{% url 'match' %}">match</a> results?</p>
+  {% else %}
+  <p class="lead">
+    Please <a href="{% url 'login' %}">login</a> or
+    <a href="{% url 'register' %}">register</a> to check & add match results
+  </p>
+  {% endif %}
+</div>
+
+<div class="table-responsive">
+  <table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th scope="col">Rank</th>
+        <th scope="col">Player</th>
+        <th scope="col">🏅 Wins</th>
+        <th scope="col">🎾Matches</th>
+        <th scope="col">Rate</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for player in players %}
+      <tr>
+        <td>
+          {% if forloop.counter == 1 %}
+          <strong style="font-size: 1.5em">🏆 {{ forloop.counter }}</strong>
+          {% elif forloop.counter == 2 %}
+          <strong style="font-size: 1.3em">🥈 {{ forloop.counter }}</strong>
+          {% elif forloop.counter == 3 %}
+          <strong style="font-size: 1.2em">🥉 {{ forloop.counter }}</strong>
+          {% else %} {{ forloop.counter }} {% endif %}
+        </td>
+        <td>
+          {% if forloop.counter == 1 %}
+          <strong style="font-size: 1.5em">{{ player.name }}</strong>
+          {% elif forloop.counter == 2 %}
+          <strong style="font-size: 1.3em">{{ player.name }}</strong>
+          {% elif forloop.counter == 3 %}
+          <strong style="font-size: 1.2em">{{ player.name }}</strong>
+          {% else %} {{ player.name }} {% endif %}
+        </td>
+        <td>{{ player.wins }}</td>
+        <td>{{ player.matches_played }}</td>
+        <td>{{ player.win_rate|floatformat:0 }}%</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

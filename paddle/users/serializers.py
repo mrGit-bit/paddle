@@ -28,6 +28,14 @@ class UserSerializer(serializers.ModelSerializer):
             (player.id, player.name) for player in Player.objects.filter(registered_user__isnull=True)
         ]
     
+    def validate_username(self, value):
+        """
+        Case-insensitive validation to avoid duplicate usernames.
+        """
+        if User.objects.filter(username__iexact=value).exists():
+            raise serializers.ValidationError(f"Username '{value}' is already taken. Please choose another one.")
+        return value
+    
     def create(self, validated_data):
         # Extract (and remove) player_id and password from validated_data
         # with "None" result if not provided any player_id
@@ -46,6 +54,8 @@ class UserSerializer(serializers.ModelSerializer):
             try:
                 player = Player.objects.get(id=player_id, registered_user=None)
                 player.registered_user = user
+                # Replace the player name with the user's username
+                player.name = user.username
                 player.save()
             except Player.DoesNotExist:
                 raise serializers.ValidationError("Invalid player_id or player is already linked.")

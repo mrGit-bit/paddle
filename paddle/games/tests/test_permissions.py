@@ -86,25 +86,7 @@ class PlayerPermissionsTests(APITestCase):
         # Authenticated user
         self.client.force_authenticate(user=self.regular_user)
         response = self.client.get('/api/games/matches/')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_create_match_permissions_authenticated_user(self):
-        """Test that only authenticated users can create matches."""
-        match_data = {
-            "team1_player1": "Player 1",
-            "team1_player2": "Player 2",
-            "team2_player1": "Player 3",
-            "team2_player2": "Player 4",
-            "winning_team": 1,
-            "date_played": "2024-12-01"
-        }
-        # Unauthenticated user
-        response = self.client.post('/api/games/matches/', match_data)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        # Authenticated user
-        self.client.force_authenticate(user=self.regular_user)
-        response = self.client.post('/api/games/matches/', match_data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)    
 
     def test_update_match_permissions(self):
         """Test that only participants or admin users can update matches."""

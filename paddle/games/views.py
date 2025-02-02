@@ -5,13 +5,14 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny, B
 from .models import Player, Match
 from .serializers import PlayerSerializer, MatchSerializer
 
+
+
 class PlayerViewSet(viewsets.ModelViewSet):
     """
     ViewSet for handling CRUD operations related to players.
     """
     queryset = Player.objects.all().order_by('-wins')
-    serializer_class = PlayerSerializer
-    permission_classes = [IsAuthenticated] # Default permission at view level    
+    serializer_class = PlayerSerializer    
 
     def get_permissions(self):
         """
@@ -47,25 +48,26 @@ class IsMatchParticipant(BasePermission):
         return request.user in players
 
 
+
 class MatchViewSet(viewsets.ModelViewSet):
     """
     ViewSet for handling CRUD operations related to matches.
     """
     queryset = Match.objects.all().order_by('-date_played')
-    serializer_class = MatchSerializer
-    permission_classes = [IsAuthenticated] # Default permission at view level    
+    serializer_class = MatchSerializer    
 
     def get_permissions(self):
         """
         Define permissions for specific actions.
         """
-        # Only match participants can modify an existing match
-        if self.action in ['update', 'partial_update', 'destroy']:
-        # All the permissions in the list must be true (behavior is AND)
-            permission_classes = [IsAuthenticated, IsMatchParticipant]
-        # Authenticated users can 'create', 'list' and 'retrieve'
-        else: 
+        # Only participants can modify a match
+        if self.action in ['update', 'partial_update', 'destroy']:        
+            permission_classes = [IsMatchParticipant, IsAuthenticated]
+        # Any authenticated users can 'create', 'list' and 'retrieve'
+        elif self.action in ['create', 'list', 'retrieve']:
             permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [IsAuthenticated] # Default permission
         return [permission() for permission in permission_classes]
     
     def perform_create(self, serializer):
@@ -123,5 +125,9 @@ class MatchViewSet(viewsets.ModelViewSet):
                 player.matches.add(match)
             player.save()
     
-    
+    def get_serializer_context(self):
+        """Add request context to the serializer."""
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 

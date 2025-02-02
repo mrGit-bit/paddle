@@ -1,0 +1,131 @@
+body {
+  padding-top: 80px; /* 56 px is the bootstrap navbar height */
+}
+
+/* Fonts */
+body {
+  font-family: 'Roboto', sans-serif;
+}
+
+h1, h2, h3 {
+  font-family: 'Poppins', sans-serif;
+}
+
+.navbar-brand, .nav-link, button {
+  font-family: 'Montserrat', sans-serif;
+}
+
+.highlighted {
+  font-family: 'Oswald', sans-serif;
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+/* Colors */
+/* Base background and text colors */
+
+/* Body */
+/*
+body {
+  background-color: #004B23; 
+  color: #FFFF00; 
+}
+*/
+
+/* Navbar */
+.navbar {
+  background-color: #144D29; /* dark green background */
+}
+
+.navbar-brand,
+.navbar-nav .nav-link {
+  color: #FFFF00 !important; /* Bright yellow */
+}
+
+.navbar-nav .nav-link:hover {
+  color: #FFD700 !important; /* Gold for hover */
+}
+
+/* Table headers */
+.table thead th {
+  background-color: #144D29; /* dark green background */
+  color: whitesmoke; /* White text for headers */  
+  font-weight: bold;  
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: #004B23; /* Dark green */
+  border-color: #004B23; /* Match button border to background */
+  color: #FFFF00; /* Bright yellow text */
+}
+
+.btn-primary:hover {
+  background-color: #005A30; /* Slightly lighter green on hover */
+}
+
+/* Alignments */
+/* Align all numeric table headers to the center for better readability */
+.table thead th:nth-child(3),
+.table thead th:nth-child(4),
+.table thead th:nth-child(5) {
+    text-align: center;
+}
+
+/* Align Rank data column to the right for better readability */
+.table tbody td:nth-child(1) {
+    text-align: center;
+}
+/* Align all numeric columns to the center for better readability */
+.table tbody td:nth-child(3),
+.table tbody td:nth-child(4),
+.table tbody td:nth-child(5) {
+    text-align: center;
+}
+
+
+/* Footer */
+footer {
+  background-color: #004B23; /* Dark green */
+  color: #FFFF00; /* Bright yellow text */
+  padding: 20px;
+  text-align: center;
+}
+
+/* Form validation styles */
+
+/* Default state for all fields */
+input:required, select:required {
+  border-color: #ced4da; /* Default Bootstrap border color */
+}
+
+/* Valid state */
+input:valid, select:valid {
+  border-color: #198754; /* Bootstrap green for valid */
+}
+
+/* Invalid state only after interaction */
+input:invalid:focus, select:invalid:focus {
+  border-color: #dc3545; /* Bootstrap red for invalid */
+}
+
+/* Ensure error message only shows when invalid */
+.invalid-feedback {
+  color: #dc3545;
+  font-size: 0.875rem;
+  display: none;
+}
+
+/* Show the error message for invalid fields that are not empty */
+input:invalid:not(:placeholder-shown) ~ .invalid-feedback,
+select:invalid ~ .invalid-feedback {
+  display: block;
+}
+
+/* Ensure valid fields do not show error messages */
+input:valid ~ .invalid-feedback,
+select:valid ~ .invalid-feedback {
+  display: none;
+}
+
+

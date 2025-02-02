@@ -1,7 +1,10 @@
 # games/serializers.py
 
 from rest_framework import serializers
+
 from .models import Player, Match
+from datetime import date
+from django.contrib.auth.models import User
 
 
 class PlayerSerializer(serializers.ModelSerializer):
@@ -53,6 +56,13 @@ class MatchSerializer(serializers.ModelSerializer):
         ]
     
     def validate(self, data):
+        """Ensure the following: 
+            - authenticated user is a match participant, 
+            - players are unique, 
+            - date is not in the future, and
+            - the same match does not already exist.
+        """
+        print("API validation started for the following data: ", data)
         """Ensure no player appears more than once in the same match."""
         # Normalize player names to compare them
         players = {
@@ -61,11 +71,62 @@ class MatchSerializer(serializers.ModelSerializer):
             data['team2_player1'].strip().lower(),
             data['team2_player2'].strip().lower()
         }
-
-        # Check for duplicates
+        
+        # Check for player duplicates and empty player fields
         if len(players) < 4:
             raise serializers.ValidationError("A player cannot appear more than once in the same match.")
 
+        # Get current user
+        user = self.context['request'].user
+        
+        # Avoid next checks if current user is admin
+        if user.is_superuser:
+            return data
+        
+        # Check that current user is linked to one of match participants
+        # Check if the current user is associated with a player
+        try:        
+            user_player = Player.objects.get(registered_user=user)
+        except Player.DoesNotExist:
+            raise serializers.ValidationError("Current user are not associated with any player.")
+        # Check if the current user's normalized player name is in the input data    
+        if user_player.name.strip().lower() not in players:
+            raise serializers.ValidationError("You are only allowed to create or update your own matches.")
+        
+
+        # Check date is not in the future
+        date_played = data['date_played']
+        if date_played > date.today():
+            raise serializers.ValidationError("Date cannot be in the future.")
+        
+        # Check if match already exists
+        # Normalize and sort players in the input data for comparison
+        team1_sorted = sorted([data['team1_player1'].strip().lower(), data['team1_player2'].strip().lower()])
+        team2_sorted = sorted([data['team2_player1'].strip().lower(), data['team2_player2'].strip().lower()])
+        
+        # Fetch matches played on the same date
+        existing_matches = Match.objects.filter(date_played=date_played)        
+        
+        for match in existing_matches:
+            # Skip the current match to allow updates
+            if self.instance is not None and self.instance.id == match.id:
+                continue
+            # Normalize and sort players of existing matches
+            existing_team1_sorted = sorted([
+                match.team1_player1.name.strip().lower(),
+                match.team1_player2.name.strip().lower()
+            ])
+            existing_team2_sorted = sorted([
+                match.team2_player1.name.strip().lower(),
+                match.team2_player2.name.strip().lower()
+            ])
+
+            # Compare sorted teams to be regardless of input order
+            if (team1_sorted == existing_team1_sorted and team2_sorted == existing_team2_sorted) or \
+            (team1_sorted == existing_team2_sorted and team2_sorted == existing_team1_sorted):
+                raise serializers.ValidationError("A match with the same teams and date already exists.")
+
+        # If all checks pass, return the validated data
         return data
     
     def create_or_get_player(self, name):

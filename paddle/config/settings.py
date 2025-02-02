@@ -9,11 +9,14 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+# Base API URL, change in production to point to the actual API
+BASE_API_URL = f"http://127.0.0.1:8000/api/"
+
 
 
 # Quick-start development settings - unsuitable for production
@@ -41,6 +44,7 @@ INSTALLED_APPS = [
     "rest_framework",    
     "users",
     "games",
+    "frontend",
 ]
 
 MIDDLEWARE = [
@@ -58,13 +62,14 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "frontend/templates"], # Ensure templates are found
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
-                "django.contrib.auth.context_processors.auth",
+                "django.contrib.auth.context_processors.auth", 
+                "django.template.context_processors.csrf", # Ensure CSRF token is available
                 "django.contrib.messages.context_processors.messages",
             ],
         },
@@ -119,7 +124,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = '/static/' # URL prefix for static files
+STATICFILES_DIRS = [BASE_DIR / "frontend/static",] # Static path in development
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -140,5 +147,8 @@ REST_FRAMEWORK = {
 }
 
 # URL to be redirected after login with api-auth/
-LOGIN_REDIRECT_URL = '/api/games/players/'  
+LOGIN_REDIRECT_URL = '/api/games/players/'
+
+# Override the Django´s default login page (/account/login/)
+LOGIN_URL = '/login/'
 

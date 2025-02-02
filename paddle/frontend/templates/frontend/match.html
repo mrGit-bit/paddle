@@ -1,0 +1,225 @@
+<!-- frontend/templates/frontend/match.html --> 
+
+{% extends 'frontend/base.html' %}
+{% load static %}
+
+{% block title %}Matches{% endblock %}
+
+{% block content %}
+<!-- Title Section -->
+<div class="text-center mb-4">
+  <h1 class="display-4">🎾Matches🎾</h1>    
+</div>
+
+<!-- Display errors if any -->
+{% if error %}
+<div class="alert alert-danger" role="alert">{{ error }}</div>
+{% endif %}
+
+<!-- Add New Match Section -->
+<div class="container">
+  <div class="row justify-content-center mb-5">    
+    <div class="col-sm-12">
+      <form method="POST" action="" autocomplete="off" class="card p-4 shadow">
+        {% csrf_token %}
+        <h4 class="text-center mb-3">Add your new match results</h4>
+        <div class="row">
+          
+          <!-- Team 1 Card -->
+          <div class="col-sm-6">
+            <div class="card shadow-sm">
+              <div class="card-body">
+                <h5 class="card-title">Team 1</h5>
+                
+                <!-- Team 1 Player 1 shall be the current user-->
+                <div class="mb-3 form-floating">
+                  <input
+                  type="text"
+                  class="form-control"
+                  id="team1_player1"
+                  name="team1_player1"
+                  value="{{ user.username }}"                  
+                  readonly
+                  disabled                  
+                  />
+                  <label for="team1_player1" class="form-label">You</label>
+                </div>
+                
+                <!-- Team 1 Player 2 options from the player list or new one-->
+                <div class="mb-3 form-floating">
+                  <input
+                  list = "players"
+                  type="text"
+                  class="form-control"
+                  id="team1_player2"
+                  name="team1_player2"
+                  placeholder="Enter Player 2"                  
+                  required
+                  />
+                  <label for="team1_player2" class="form-label">Player 2</label>
+                </div>
+                
+                <!-- Winner Team 1 Radio Button -->
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    name="winning_team"
+                    id="team1_wins"
+                    value="1"
+                    required
+                  />
+                  <label class="form-check-label" for="team1_wins">🏆 Winner</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Team 2 Card -->
+          <div class="col-sm-6">
+            <div class="card shadow-sm">
+              <div class="card-body">
+                <h5 class="card-title">Team 2</h5>
+                <!-- Team 2 Player 1 choose from the player list or new one-->
+                <div class="mb-3 form-floating">
+                  <input
+                  list = "players"
+                  type="text"
+                  class="form-control"
+                  id="team2_player1"
+                  name="team2_player1"
+                  placeholder="Enter Player 1"
+                  required
+                  />
+                  <label for="team2_player1" class="form-label">Player 1</label>
+                </div>
+                <!-- Team 2 Player 2 choose from the player list or new one-->
+                <div class="mb-3 form-floating">
+                  <input
+                  list = "players"
+                  type="text"
+                  class="form-control"
+                  id="team2_player2"
+                  name="team2_player2"
+                  placeholder="Enter Player 2"
+                  required
+                  />
+                  <label for="team2_player2" class="form-label">Player 2</label>
+                </div>
+                <!-- Winner Radio Button -->
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    name="winning_team"
+                    id="team2_wins"
+                    value="2"
+                  />
+                  <label class="form-check-label" for="team2_wins">🏆Winner</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Datalist options for Players input fields-->
+        <datalist id="players">
+          {% for player in players %}
+          <option value="{{ player.name }}">{{ player.name }}</option>
+          {% endfor %}
+        </datalist>
+
+        <!-- Date and Submit Button -->
+        <div class="d-flex justify-content-between mt-3">
+          <!-- Date Picker limited to today (max must be in ISO format)-->
+          <div>
+            <label for="date_played" class="form-label">Date played</label>
+            <input
+            type="date"
+            class="form-control"
+            id="date_played"
+            name="date_played"            
+            max="{{ today }}"
+            required
+            />
+          </div>
+          <!-- Submit Button -->
+          <button type="submit" class="btn btn-primary">Add Match</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- List of Matches Section -->
+  <h4 class="mb-4">Match History</h4>
+  <div class="row">
+    {% for match in matches %}
+    <div class="col-md-12 mb-4">
+      <div class="card shadow">
+        <div class="card-body">
+          <div class="row">
+            <!-- Team 1 -->
+            <div class="col-md-6">
+              <div class="card shadow-sm">
+                <div class="card-body">
+                  <h5 class="card-title">Team 1</h5>
+                  <p class="card-text">
+                    {{ match.team1_player1 }}<br />
+                    {{ match.team1_player2 }}
+                  </p>
+                  {% if match.winning_team == 1 %}
+                  <p class="text-success">Winner</p>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            <!-- Team 2 -->
+            <div class="col-md-6">
+              <div class="card shadow-sm">
+                <div class="card-body">
+                  <h5 class="card-title">Team 2</h5>
+                  <p class="card-text">
+                    {{ match.team2_player1 }}<br />
+                    {{ match.team2_player2 }}
+                  </p>
+                  {% if match.winning_team == 2 %}
+                  <p class="text-success">Winner</p>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="text-end mt-3">
+            <small class="text-muted">Played on {{ match.date_played }}</small>
+          </p>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <p class="text-center">No matches found.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+<!-- Block for additional scripts -->
+{% block scripts %}
+
+  <!-- Generate data for the Javascript playerLabelUpdater.js -->
+  <script>
+    // Dynamically generate player sets from Django
+    const registeredPlayers = new Set([
+      {% for player in registered_players %}
+        "{{ player.name }}",
+      {% endfor %}
+    ]);
+    const existingPlayers = new Set([
+      {% for player in existing_players %}
+        "{{ player.name }}",
+      {% endfor %}
+    ]);
+  </script>
+
+  <!-- Load JavaScript to update players input labels -->
+  <script src="{% static 'frontend/js/playerLabelUpdater.js' %}"></script>
+
+{% endblock %}

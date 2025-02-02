@@ -124,11 +124,15 @@ class UserSerializerTests(APITestCase):
         self.assertTrue(serializer.is_valid())
         user = serializer.save()
 
+        # Retrieve the player object again after creating the new user
+        player = Player.objects.get(id=self.unlinked_player.id)
+        
         # Check if user was created and linked correctly
-        self.assertEqual(user.username, "new_user")
-        self.assertEqual(user.player.name, self.unlinked_player.name)
+        # the player name should be changed to the user name
+        self.assertEqual(player.name, "new_user")        
+        self.assertEqual(user.player, player)
         self.assertEqual(user.player.registered_user, user)
-
+        
     def test_register_user_with_already_linked_player(self):
         """Test creating a user with a player already linked to another user."""
         data = {

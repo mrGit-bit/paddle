@@ -11,6 +11,7 @@ from rest_framework.exceptions import PermissionDenied
 from django.contrib.auth.models import User
 from .serializers import UserSerializer
 
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all().order_by('-date_joined')
     serializer_class = UserSerializer
@@ -51,10 +52,11 @@ class LoginView(APIView):
         username = request.data.get("username")
         password = request.data.get("password")
 
+        # Check if both fields are provided
         if not username or not password:
             # Rely on DRF's validation conventions
             return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_400_BAD_REQUEST)
-
+        # Authenticate the user
         user = authenticate(username=username, password=password)
         if user:
             login(request, user)  # Log the user in and create a session
@@ -75,7 +77,7 @@ class LogoutView(APIView):
     """
     Logout endpoint to end the session of the authenticated user.
     """
-    permission_classes = [IsAuthenticated] # Only authenticated users can logout
+    permission_classes = [IsAuthenticated] 
     
     def post(self, request, *args, **kwargs):
         if request.user.is_authenticated:
