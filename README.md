@@ -173,9 +173,12 @@ The `games` app manages both players and matches.
 
 `/api/games/matches/?player=<player_name>`:
 
-- `GET` Allows registered users to access the form for adding matches and viewing match history:
-  - When no player is specified, all matches are shown ordered by date.
-  - When a player_name is specified, only matches played by the player are shown ordered by date.
+- `GET` All matches, or filtering matches by a specific player. Allows registered users viewing match history and display the form for adding match results:
+  - When there is no query parameter, all matches are shown ordered by date.
+  - When query parameter is specified, only matches played by the player_name are shown ordered by date.
+
+`/api/games/matches/`:
+
 - `POST` Allows registered users to add matches by creating new ones. Also players are created if they don't already exist. The user should be one of the participants of the match.
 
 `/api/games/matches/<id>/`:
