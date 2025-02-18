@@ -79,8 +79,7 @@ class FrontendViewAPITests(APITestCase):
         self.assertContains(response, self.player3.name)
         self.assertContains(response, self.player4.name)
         # Check links for a logged in user
-        self.assertContains(response, "Matches")
-        self.assertContains(response, "Logged in")
+        self.assertContains(response, "Matches")        
         self.assertContains(response, "Logout")
         # Check links for a logged out user
         self.client.logout()

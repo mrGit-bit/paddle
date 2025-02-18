@@ -1,0 +1,72 @@
+<!-- path: frontend/templates/frontend/match_card.html -->
+<!-- Tab Content to be included in Match History --> 
+<!-- Two tabs: All Matches and My Matches --> 
+
+<div class="col-sm-12 col-lg-6 col-xl-4 mb-4">
+  <div id="match-card-{{ match.id }}" 
+    class="card shadow h-100"
+    data-team1-player1="{{ match.team1_player1|striptags|escape }}"
+    data-team1-player2="{{ match.team1_player2|striptags|escape }}"
+    data-team2-player1="{{ match.team2_player1|striptags|escape }}"
+    data-team2-player2="{{ match.team2_player2|striptags|escape }}"
+    data-winning-team="{{ match.winning_team }}"
+    data-date-played="{{ match.date_played|date:"Y-m-d" }}">
+    <div class="card-body">
+      <div class="row">
+        
+        <!-- Team 1 -->
+        <div class="col">
+          <div class="card shadow-sm h-60">
+            <div class="card-body {% if match.winning_team == 1 %} text-bg-success {% else %} text-bg-light {% endif %}">
+              <h5 class="card-title">
+                {% if match.winning_team == 1 %}Winning 🏆{% else %}Losing 🌴{% endif %}
+              </h5>
+              <p class="card-text">
+                {{ match.team1_player1 }}<br />
+                {{ match.team1_player2 }}
+              </p>
+            </div>
+          </div>
+        </div>
+    
+        <!-- Team 2 -->
+        <div class="col">
+          <div class="card shadow-sm h-60">
+            <div class="card-body {% if match.winning_team == 2 %} text-bg-success {% else %} text-bg-light {% endif %}">
+              <h5 class="card-title">
+                {% if match.winning_team == 2 %}Winning 🏆{% else %}Losing 🌴{% endif %}
+              </h5>
+              <p class="card-text">
+                {{ match.team2_player1 }}<br />
+                {{ match.team2_player2 }}
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Footer: Played Date & Actions -->
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          <small class="text-muted">Played on {{ match.date_played|date:"d/m/Y" }}</small>
+          {% if match in user_matches %}
+            <div class="ms-auto">
+              <!-- Delete Button -->
+              <a id="delete-button-{{ match.id }}" 
+                href="/matches/{{ match.id }}/delete" 
+                class="btn btn-secondary btn-sm">                  
+                <i class="bi bi-trash"></i>
+              </a>
+              <!-- Edit Button -->
+              <button id="edit-button-{{ match.id }}" 
+                data-match-id="{{ match.id }}"
+                class="btn btn-success btn-sm">
+                Edit
+              </button>
+            </div>
+          {% endif %}
+        </div>       
+      
+      </div>    
+    </div>
+  </div>
+</div>
+

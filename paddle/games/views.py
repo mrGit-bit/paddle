@@ -2,6 +2,8 @@
 
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny, BasePermission
+from rest_framework.response import Response
+from rest_framework.decorators import action
 from .models import Player, Match
 from .serializers import PlayerSerializer, MatchSerializer
 
@@ -70,6 +72,26 @@ class MatchViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated] # Default permission
         return [permission() for permission in permission_classes]
     
+    def get_queryset(self):
+        """
+        Allow filtering matches by a player's username using ?player=username.
+        """
+        queryset = Match.objects.all().order_by('-date_played')
+        player_name = self.request.query_params.get('player', None)
+
+        if player_name:
+            queryset = queryset.filter(
+                team1_player1__name__iexact=player_name
+            ) | queryset.filter(
+                team1_player2__name__iexact=player_name
+            ) | queryset.filter(
+                team2_player1__name__iexact=player_name
+            ) | queryset.filter(
+                team2_player2__name__iexact=player_name
+            )
+
+        return queryset
+    
     def perform_create(self, serializer):
         """
         Override the default behavior of saving a new instance
@@ -101,6 +123,14 @@ class MatchViewSet(viewsets.ModelViewSet):
         match = serializer.save()        
         self.update_player_stats(match)
 
+    def perform_destroy(self, instance):
+        """
+        Override the delete behavior to update players' stats before deleting the match.
+        """
+        self.update_player_stats_on_delete(instance)
+        instance.delete()
+
+    
     def update_player_stats(self, match):
         """
         Updates only the wins and matches fields of the players involved in the match.
@@ -124,6 +154,23 @@ class MatchViewSet(viewsets.ModelViewSet):
             if match.id not in player.matches.values_list('id', flat=True):
                 player.matches.add(match)
             player.save()
+    
+    def update_player_stats_on_delete(self, match):
+        """
+        Updates player stats when a match is deleted. 
+        - Decrements wins for winning players.
+        - Removes match from players' match history.
+        """
+        winning_players, losing_players = match.get_players_by_result()
+
+        for player_name in winning_players + losing_players:
+            player = Player.objects.get(name__iexact=player_name)
+            if match.id in player.matches.values_list('id', flat=True):
+                player.matches.remove(match)
+            if player_name in winning_players:
+                player.wins -= 1  # Reduce win count if applicable
+            player.save()
+
     
     def get_serializer_context(self):
         """Add request context to the serializer."""

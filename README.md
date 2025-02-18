@@ -171,15 +171,17 @@ The `games` app manages both players and matches.
 - `PUT` & `PATCH` Updates a player's information. Admin only.
 - `DELETE` Deletes a player. Admin only.
 
-`/api/games/matches/`:
+`/api/games/matches/?player=<player_name>`:
 
-- `GET` Allows registered users to access the form for adding matches and viewing match history.
-- `POST` Allows registered users to add matches by creating new ones. Also players are created if they don't already exist.
+- `GET` Allows registered users to access the form for adding matches and viewing match history:
+  - When no player is specified, all matches are shown ordered by date.
+  - When a player_name is specified, only matches played by the player are shown ordered by date.
+- `POST` Allows registered users to add matches by creating new ones. Also players are created if they don't already exist. The user should be one of the participants of the match.
 
 `/api/games/matches/<id>/`:
 
-- `PUT` & `PATCH` Allows editing of match details, restricted to authorized users of that match.
-- `DELETE` Deletes a match. Restricted to authorized users of that match.
+- `PUT` & `PATCH` Allows editing of match details. This is restricted to match participants.
+- `DELETE` Deletes a match. Restricted to match participants.
 
 ### Endpoints for the `users` app
 
@@ -207,16 +209,27 @@ In development, the `api-auth` app provides endpoints for login and logout for t
 
 ---
 
-## 🌐 Frontend Pages
+## 🌐 Frontend Endpoints
 
-The frontend provides the following endpoints to load different pages:
+The frontend provides the following endpoints with associated templates:
 
-- `/`: Hall of Fame (ranked list of players).
-- `/matches/`: adding match results and match history.
-- `/register/`: user registration.
-- `/login/`: user login using Django's built-in authentication.
-- `/players/<id>/`: player details, match history and stats.
+- `/`: Hall of Fame (ranked list of players). Load the `hall_of_fame.html` template.
+- `/matches/`: adding match results and match history. Load the `match.html` template.
+- `/matches/<id>/`: edit match results. Load the `match.html` template.
+- `/register/`: user registration. Load the `register.html` template.
+- `/login/`: user login using Django's built-in authentication. Load the `login.html` template.
+- `/players/<id>/`: player details, match history and stats of a specific player.
 - `/users/<id>/`: editing user details.
+
+Other frontend endpoints to perform actions only without any associated template:
+
+- `/logout/`: user logout using Django's built-in authentication.
+- `/matches/<id>/delete/`: delete a match.
+
+Templates used to extend or to be included in other templates:
+
+- `base.html`: Base template with common navigation bar & footer.
+- `match_card.html`: Tab Content to be included in the Match History section of the `match.html` template. Provides two tabs: All Matches and My Matches.
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 
@@ -224,8 +237,16 @@ The frontend provides the following endpoints to load different pages:
 
 ## 🛠️ JavaScript functionalities
 
-- `passwordValidation.js`: Checks if the password and confirm password fields match, and displays dynamically an error message if they don't. Is used in `register.html`.
-- `playerLabelUpdater.js`: The label of the player input field updates dynamically as the user types, based on the input value to distinguish between registered players, existing players, and new players in the form fields of `match.html`.
+- `passwordValidation.js`: checks if the password and confirm password fields match, and displays dynamically an error message if they don't. Is used in `register.html`.
+- `playerLabelUpdater.js`: the label of the player input field updates dynamically as the user types, based on the input value to distinguish between registered players, existing players, and new players in the form fields of `match.html`.
+- `winningTeamHighlight.js`: dynamically updates the background of the "Team 1" and "Team 2" cards in the form fields of `match.html` based on the selection of the "winning_team" radio button.
+- `matchDeleteHighlight.js`: dynamically updates the background of the match card in the form fields of `match.html` when the delete button is pressed.
+- `matchEdit.js`: allows editing of match details in `match.html`. By clicking on the edit button in a match card in the match history (the Edit button is only visible in matches where the current user is a participant):
+  - the selected match card to be edited is highlighted;
+  - the form in match.html is pre-filled with the data of the match;
+  - the html is focused on the form;
+  - the "Add Match" button is changed to "Edit Match". When the user clicks "Edit Match", the endpoint of the API is called by PUT;
+  - a "Cancel Edit" button is added to the form, which allows canceling the edit and reloads  the default match.html.
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 

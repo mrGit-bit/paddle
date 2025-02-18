@@ -54,15 +54,16 @@ body {
 }
 
 /* Buttons */
+/* 
 .btn-primary {
-  background-color: #004B23; /* Dark green */
-  border-color: #004B23; /* Match button border to background */
-  color: #FFFF00; /* Bright yellow text */
+  background-color: #004B23; 
+  border-color: #004B23; 
+  color: #FFFF00; 
 }
 
 .btn-primary:hover {
-  background-color: #005A30; /* Slightly lighter green on hover */
-}
+  background-color: #005A30; 
+} */
 
 /* Alignments */
 /* Align all numeric table headers to the center for better readability */

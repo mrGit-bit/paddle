@@ -5,6 +5,73 @@ from rest_framework import status
 from django.contrib.auth.models import User
 from games.models import Player, Match
 from datetime import date, timedelta
+from django.urls import reverse
+
+class MatchFilterTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="testuser", password="testpassword")
+        self.client.force_login(self.user)
+
+        # Create players
+        self.player1 = Player.objects.create(name="player1", registered_user=self.user)
+        self.player2 = Player.objects.create(name="player2")
+        self.player3 = Player.objects.create(name="player3")
+        self.player4 = Player.objects.create(name="player4")
+        self.player5 = Player.objects.create(name="player5")
+        self.player6 = Player.objects.create(name="player6")  # Player not in any match
+
+        # Create matches
+        self.match1 = Match.objects.create(
+            team1_player1=self.player1,
+            team1_player2=self.player2,
+            team2_player1=self.player3,
+            team2_player2=self.player4,
+            winning_team=1,
+            date_played="2024-01-01"
+        )
+        self.match2 = Match.objects.create(
+            team1_player1=self.player1,
+            team1_player2=self.player3,
+            team2_player1=self.player4,
+            team2_player2=self.player5,
+            winning_team=2,
+            date_played="2024-01-02"
+        )
+        self.match3 = Match.objects.create(
+            team1_player1=self.player2,
+            team1_player2=self.player3,
+            team2_player1=self.player4,
+            team2_player2=self.player5,
+            winning_team=1,
+            date_played="2024-01-03"
+        )
+
+    def test_get_all_matches(self):
+        """Ensure all matches are returned when no player is specified, ordered by date."""
+        response = self.client.get('/api/games/matches/', format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        matches = response.json()["results"]
+        self.assertEqual(len(matches), 3)
+        self.assertEqual(matches[2]["date_played"], "2024-01-01")
+        self.assertEqual(matches[1]["date_played"], "2024-01-02")
+        self.assertEqual(matches[0]["date_played"], "2024-01-03")
+
+    def test_get_filtered_matches_by_player(self):
+        """Ensure only matches involving a specific player are returned, ordered by date."""
+        response = self.client.get('/api/games/matches/?player=player1', format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        matches = response.json()["results"]
+        self.assertEqual(len(matches), 2)
+        self.assertEqual(matches[1]["date_played"], "2024-01-01")
+        self.assertEqual(matches[0]["date_played"], "2024-01-02")
+
+    def test_get_filtered_matches_no_results(self):
+        """Ensure filtering by a player not in any match returns an empty list."""
+        response = self.client.get('/api/games/matches/?player=player6', format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()["results"]), 0)
 
 
 class MatchEdgeCasesTests(APITestCase):

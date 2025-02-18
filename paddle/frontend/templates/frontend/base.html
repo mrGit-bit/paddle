@@ -11,12 +11,17 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+    <!-- Bootstrap icons-->
+    <link
+      rel="stylesheet" 
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
     <!-- Custom CSS to override Bootstrap styles -->
     <link rel="stylesheet" href="{% static 'frontend/css/styles.css' %}" />
     <!-- Google Fonts -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Open+Sans:wght@400;600&family=Poppins:wght@400;700&family=Roboto:wght@400;700&display=swap"
       rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Open+Sans:wght@400;600&family=Poppins:wght@400;700&family=Roboto:wght@400;700&display=swap"
     />
   </head>
   <body class="d-flex flex-column min-vh-100">
@@ -41,14 +46,22 @@
             <li class="nav-item"><a class="nav-link" href="/stats/">Stats</a></li>
           </ul>
           <ul class="navbar-nav ms-auto">
+            <!-- User profile link with bootstrap icon and tooltip-->
             <li class="nav-item">
-              <a class="nav-link" href="/users/{{ user_id }}/">Logged in as {{ user.username }}</a>
+              <a class="nav-link" data-bs-toggle="tooltip" title="User Profile" href="/users/{{ user.id }}/">
+                <i class="bi bi-person-check-fill"></i> 
+                <span class="fw-bold">
+                  {{ user.username }}
+                </span>                
+              </a>                
             </li>
+
+            <!-- Logout form POST request: bootstrap icon with tooltip -->
             <li class="nav-item">
-              <!-- Logout form POST request -->
               <form method="POST" action="/logout/">
                 {% csrf_token %}
-                <button class="btn btn-link nav-link" type="submit">Logout</button>
+                <button class="btn btn-link nav-link" type="submit" data-bs-toggle="tooltip" title="Logout">
+                  <i class="bi bi-box-arrow-right"></i> Logout</button>
               </form>
             </li>
           </ul>

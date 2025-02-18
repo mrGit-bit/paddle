@@ -7,8 +7,11 @@ from django.conf import settings
 from games.models import Player
 import requests
 from urllib.parse import urljoin
-from datetime import date
+from datetime import date, datetime
 from django.middleware.csrf import get_token
+from django.utils.safestring import mark_safe
+from django.http import HttpResponseForbidden
+
 
 BASE_API_URL = settings.BASE_API_URL
 
@@ -90,6 +93,22 @@ def register_view(request):
     # Render the registration form with available players context
     return render(request, 'frontend/register.html', {"players": players})
 
+def process_matches(matches, current_user, user_icon):
+    """
+    Processes a list of matches by:
+    - Highlighting the current user with an icon.
+    - Converting date_played from string to date object.
+    """
+    for match in matches:
+        for key in ["team1_player1", "team1_player2", "team2_player1", "team2_player2"]:
+            if match[key] == current_user:
+                match[key] = user_icon
+
+        if isinstance(match.get("date_played"), str):
+            match["date_played"] = datetime.strptime(match["date_played"], "%Y-%m-%d").date()
+    
+    return matches  # Ensure processed list is returned
+
 def match_view(request, client=None):
     # Debug requesting user
     print("Starting match_view")
@@ -98,35 +117,47 @@ def match_view(request, client=None):
     # Create a session and pre-configure it
     session = requests.Session()
     session.cookies.update(request.COOKIES)  # Update the session cookies from the request    
-    csrf_token = request.COOKIES.get('csrftoken') or get_token(request)
-    print(f"Retrieved CSRF token in cookies: {csrf_token}")    
+    csrf_token = request.COOKIES.get('csrftoken') or get_token(request)    
         
     # Fetch players to populate the input form
     players_url = urljoin(BASE_API_URL, "games/players/")
     print(f"Requesting players from API: {players_url}")
-    # players_response = session.get(players_url)
     players_response = session.get(players_url) # Use session instead of 'requests.get'
     _, players = handle_api_response(players_response, lambda res: res.json().get('results', []))
+    
     # Separate registered and non-registered players
     registered_players = [player for player in players if player.get('registered_user')]
     existing_players = [player for player in players if not player.get('registered_user')]
     
-    # Fetch all matches for the match.html GET template
+    # Fetch all matches 
     matches_url = urljoin(BASE_API_URL, "games/matches/")
-    print(f"Requesting matches from API: {matches_url}")
-    # matches_response = session.get(matches_url)
+    print(f"Requesting matches from API: {matches_url}")    
     matches_response = session.get(matches_url) # Use session instead of 'requests.get'
     _, matches = handle_api_response(matches_response, lambda res: res.json().get('results', []))
     
+    # Fetch only matches where the user has played
+    user_matches_url = f"{matches_url}?player={request.user.username}"
+    print(f"Requesting user matches from API: {user_matches_url}")
+    user_matches_response = session.get(user_matches_url)
+    _, user_matches = handle_api_response(user_matches_response, lambda res: res.json().get('results', []))
+    
+    # Add a Bootstrap icon for the current user and bold text 
+    user_icon = mark_safe('<i class="bi bi-person-check-fill"></i><span class="fw-bold">' + request.user.username + '</span>')
+    
+    # Process matches
+    matches = process_matches(matches, request.user.username, user_icon) # All matches processed
+    user_matches = process_matches(user_matches, request.user.username, user_icon) # User matches processed
+        
     # Add today's date to limit the date picker in the ISO format 'YYYY-MM-DD'
     today = date.today().isoformat()
     
-    # Centralized context dictionary for all the possible rendering situations
+    # Centralized context dictionary
     context = {
         "players": players,
         "registered_players": registered_players,
         "existing_players": existing_players,
-        "matches": matches,
+        "matches": matches, # All matches
+        "user_matches": user_matches, # Matches played by the user
         "today": today,
         "error": None
     }
@@ -152,10 +183,7 @@ def match_view(request, client=None):
             context["error"] = "Try again, you have introduced duplicated players!"
             return render(request, 'frontend/match.html', context)            
         
-        # Send match data as JSON to the API
-        print (f"CSRF Token sent to API: {csrf_token}")
-        print (f"Cookies sent to API: {session.cookies}")
-        print (f"Headers sent to API: {session.headers}")
+        # Send match data as JSON to the API        
         match_response = session.post(
             matches_url, # url must be the first positional argument
             json=match_data,
@@ -177,8 +205,43 @@ def match_view(request, client=None):
         return redirect('hall_of_fame')       
 
     # Handle GET request: display the match form and a list of all matches played    
-    print("Rendering match.html template with context data and CSRF token")
+    print("Rendering match.html")
     return render(request, 'frontend/match.html', context)
+
+
+@login_required
+def delete_match_view(request, id):
+    """
+    View to delete a match by its ID. Only accessible to logged-in users.
+    """
+    # Debug the requesting user
+    print(f"User calling delete_match_view: {request.user} (Authenticated: {request.user.is_authenticated})")
+
+    # Create a session and pre-configure it
+    session = requests.Session()
+    session.cookies.update(request.COOKIES)  # Update the session cookies from the request    
+    csrf_token = request.COOKIES.get('csrftoken') or get_token(request)
+    
+    # Build the API URL for deleting a specific match
+    delete_url = urljoin(BASE_API_URL, f"games/matches/{id}/")
+    print(f"Requesting deletion of match at URL: {delete_url}")
+
+    # Send the DELETE request to the API
+    response = session.delete(delete_url, headers={'X-CSRFToken': csrf_token})
+    print(f"API Response Status: {response.status_code}")
+    print(f"API Response Content: {response.content}")
+
+    # Handle API response
+    if response.status_code == 204:  # Successful deletion
+        print("Match deleted successfully.")
+        return redirect('match')
+    elif response.status_code == 403:  # Forbidden, user not authorized
+        print("Deletion forbidden: User not authorized to delete this match.")
+        return HttpResponseForbidden("You are not authorized to delete this match.")
+    else:
+        error_message, _ = handle_api_response(response)
+        print(f"Error deleting match: {error_message}")
+        return render(request, 'frontend/match.html', {"error": error_message})
 
 def user_view(request, id):
     session = requests.Session()
