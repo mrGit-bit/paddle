@@ -17,7 +17,7 @@ urlpatterns = [
     path('', views.hall_of_fame_view, name='hall_of_fame'),    
     path('register/', views.register_view, name='register'),
     path('matches/', views.match_view, name='match'),
-    path('matches/<int:id>/delete/', views.delete_match_view, name='delete_match'),
+    
     path('users/<int:id>/', views.user_view, name='user'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),

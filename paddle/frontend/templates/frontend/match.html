@@ -156,37 +156,37 @@
   <!-- Match History Tabs -->
   <ul class="nav nav-tabs mb-3" id="matchTabs">
     <li class="nav-item">
-      <a class="nav-link active" id="all-matches-tab" data-bs-toggle="tab" href="#all-matches">All Matches</a>
+      <a class="nav-link active" id="user-matches-tab" data-bs-toggle="tab" href="#user-matches">My Matches</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" id="user-matches-tab" data-bs-toggle="tab" href="#user-matches">My Matches</a>
+      <a class="nav-link" id="all-matches-tab" data-bs-toggle="tab" href="#all-matches">All Matches</a>
     </li>
   </ul>
   
   <!-- Tab Content -->
   <div class="tab-content">
+    <!-- My Matches Tab -->
+    <div class="tab-pane fade show active" id="user-matches">
+      <div class="row">
+        {% for match in user_matches %} <!-- Loop only through user matches -->
+          {% include "frontend/_match_card.html" with match=match %}
+        {% empty %}
+          <p class="text-center">You haven't played any matches yet.</p>
+        {% endfor %}
+      </div>
+    </div>
 
     <!-- All Matches Tab -->
-    <div class="tab-pane fade show active" id="all-matches">
+    <div class="tab-pane fade" id="all-matches">
       <div class="row">
         {% for match in matches %} <!-- Loop through all matches -->
-          {% include "frontend/match_card.html" with match=match %}
+          {% include "frontend/_match_card.html" with match=match %}
         {% empty %}
           <p class="text-center">No matches found.</p>
         {% endfor %}
       </div>
     </div>    
 
-    <!-- My Matches Tab -->
-    <div class="tab-pane fade" id="user-matches">
-      <div class="row">
-        {% for match in user_matches %} <!-- Loop only through user matches -->
-          {% include "frontend/match_card.html" with match=match %}
-        {% empty %}
-          <p class="text-center">You haven't played any matches yet.</p>
-        {% endfor %}
-      </div>
-    </div>
 
   </div> 
   

@@ -192,13 +192,13 @@ Manages user registration, login, logout, linking of existing non-registered pla
 
 `/api/users/`:
 
-- `POST` Allows new users to register. Open to anyone.
+- `POST` Allows new users to register. Open to anyone. Check if username already exists.
 
 `/api/users/<id>/`:
 
-- `GET` View the user's own profile.
+- `GET` View the user's own profile. Only the owner of the profile can.
 - `PUT` & `PATCH` Update a user's profile. Only the owner of the profile can.
-- `DELETE` Delete a user's profile. Only the owner of the profile can.
+- `DELETE` Delete a user's profile. Only the owner of the admin can.
 
 ### Endpoints for the `api-auth` browsable API
 
@@ -212,27 +212,36 @@ In development, the `api-auth` app provides endpoints for login and logout for t
 
 ---
 
-## 🌐 Frontend Endpoints
+## 🌐 Frontend Endpoints & Templates
 
-The frontend provides the following endpoints with associated templates:
+### 🏗️ Foundation Template
 
-- `/`: Hall of Fame (ranked list of players). Load the `hall_of_fame.html` template.
-- `/matches/`: adding match results and match history. Load the `match.html` template.
-- `/matches/<id>/`: edit match results. Load the `match.html` template.
-- `/register/`: user registration. Load the `register.html` template.
-- `/login/`: user login using Django's built-in authentication. Load the `login.html` template.
-- `/players/<id>/`: player details, match history and stats of a specific player.
-- `/users/<id>/`: editing user details.
+All templates extend a base layout using `{% extends "base.html" %}` where:
 
-Other frontend endpoints to perform actions only without any associated template:
+- `base.html`: Provides the site-wide layout, including the common navigation bar and standard footer. It serves as the foundation for all pages, ensuring a consistent look and feel across the site.
 
-- `/logout/`: user logout using Django's built-in authentication.
-- `/matches/<id>/delete/`: delete a match.
+### 🔗 URLs & Full Page Templates
 
-Templates used to extend or to be included in other templates:
+These are the full-page templates directly mapped to URLs:
 
-- `base.html`: Base template with common navigation bar & footer.
-- `match_card.html`: Tab Content to be included in the Match History section of the `match.html` template. Provides two tabs: All Matches and My Matches.
+|URL|	Purpose|Template Loaded|
+|---|---|---|
+|`/` | Hall of Fame – ranked list of players |`hall_of_fame.html`|
+|`/register/` | User registration |`register.html`|
+|`/login/` | User login |`login.html`|
+|`/logout/` | User logout |N/A - View handled|
+|`/users/<id>/` | User details and editing |`user.html`|
+|`/matches/` | Match results and editing |`match.html`|
+|`/matches/<id>/delete/` | Delete match |N/A - View handled|
+
+### 📂 Partial & Reusable Templates
+
+These partial templates are reusable components designed to be included in full templates using `{% include %}`:
+
+- `_match_card.html`: Displays a match card used in the tabs of Match History section of `match.html`.
+  
+- `_user_form.html`:A dynamic form for creating and editing users.
+Reused in both `register.html` (for new users) and `user.html` (for editing profiles).
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 
@@ -250,6 +259,9 @@ Templates used to extend or to be included in other templates:
   - the html is focused on the form;
   - the "Add Match" button is changed to "Edit Match". When the user clicks "Edit Match", the endpoint of the API is called by PUT;
   - a "Cancel Edit" button is added to the form, which allows canceling the edit and reloads  the default match.html.
+- `editUserProfile.js`: allows editing of allowed user details in `user.html`. Only the email field is editable. By changing the value on the email field in the user profile, "Cancel Changes" and "Save Changes" buttons are enabled: 
+  - When the user clicks "Save Changes", the endpoint of the API is called by PATCH. 
+  - When the user clicks "Cancel Changes", the form is reset to the original values.
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 

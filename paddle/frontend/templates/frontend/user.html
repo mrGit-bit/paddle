@@ -1,0 +1,34 @@
+<!-- frontend/templates/frontend/user.html -->
+{% extends 'frontend/base.html' %}
+{% load static %}
+
+{% block title %}User Profile{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <h2 class="text-center">User Profile</h2>
+      <p class="text-center mb-4"> Click any field below to edit it.</p>
+
+      <!-- Display errors if any -->
+      <!-- Error container for AJAX responses -->
+      <div id="error-container"></div>
+      
+      <!-- Include the reusable user form -->
+      {% include "frontend/_user_form.html" with form_action=request.path is_registration=False players=players submit_label="Edit Changes" %}
+
+      <p class="text-center mt-3">
+        Do you want to reset your password? <a href="{% url 'login' %}"> Click here</a>.
+      </p>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+<!-- Block for additional scripts -->
+{% block scripts %}
+<!-- Include JavaScript to allow editing user Profile-->
+<script src="{% static 'frontend/js/editUserProfile.js' %}"></script>
+{% endblock %}

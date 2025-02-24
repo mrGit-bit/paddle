@@ -1,0 +1,118 @@
+<!-- frontend/templates/frontend/_user_form.html -->
+<!-- reusable user form included in register.html and user.html -->
+<!-- passed context variables: form_action, is_registration, players, submit_label -->
+{% load static %}
+
+<form method="POST" 
+  id="user-form"
+  action="{{ form_action }}" 
+  autocomplete="off" 
+  class="needs-validation" 
+  novalidate>
+  {% csrf_token %}
+
+  <!-- Username field -->
+  <div class="mb-3 form-floating">
+    <input
+    type="text"
+    class="form-control"
+    id="username"
+    name="username"
+    autocomplete="off"
+    placeholder="Enter your username"
+    pattern="^[a-zA-Z0-9@.+-_]{3,15}$"
+    maxlength="15"
+    minlength="3"
+    value="{{ user.username|default:'' }}"
+    {% if is_registration %}required{%else%}readonly disabled{% endif %}
+    required
+    />
+    <label for="username" class="form-label">Username</label>
+    <div class="invalid-feedback">
+      Username must be 3-15 characters long. Allowed: letters, numbers, @/./+/-/_.
+    </div>
+  </div>
+
+  <!-- Email field -->
+  <div class="mb-3 form-floating">
+    <input
+    type="email"
+    class="form-control"
+    id="email"
+    name="email"
+    placeholder="Enter your email"
+    value="{{ user.email|default:'' }}"    
+    required
+    />
+    <label for="email" class="form-label">Email Address</label>
+    <div class="invalid-feedback">Please enter a valid email address.</div>
+  </div>
+
+  <!-- Registration fields only-->
+  {% if is_registration %}
+    <!-- Password field -->
+    <div class="mb-3 form-floating">
+      <input
+      type="password"
+      class="form-control"
+      id="password"
+      name="password"
+      autocomplete="new-password"
+      placeholder="Enter a password"
+      minlength="8"    
+      required
+      />
+      <label for="password" class="form-label">Password</label>
+      <div class="invalid-feedback">
+        Password must contain at least 8 characters.
+      </div>
+    </div>
+
+    <!-- Confirm Password field -->
+    <div class="mb-3 form-floating">
+      <input
+      type="password"
+      class="form-control"
+      id="confirm_password"
+      name="confirm_password"
+      placeholder="Confirm your password"          
+      required
+      />
+      <label for="confirm_password" class="form-label"
+        >Confirm Password</label
+      >
+      <div class="invalid-feedback">
+        Passwords must match.
+      </div>
+    </div>  
+
+    <!-- Link a Player Dropdown  -->  
+    <div class="mb-3 form-floating">
+      <select class="form-select"
+        id="player_id"
+        name="player_id">
+        <option value="">No, I am a new player</option>
+        {% for player_id, player_name in players %}
+        <option value="{{ player_id }}">{{ player_name }}</option>
+        {% endfor %}
+      </select>
+      <label for="player_id">
+        Check if you are one of the existing players
+      </label>
+    </div>  
+
+    <!-- Buttons -->
+    <!-- Registration Submit Button -->  
+    <button 
+      type="submit" class="btn btn-primary w-100">Register</button>    
+    <!-- User details buttons -->  
+    {% else %}
+    <div class="d-flex justify-content-between mt-4">
+      <button type="button" id="cancel-btn" class="btn btn-secondary w-50  me-2" disabled>Cancel Changes</button>
+      <button type="submit" id="save-btn" class="btn btn-success w-50" disabled>Save Changes</button>
+    </div>
+  {% endif %}
+
+</form>
+
+

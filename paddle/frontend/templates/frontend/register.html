@@ -11,94 +11,21 @@
       <h2 class="text-center mb-4">Create an Account</h2>
 
       <!-- Display errors if any -->
-      {% if error %}
-      <div class="alert alert-danger" role="alert">{{ error }}</div>
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-danger">
+            {{ message }}
+          </div>
+        {% endfor %}
       {% endif %}
-
-      <!-- Registration Form -->
-      <form method="POST" action="" autocomplete="off" class="needs-validation" novalidate>
-        {% csrf_token %}
-        <div class="mb-3 form-floating">
-          <input
-          type="text"
-          class="form-control"
-          id="username"
-          name="username"
-          autocomplete="off"
-          placeholder="Enter your username"
-          pattern="^[a-zA-Z0-9@.+-_]+$"
-          required
-          />
-          <label for="username" class="form-label">Username</label>
-          <div class="invalid-feedback">
-            Enter a valid username without spaces: letters, numbers, and @/./+/-/_ characters.
-          </div>
-        </div>
-        <div class="mb-3 form-floating">
-          <input
-          type="email"
-          class="form-control"
-          id="email"
-          name="email"
-          placeholder="Enter your email"
-          required
-          />
-          <label for="email" class="form-label">Email Address</label>
-          <div class="invalid-feedback">Please enter a valid email address.</div>
-        </div>
-        <div class="mb-3 form-floating">
-          <input
-          type="password"
-          class="form-control"
-          id="password"
-          name="password"
-          autocomplete="new-password"
-          placeholder="Enter a password"
-          minlength="8"
-          required
-          />
-          <label for="password" class="form-label">Password</label>
-          <div class="invalid-feedback">
-            Password must contain at least 8 characters.
-          </div>
-        </div>
-
-        <div class="mb-3 form-floating">
-          <input
-          type="password"
-          class="form-control"
-          id="confirm_password"
-          name="confirm_password"
-          placeholder="Confirm your password"          
-          required
-          />
-          <label for="confirm_password" class="form-label"
-            >Confirm Password</label
-          >
-          <div class="invalid-feedback">
-            Passwords must match.
-          </div>
-        </div>
-
-        <!-- Dropdown selection to choose a non-linked player or creating a new one -->
-        <div class="mb-3 form-floating">
-          <select class="form-select" id="player_id" name="player_id">
-            <option value="">No, I am a new player</option>
-            {% for player_id, player_name in players %}
-            <option value="{{ player_id }}">{{ player_name }}</option>
-            {% endfor %}
-          </select>
-          <label for="player_id"
-            >Check if you are one of the existing players</label
-          >
-        </div>
-
-        <button type="submit" class="btn btn-primary w-100">Register</button>
-      </form>
+      
+      <!-- Include the reusable user form -->     
+      {% include "frontend/_user_form.html" with form_action=request.path is_registration=True players=players submit_label="Register" %}
 
       <p class="text-center mt-3">
         Already have an account? <a href="{% url 'login' %}">Log in here</a>.
       </p>
+
     </div>
   </div>
 </div>

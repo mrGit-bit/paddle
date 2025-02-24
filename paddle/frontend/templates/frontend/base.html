@@ -28,7 +28,7 @@
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
       <div class="container-fluid">
-        <a class="navbar-brand" href="/">Paddle HoF</a>
+        <a class="navbar-brand" href="{% url 'hall_of_fame' %}">Paddle HoF</a>
         <button
           class="navbar-toggler"
           type="button"
@@ -42,13 +42,13 @@
           <!-- Navbar for registered users -->
           {% if user.is_authenticated %}
           <ul class="navbar-nav me-auto">            
-            <li class="nav-item"><a class="nav-link" href="/matches/">Matches</a></li>
-            <li class="nav-item"><a class="nav-link" href="/stats/">Stats</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'match' %}">Matches</a></li>            
           </ul>
           <ul class="navbar-nav ms-auto">
             <!-- User profile link with bootstrap icon and tooltip-->
             <li class="nav-item">
-              <a class="nav-link" data-bs-toggle="tooltip" title="User Profile" href="/users/{{ user.id }}/">
+              <a class="nav-link" data-bs-toggle="tooltip" title="User Profile" 
+                href="{% url 'user' user.id %}">
                 <i class="bi bi-person-check-fill"></i> 
                 <span class="fw-bold">
                   {{ user.username }}
@@ -58,7 +58,7 @@
 
             <!-- Logout form POST request: bootstrap icon with tooltip -->
             <li class="nav-item">
-              <form method="POST" action="/logout/">
+              <form method="POST" action="{% url 'logout' %}">
                 {% csrf_token %}
                 <button class="btn btn-link nav-link" type="submit" data-bs-toggle="tooltip" title="Logout">
                   <i class="bi bi-box-arrow-right"></i> Logout</button>
@@ -70,10 +70,10 @@
           {% else %}
           <ul class="navbar-nav ms-auto">
             <li class="nav-item">
-              <a class="nav-link" href="/register/">Register</a>
+              <a class="nav-link" href="{% url 'register' %}">Register</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/login/">Login</a>
+              <a class="nav-link" href="{% url 'login' %}">Login</a>
             </li>
           </ul>
           {% endif %}

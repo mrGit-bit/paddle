@@ -1,16 +1,18 @@
 # frontend/views.py
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.conf import settings
-from games.models import Player
-import requests
-from urllib.parse import urljoin
-from datetime import date, datetime
 from django.middleware.csrf import get_token
 from django.utils.safestring import mark_safe
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
+from django.conf import settings
+from datetime import date, datetime
+from urllib.parse import urljoin
+from games.models import Player
+import requests
+import json
 
 
 BASE_API_URL = settings.BASE_API_URL
@@ -38,60 +40,235 @@ def hall_of_fame_view(request):
 
     return render(request, "frontend/hall_of_fame.html", {"players": players})
 
-def register_view(request):
-    session = requests.Session()
-    session.cookies.update(request.COOKIES) # Update the session cookies from the request
+def handle_api_response(response, success_callback=None):
+    """
+    Handles API responses, extracting errors or passing the data to a callback.
+    returns errors from the API (e.g., duplicate username, server errors).
+
+    Args:
+        response: The API response object.
+        success_callback: A function to call with the response data if successful.
+
+    Returns:
+        A tuple: (error_message, data).
+    """
+    if 200 <= response.status_code < 300:  # 2xx are successful responses
+        # If a success callback is provided, process the response data
+        if success_callback:
+            return None, success_callback(response)
+        # If no success callback is provided, return the response data
+        # and None for the error message
+        return None, response.json()
     
-    if request.method == 'POST':        
-        print(f"Data sent to API: {request.POST}")
-        # Check if passwords match
-        password = request.POST.get("password")
-        confirm_password = request.POST.get("confirm_password")
-        if password != confirm_password:
-            print("Passwords do not match")
-            return render(request, 'frontend/register.html', {"error": "Passwords do not match."})
-
-        # Send registration data to the users app via API
-        url = urljoin(BASE_API_URL, "users/")
-        csrf_token = request.COOKIES.get('csrftoken') or get_token(request)
-        session.headers.update({'X-CSRFToken': csrf_token})  # ✅ Ensure CSRF token is sent
-        response = session.post(url, data=request.POST, headers={'X-CSRFToken': csrf_token})
-        print(f"API response status: {response.status_code}")
-        print(f"API response content: {response.content}")
+    # Handle error response
+    try:
+        errors = response.json()
         
-        # Handle API response
-        error_message, data = handle_api_response(response)
-        print (f"API response error: {error_message}")
-        print(f"API response data: {data}")
+        # Handle single-field errors (e.g., "detail": "Error message")
+        if isinstance(errors, dict):
+            # "detail" is a common error field in DRF error responses
+            if "detail" in errors:  
+                return errors["detail"], None
         
-        if error_message:
-            return render(request, 'frontend/register.html', {"error": error_message})
-
+            # Generalize field-specific errors (e.g., "username": ["This field is required."])
+            error_messages = []
+            for field, messages in errors.items():
+                if isinstance(messages, list):
+                    # Join all messages for the field with commas
+                    field_errors = ", ".join(messages)
+                    error_messages.append(f"{field.capitalize()}: {field_errors}")
+                else:
+                    error_messages.append(f"{field.capitalize()}: {messages}")
+            # Join all errors with newlines
+            return "\n".join(error_messages), None        
         
-        # Authenticate and log in after successful registration
-        username = request.POST.get("username")                
-        user = User.objects.get(username=username)
-        print (f"Created user: {user}")
-        if user.check_password(password):
-            login(request, user)  # Log in the user with session
-            print(f"Authenticated user: {request.user}")
-            return redirect('hall_of_fame')     
-        # If authentication fails then return to the register page
-        return render(request, 'frontend/register.html', {"error": error_message.strip()})
+        # Handle non-dict errors
+        return str(errors), None
+    
+    # Handle non-JSON responses
+    except ValueError:
+        return "An error occurred.", None
 
-    # Fetch non-linked players from the API endpoint    
-    print(f"{request.user} calling available players to populate the register_view...")
+def fetch_available_players(session, request):
+    """
+    Fetch non-linked players from the API.
+    """
+    print(f"{request.user} fetching available players...")
     url = urljoin(BASE_API_URL, "games/players/")
-    print(f"is requesting API url: {url}")
-    response = session.get(url) # Use session instead of 'requests.get
+    response = session.get(url)
     _, data = handle_api_response(response)
+
     players = [
         (player['id'], player['name'])
         for player in data.get('results', []) if player.get('registered_user') is None
     ] if data else []
+
+    return players
+
+def process_form_data(request):
+    """
+    Extract and validate form data from the request.
+    Supports both POST (for registration) and PATCH (for user profile updates).
+    Ensures non-editable fields are set to None in PATCH requests.
+    """
+    form_data = {}
+
+    # Handle POST (from registration)
+    if request.method == 'POST':
+        # Extract data from request.POST
+        form_data = {
+            "username": request.POST.get("username", "").strip(),
+            "email": request.POST.get("email", "").strip(),
+            "password": request.POST.get("password"),
+            "confirm_password": request.POST.get("confirm_password"),
+            "player": request.POST.get("player_id") or None, # Only player can be None
+        }
+        # Validate required fields
+        required_fields = ["username", "email", "password", "confirm_password"]
+        for field in required_fields:
+            if not form_data.get(field):
+                return None, f"The field '{field}' is required."
+                    
+        # Validate password match
+        if form_data["password"] != form_data["confirm_password"]:
+            return None, "Passwords do not match."
+        
+        # Remove confirm_password from final cleaned data
+        form_data.pop("confirm_password", None)
+    
+    # Handle PATCH (for user profile updates)
+    elif request.method == 'PATCH':
+        # Parse JSON data from request.body
+        try:
+            data = json.loads(request.body)
+            form_data = {
+                # Fields that can not be updated
+                "username": None,
+                "password": None,
+                "player": None,
+
+                # Fields that can be updated
+                "email": data.get("email", "").strip() or None,
+            }
+        except json.JSONDecodeError:
+            return None, "Invalid JSON in request body."
+
+    
+    # Clean form data by removing unmodified or None fields
+    cleaned_data = {
+        "username": form_data.get("username"),
+        "email": form_data.get("email"),
+        "password": form_data.get("password"),
+        "player": form_data.get("player"),
+    }
+
+    return cleaned_data, None
+
+
+def register_view(request):
+    session = requests.Session()
+    session.cookies.update(request.COOKIES) # Update the session cookies from the request
+    
+    # GET DATA: Fetch non-linked players from the API endpoint    
+    players = fetch_available_players(session, request)
+    
+    if request.method == 'POST':        
+        print(f"Data sent to API: {request.POST}")
+        
+        # ERRORS: Handle client-side errors (form validation)
+        form_data, form_error = process_form_data(request)        
+        if form_error:
+            print (f"Client-side error: {form_error}")
+            # Use Django messages to pass error to the redirected GET request            
+            messages.error(request, form_error)
+            return redirect('register')  # Redirect to the register page using GET
+
+        # API CALL: If not client side errors then sends registration data to API
+        url = urljoin(BASE_API_URL, "users/")
+        csrf_token = request.COOKIES.get('csrftoken') or get_token(request)
+        session.headers.update({'X-CSRFToken': csrf_token})  
+        response = session.post(url, data=form_data, headers={'X-CSRFToken': csrf_token})        
+        
+        # ERRORS: Handle server-side errors (API response)
+        api_error, data = handle_api_response(response)
+        if api_error:
+            print (f"Server-side error(s):\n{api_error}")
+            messages.error(request, api_error)
+            return redirect('register')
+        
+        # Authenticate and log in after successful registration
+        print(f"API response data: {data}")            
+        username = form_data["username"]
+        print (f"Created user: {username}")
+        user = User.objects.get(username=username)
+        if user.check_password(form_data["password"]):
+            login(request, user)  # Log in the user with session
+            print(f"Authenticated user: {request.user}")
+            # Redirect to the match page after successful registration
+            return redirect('match')     
+        # If authentication fails then return to the register page
+        return render(request, 'frontend/register.html', {"error": "Authentication failed", "players": players})
     
     # Render the registration form with available players context
     return render(request, 'frontend/register.html', {"players": players})
+
+@login_required
+def user_view(request, id):
+    print(f"Received request for user {id}: {request.method}")
+    session = requests.Session()
+    session.cookies.update(request.COOKIES)
+    
+    # GET DATA: Fetch user data from the API
+    try:
+        user = User.objects.get(id=id)
+    except User.DoesNotExist:
+        print(f"User {id} not found.")
+        return JsonResponse({'error': 'User not found.'}, status=404)
+
+    if request.method == 'PATCH':
+        print(f"PATCH data sent to API for user update: {request.body}")
+        
+        # ERRORS: Parse PATCH data (since Django doesn't parse PATCH by default)
+        try:
+            form_data = json.loads(request.body)
+        except json.JSONDecodeError:
+            print(f"Invalid JSON in request body: {request.body}")
+            return JsonResponse({'error': 'Invalid JSON in request body.'}, status=400)
+
+        # ERRORS: Handle client-side errors (form validation)
+        form_data, form_error = process_form_data(request)
+        if form_error:
+            print (f"Client-side error: {form_error}")
+            return JsonResponse({'error': form_error}, status=400)
+        print(f"Form data: {form_data}")
+        
+        # Prepare data for API update (only modified fields)
+        update_data = {k: v for k, v in form_data.items() if v is not None}
+        print(f"Update data: {update_data}")
+        
+        # API CALL: If not client side errors send PATCH data to API
+        update_url = urljoin(BASE_API_URL, f"users/{id}/")
+        csrf_token = request.COOKIES.get('csrftoken') or get_token(request)
+        session.headers.update({'X-CSRFToken': csrf_token, 'Content-Type': 'application/json'})
+        response = session.patch(update_url, data=json.dumps(update_data), headers={'X-CSRFToken': csrf_token})
+
+        # ERRORS: Handle server-side errors (API response)
+        api_error, data = handle_api_response(response)
+        if api_error:
+            print (f"Server-side error(s):\n{api_error}")
+            # If server-side error then return to the user page
+            return JsonResponse({'error': api_error}, status=response.status_code)
+
+        # Refresh user data after successful update        
+        user.refresh_from_db()
+        print(f"API response data: {data}")
+        print(f"Updated user: {user}")
+        # Return a JSON response instead of redirecting
+        return JsonResponse({'success': 'User updated successfully.', 'user': data}, status=200)
+
+    # For GET requests render the user profile page
+    print(f"Rendering user profile page for user {id}")
+    return render (request, 'frontend/user.html', {"user": user})
 
 def process_matches(matches, current_user, user_icon):
     """
@@ -243,67 +420,6 @@ def delete_match_view(request, id):
         print(f"Error deleting match: {error_message}")
         return render(request, 'frontend/match.html', {"error": error_message})
 
-def user_view(request, id):
-    session = requests.Session()
-    session.cookies.update(request.COOKIES)  # Maintain session cookies
-    if request.method == 'POST':
-        url = urljoin(BASE_API_URL, f"users/{id}/")
-        response = session.put(url, data=request.POST, headers={"Authorization": f"Bearer {request.session['user']['token']}"})
-        if response.status_code == 200:
-            return redirect('hall_of_fame')
-        return render(request, 'frontend/user_details.html', {"error": response.json()})
-
-    url = urljoin(BASE_API_URL, f"users/{id}/")
-    response = requests.get(url)
-    if response.status_code == 200:
-        return render(request, 'frontend/user_details.html', {"user": response.json()})
-    return render(request, 'frontend/user_details.html', {"error": "User not found."})
-
-def handle_api_response(response, success_callback=None):
-    """
-    Handles API responses, extracting errors or passing the data to a callback.
-
-    Args:
-        response: The API response object.
-        success_callback: A function to call with the response data if successful.
-
-    Returns:
-        A tuple: (error_message, data).
-    """
-    if 200 <= response.status_code < 300:  # 2xx are successful responses
-        # If a success callback is provided, process the response data
-        if success_callback:
-            return None, success_callback(response)
-        # If no success callback is provided, return the response data
-        # and None for the error message
-        return None, response.json()
-    
-    # Handle error response
-    try:
-        errors = response.json()
-        
-        # Handle single-field errors (e.g., "detail": "C")
-        if isinstance(errors, dict):
-            # "detail" is a common error field in DRF error responses
-            if "detail" in errors:  
-                return errors["detail"], None
-        
-            # Generalize field-specific errors (e.g., "username": ["This field is required."])
-            error_message = ""
-            for field, messages in errors.items():
-                if isinstance(messages, list):
-                    error_message += f"{field.capitalize()}: {messages[0]} "
-                else:
-                    error_message += f"{field.capitalize()}: {messages} "
-            return error_message.strip(), None        
-        
-        # Handle non-dict errors
-        return str(errors), None
-    
-    # Handle non-JSON responses
-    except ValueError:
-        return "An error occurred.", None
-
 # Login / logout endpoints 
 def login_view(request):
     if request.method == 'POST':
@@ -326,18 +442,4 @@ def logout_view(request):
         return redirect('hall_of_fame') # Redirect to the home page after logout   
     return redirect('login') # Redirect to the login page for GET requests to logout
 
-# Endpoints for future functionalities
-# def player_view(request, id):
-#     url = urljoin(BASE_API_URL, f"games/players/{id}/")
-#     response = requests.get(url)
-#     if response.status_code == 200:
-#         return render(request, 'frontend/player_details.html', {"player": response.json()})
-#     return render(request, 'frontend/player_details.html', {"error": "Player not found."})
-
-# def stats_view(request):
-#     url = urljoin(BASE_API_URL, "games/stats/")
-#     response = requests.get(url)
-#     if response.status_code == 200:
-#         return render(request, 'frontend/stats.html', {"stats": response.json()})
-#     return render(request, 'frontend/stats.html', {"error": "Stats not available."})
 
