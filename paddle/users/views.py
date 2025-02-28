@@ -1,51 +1,47 @@
 # users/views.py
 # with session based authentication
 
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login, logout
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.contrib.auth import authenticate, login, logout
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.exceptions import PermissionDenied
-from django.contrib.auth.models import User
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser, BasePermission
 from .serializers import UserSerializer
 
+class IsUserOrAdmin(BasePermission):
+    # Custom permission: Users can view and update only their own profile,
+    # and Admin users can access any profile
+    def has_object_permission(self, request, view, obj):
+        return obj == request.user or request.user.is_staff
 
 class UserViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing users:
+    - Regular users can retrieve and update only their own profile.
+    - Admin are the only ones who can list and delete users.
+    """    
     queryset = User.objects.all().order_by('-date_joined')
     serializer_class = UserSerializer
 
     def get_permissions(self):
         # Custom permission logic for each action
-        if self.action == 'create':
-            # Allow anyone to register a new user
-            permission_classes = [AllowAny]
-        elif self.action == 'list':
-            # Only authenticated users can view the list of users
-            permission_classes = [IsAuthenticated]
-        elif self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
-            # Only authenticated users can view, update, or delete profiles
-            permission_classes = [IsAuthenticated]
+        if self.action == 'create':            
+            permission_classes = [AllowAny] # Allow anyone to register a new user
+        elif self.action in ['list', 'destroy']:            
+            permission_classes = [IsAdminUser] # Only admin users can list and delete users
+        elif self.action in ['retrieve', 'update', 'partial_update']:            
+            permission_classes = [IsAuthenticated, IsUserOrAdmin] # Users can access & edit only their own profile
         else: # Default permission
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
-
-    def get_object(self):
-        # Ensure that users can only update, retrieve, or delete their own profile
-        # Admin users can update, retrieve, or delete any profile
-        obj = super().get_object()
-        if self.action in ['update', 'partial_update', 'destroy']:
-            if obj != self.request.user and not self.request.user.is_staff:
-                raise PermissionDenied("You do not have permission to modify this profile.")
-        return obj
     
 class LoginView(APIView):
     """
     Login endpoint for users to authenticate using session-based authentication.
     """
     permission_classes = [AllowAny]  # Allow anyone to access this endpoint
-
     
     def post(self, request, *args, **kwargs):
         # Use DRF's serializer to handle validation
@@ -79,11 +75,7 @@ class LogoutView(APIView):
     """
     permission_classes = [IsAuthenticated] 
     
-    def post(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            logout(request)  # End the session
-            return Response({"message": "Logout successful."}, status=status.HTTP_200_OK)
-        # Use DRF's convention for unauthorized access
-        else:
-            return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_403_FORBIDDEN)
-    
+    def post(self, request, *args, **kwargs):        
+        logout(request)  # End the session
+        return Response({"message": "Logout successful."}, status=status.HTTP_200_OK)
+        

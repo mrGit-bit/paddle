@@ -43,12 +43,10 @@ def hall_of_fame_view(request):
 def handle_api_response(response, success_callback=None):
     """
     Handles API responses, extracting errors or passing the data to a callback.
-    returns errors from the API (e.g., duplicate username, server errors).
-
+    Returns errors from the API (e.g., duplicate username, server errors)
     Args:
         response: The API response object.
         success_callback: A function to call with the response data if successful.
-
     Returns:
         A tuple: (error_message, data).
     """
@@ -63,31 +61,13 @@ def handle_api_response(response, success_callback=None):
     # Handle error response
     try:
         errors = response.json()
-        
-        # Handle single-field errors (e.g., "detail": "Error message")
         if isinstance(errors, dict):
-            # "detail" is a common error field in DRF error responses
-            if "detail" in errors:  
-                return errors["detail"], None
-        
-            # Generalize field-specific errors (e.g., "username": ["This field is required."])
-            error_messages = []
-            for field, messages in errors.items():
-                if isinstance(messages, list):
-                    # Join all messages for the field with commas
-                    field_errors = ", ".join(messages)
-                    error_messages.append(f"{field.capitalize()}: {field_errors}")
-                else:
-                    error_messages.append(f"{field.capitalize()}: {messages}")
-            # Join all errors with newlines
-            return "\n".join(error_messages), None        
-        
-        # Handle non-dict errors
+            error_messages = [f"{field.capitalize()}: {', '.join(messages)}" if isinstance(messages, list) else f"{field.capitalize()}: {messages}"
+                              for field, messages in errors.items()]
+            return "\n".join(error_messages), None
         return str(errors), None
-    
-    # Handle non-JSON responses
     except ValueError:
-        return "An error occurred.", None
+        return "An unexpected error occurred.", None
 
 def fetch_available_players(session, request):
     """
@@ -164,13 +144,9 @@ def process_form_data(request):
 
     return cleaned_data, None
 
-
 def register_view(request):
     session = requests.Session()
     session.cookies.update(request.COOKIES) # Update the session cookies from the request
-    
-    # GET DATA: Fetch non-linked players from the API endpoint    
-    players = fetch_available_players(session, request)
     
     if request.method == 'POST':        
         print(f"Data sent to API: {request.POST}")
@@ -209,7 +185,9 @@ def register_view(request):
         # If authentication fails then return to the register page
         return render(request, 'frontend/register.html', {"error": "Authentication failed", "players": players})
     
-    # Render the registration form with available players context
+    # GET DATA: Fetch non-linked players from the API endpoint    
+    players = fetch_available_players(session, request)
+    # Render the registration form with available players context    
     return render(request, 'frontend/register.html', {"players": players})
 
 @login_required
@@ -218,16 +196,20 @@ def user_view(request, id):
     session = requests.Session()
     session.cookies.update(request.COOKIES)
     
+    # Ensure the user can only access their own profile
+    if request.user.id != id:
+        print(f"Unauthorized access attempt by {request.user.username} to user {id}")
+        return JsonResponse({'error': 'You are not authorized to view this profile.'}, status=403)
+    
     # GET DATA: Fetch user data from the API
     try:
-        user = User.objects.get(id=id)
+        user = request.user  # Get the currently logged-in user
     except User.DoesNotExist:
         print(f"User {id} not found.")
         return JsonResponse({'error': 'User not found.'}, status=404)
 
     if request.method == 'PATCH':
-        print(f"PATCH data sent to API for user update: {request.body}")
-        
+        print(f"PATCH data sent to API for user update: {request.body}")        
         # ERRORS: Parse PATCH data (since Django doesn't parse PATCH by default)
         try:
             form_data = json.loads(request.body)

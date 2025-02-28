@@ -40,8 +40,9 @@ This is a web application built using:
 
 #### Match Results
 
-- Allows registered users to add results for matches (two teams, each with two players) and update results for matches they've played.
-- Automatically creates new players if they don't already exist.
+- Allows registered users to add results for matches (two teams, each with two players) and update results for matches they've played:
+  - When adding a new match, players are created if they don't already exist.
+  - When creating, updating or deleting a match, the user should be one of the participants of the match.
 - **Implementation**:
   - The `MatchSerializer` includes logic to accept player names, create new players if needed, and avoid player duplicates.
   - `perform_create()` in the `MatchViewSet` ensures match creation updates player stats dynamically.
@@ -49,7 +50,11 @@ This is a web application built using:
 
 #### User Management
 
-- When a new user is being created, the user can choose to link with an existing player. When not linked to any player, the user is added as a new player with stats set to zero, and the player's name will be the username. If player is linked, the user assumes the stats of the player, and the player's name is changed to be the username.
+- Allows users to register, login and check & modify its own profile:
+  - When a new user is being created, the user can choose to link with an existing player.
+  - When not linked to any player, the user is added as a new player with stats set to zero, and the player's name will be the username.
+  - If player is linked, the user assumes the stats of the player, and the player's name is changed to be the username.
+  - Users can only update or delete their own profiles (unless the user is an admin).
 - **Implementation**:
   - The `UserSerializer` includes a `player_id` field for the above mentioned optional linking with an existing non-registered player.
   - The `UserViewSet` ensures users can only update or delete their own profiles (unless the user is an admin).

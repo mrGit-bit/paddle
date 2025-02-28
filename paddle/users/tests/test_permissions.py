@@ -15,14 +15,15 @@ class UserViewSetPermissionsTests(APITestCase):
         response = self.client.post("/api/users/", data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_list_users_permission_authenticated(self):
-        """Test that only authenticated users can view the list of users."""
-        self.client.login(username="user1", password="password1")
+    def test_list_users_permission_admin(self):
+        """Test that only admin users can view the list of users."""
+        self.client.login(username="admin", password="adminpassword")
         response = self.client.get("/api/users/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_list_users_permission_unauthenticated(self):
-        """Test that unauthenticated users cannot view the list of users."""
+    def test_list_users_permission_not_admin(self):
+        """Test that regular users cannot view the list of users."""
+        self.client.login(username="user1", password="password1")
         response = self.client.get("/api/users/")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -33,10 +34,10 @@ class UserViewSetPermissionsTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_retrieve_other_user_permission(self):
-        """Test that only authenticated users can retrieve user's profile."""
+        """Test that a regular user can not retrieve other user's profile."""
         self.client.login(username="user1", password="password1")
         response = self.client.get(f"/api/users/{self.user2.id}/")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_update_user_permission(self):
         """Test that authenticated users can update their own profile."""
@@ -70,10 +71,10 @@ class UserViewSetPermissionsTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_delete_own_user_permission(self):
-        """Test that authenticated users can delete their own user's profile."""
+        """Test that regular users cannot delete their own user's profile."""
         self.client.login(username="user1", password="password1")
         response = self.client.delete(f"/api/users/{self.user1.id}/")
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
     
     def test_delete_other_user_permission(self):
         """Test that authenticated users cannot delete another user's profile."""
