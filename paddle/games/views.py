@@ -1,13 +1,12 @@
 # games/views.py
 
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny, BasePermission
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from .models import Player, Match
 from .serializers import PlayerSerializer, MatchSerializer
-
-
 
 class PlayerViewSet(viewsets.ModelViewSet):
     """
@@ -20,7 +19,9 @@ class PlayerViewSet(viewsets.ModelViewSet):
         """
         Returns the permissions for each action based on the type of request.
         """
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+        if self.action == 'player_names':
+            permission_classes = [AllowAny] # Player names should be accessible because are used when registering 
+        elif self.action in ['create', 'update', 'partial_update', 'destroy']:
             permission_classes = [IsAdminUser] # only admin user can modify players        
         elif self.action == 'list':  # 'list' (Hall of Fame) action is open to anyone        
             permission_classes = [AllowAny]
@@ -29,6 +30,25 @@ class PlayerViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [IsAuthenticated] # Default permission
         return [permission() for permission in permission_classes]
+    
+    @action(detail=False, methods=['get'], permission_classes=[AllowAny], url_path='player_names')    
+    def player_names(self, request):
+        """
+        Custom endpoint to return a JSON dictionary with:
+        - A list of registered users (players linked to a User account) with their ID and name.
+        - A list of non-registered players with their ID and name.
+        Results are sorted alphabetically.
+        """
+        print("Getting registered players names...")
+        registered_players = Player.objects.filter(registered_user__isnull=False).order_by('name').values('id', 'name')        
+
+        print("Getting non-registered players names...")
+        non_registered_players = Player.objects.filter(registered_user__isnull=True).order_by('name').values('id', 'name')
+        
+        return Response({
+            'registered_players': list(registered_players),
+            'non_registered_players': list(non_registered_players)
+        })
 
 class IsMatchParticipant(BasePermission):
     """

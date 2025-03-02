@@ -79,7 +79,7 @@ This is a web application built using:
   - review and update their own profile;
   - view player stats.
   
-- Admin users can do anything, including creating, updating, and deleting matches,  players and users.
+- Admin users can do anything, including creating, updating, and deleting matches, players and users.
 
 - **Implementation**:
   - DRF's built-in session authentication is used.
@@ -127,25 +127,28 @@ paddle/
 │   ├── urls.py
 │   └── tests/         # Tests for users API
 ├── frontend/          # Frontend logic and templates
-│   ├── migrations/
-│   ├── __init__.py
-│   ├── admin.py
-│   ├── apps.py
-│   ├── templates/frontend/       # Django templates
-│   │   ├── base.html             # Base template with common navigation bar & footer
-│   │   ├── register.html         # Template for user registration
-│   │   ├── login.html            # Template for user login
-│   │   ├── player_details.html   # Template for player details and stats
-│   │   ├── user_details.html     # Template for checking or editing user details
-│   │   ├── match_results.html    # Template for adding match results with match history
-│   │   └── hall_of_fame.html     # Template for Hall of Fame
 │   ├── static/frontend/          # Static files for the frontend
 │   │   ├── css/                  # Stylesheets
-│   │   │   └── styles.css
+│   │   │   └── styles.css        # Custom styles for the frontend overriding Bootstrap styles
 │   │   ├── js/                   # JavaScript files
-│   │   │   ├── playerLabelUpdater.js   # Update player labels dynamically
-│   │   │   └── passwordValidation.js   # Check password match
+│   │   │   ├── editUserProfile.js      # Send a PATCH request for updating user details
+│   │   │   ├── matchDeleteHighlight.js # On deletion update match card background dynamically
+│   │   │   ├── matchEdit.js            # Update match card and form dynamically
+│   │   │   ├── passwordValidation.js   # Confirm password match
+│   │   │   ├── playerLabelUpdater.js   # Update player labels dynamically on match form
+│   │   │   └── winningTeamHighlight.js # Update winning team card dynamically on match form
+│   ├── templates/frontend/       # Django templates
+│   │   ├── _match_card.html      # Match history card to be included in match.html
+│   │   ├── _user_form.html       # Reusable user form for register.html and user.html
+│   │   ├── base.html             # Base template with common navigation bar & footer
+│   │   ├── hall_of_fame.html     # Template for Hall of Fame
+│   │   ├── login.html            # Template for user login
+│   │   ├── match.html            # Template for adding and reviewing match results
+│   │   ├── register.html         # Template for user registration
+│   │   └── user.html             # Template for checking or editing user details
 │   │   └── images/               # Images
+│   ├── __init__.py
+│   ├── test_frontend.py          # Tests for frontend
 │   ├── urls.py                   # URL routing for template views
 │   └── views.py                  # Views to render the templates
 ├── README.md          # Project documentation
@@ -191,6 +194,12 @@ The `games` app manages both players and matches.
 - `PUT` & `PATCH` Allows editing of match details. This is restricted to match participants.
 - `DELETE` Deletes a match. Restricted to match participants.
 
+`/api/games/players/player_names/`
+
+- `GET` Custom endpoint to return a JSON dictionary with a list of registered users (players linked to a User account) and a list of non-registered players both with their ID and name. Results are sorted alphabetically. Open to anyone and will be used:
+  - during user registration: to provide a list of non registered players to choose from;
+  - and when introducing new match results: to differentiate between registered players and new players.
+
 ### Endpoints for the `users` app
 
 Manages user registration, login, logout, linking of existing non-registered players, and user profiles management.
@@ -229,7 +238,7 @@ All templates extend a base layout using `{% extends "base.html" %}` where:
 
 These are the full-page templates directly mapped to URLs:
 
-|URL|	Purpose|Template Loaded|
+|URL| Purpose|Template Loaded|
 |---|---|---|
 |`/` | Hall of Fame – ranked list of players |`hall_of_fame.html`|
 |`/register/` | User registration |`register.html`|
@@ -264,8 +273,8 @@ Reused in both `register.html` (for new users) and `user.html` (for editing prof
   - the html is focused on the form;
   - the "Add Match" button is changed to "Edit Match". When the user clicks "Edit Match", the endpoint of the API is called by PUT;
   - a "Cancel Edit" button is added to the form, which allows canceling the edit and reloads  the default match.html.
-- `editUserProfile.js`: allows editing of allowed user details in `user.html`. Only the email field is editable. By changing the value on the email field in the user profile, "Cancel Changes" and "Save Changes" buttons are enabled: 
-  - When the user clicks "Save Changes", the endpoint of the API is called by PATCH. 
+- `editUserProfile.js`: allows editing of allowed user details in `user.html`. Only the email field is editable. By changing the value on the email field in the user profile, "Cancel Changes" and "Save Changes" buttons are enabled:
+  - When the user clicks "Save Changes", the endpoint of the API is called by PATCH.
   - When the user clicks "Cancel Changes", the form is reset to the original values.
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>

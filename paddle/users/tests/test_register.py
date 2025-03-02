@@ -3,6 +3,7 @@
 from rest_framework.test import APITestCase
 from rest_framework import status
 from django.contrib.auth.models import User
+from django.http import Http404
 from games.models import Player, Match
 from users.serializers import UserSerializer
 
@@ -143,7 +144,7 @@ class UserSerializerTests(APITestCase):
         }
         serializer = UserSerializer(data=data)
         self.assertFalse(serializer.is_valid())
-        self.assertIn("is not a valid choice", str(serializer.errors))
+        self.assertIn("This player is already linked to another user.", str(serializer.errors))
 
     def test_register_user_without_player_id(self):
         """Test creating a user without providing a player_id."""
@@ -170,5 +171,5 @@ class UserSerializerTests(APITestCase):
             "player_id": 9999  # Nonexistent player ID
         }
         serializer = UserSerializer(data=data)
-        self.assertFalse(serializer.is_valid())
-        self.assertIn("is not a valid choice", str(serializer.errors))
+        with self.assertRaises(Http404):
+            serializer.is_valid(raise_exception=True)

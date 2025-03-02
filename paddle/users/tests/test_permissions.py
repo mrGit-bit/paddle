@@ -1,6 +1,7 @@
 from rest_framework.test import APITestCase
 from rest_framework import status
 from django.contrib.auth.models import User
+from games.models import Player
 
 class UserViewSetPermissionsTests(APITestCase):
     def setUp(self):
@@ -9,6 +10,11 @@ class UserViewSetPermissionsTests(APITestCase):
         self.user2 = User.objects.create_user(username="user2", password="password2", email="user2@example.com")
         self.admin_user = User.objects.create_superuser(username="admin", password="adminpassword", email="admin@example.com")
 
+        # Ensure each user has a linked Player 
+        self.player1 = Player.objects.create(name=self.user1.username, registered_user=self.user1, wins=0)
+        self.player2 = Player.objects.create(name=self.user2.username, registered_user=self.user2, wins=0)
+        self.admin_player = Player.objects.create(name=self.admin_user.username, registered_user=self.admin_user, wins=0)
+        
     def test_create_user_permission(self):
         """Test that anyone can create a user."""
         data = {"username": "new_user", "password": "newpassword", "email": "new_user@example.com"}

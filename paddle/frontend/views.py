@@ -26,7 +26,8 @@ def hall_of_fame_view(request):
     # we use request.Session() for consistency with other endpoints
     session = requests.Session()
     session.cookies.update(request.COOKIES) # Maintain the session cookies from the request
-    response = session.get(url)
+    response = session.get(url)    
+    # print("API response content:", response.json())
     
     if response.status_code == 200:
         # 'results' is the usual key wrapper for the JSON content
@@ -71,16 +72,17 @@ def handle_api_response(response, success_callback=None):
 
 def fetch_available_players(session, request):
     """
-    Fetch non-linked players from the API.
+    Fetch non-linked players from the API endpoint for names.
     """
     print(f"{request.user} fetching available players...")
-    url = urljoin(BASE_API_URL, "games/players/")
-    response = session.get(url)
-    _, data = handle_api_response(response)
+    print("Requesting API url:", urljoin(BASE_API_URL, "games/players/player_names/"))
+    response = session.get(urljoin(BASE_API_URL, "games/players/player_names/"))
+    print("API response status code:", response.status_code)
+    _, data = handle_api_response(response)    
 
     players = [
         (player['id'], player['name'])
-        for player in data.get('results', []) if player.get('registered_user') is None
+        for player in data.get('non_registered_players',[]) 
     ] if data else []
 
     return players
@@ -101,7 +103,7 @@ def process_form_data(request):
             "email": request.POST.get("email", "").strip(),
             "password": request.POST.get("password"),
             "confirm_password": request.POST.get("confirm_password"),
-            "player": request.POST.get("player_id") or None, # Only player can be None
+            "player_id": request.POST.get("player_id") or None, # Only player can be None
         }
         # Validate required fields
         required_fields = ["username", "email", "password", "confirm_password"]
@@ -125,7 +127,7 @@ def process_form_data(request):
                 # Fields that can not be updated
                 "username": None,
                 "password": None,
-                "player": None,
+                "player_id": None,
 
                 # Fields that can be updated
                 "email": data.get("email", "").strip() or None,
@@ -139,7 +141,7 @@ def process_form_data(request):
         "username": form_data.get("username"),
         "email": form_data.get("email"),
         "password": form_data.get("password"),
-        "player": form_data.get("player"),
+        "player_id": form_data.get("player_id"),
     }
 
     return cleaned_data, None
@@ -149,7 +151,7 @@ def register_view(request):
     session.cookies.update(request.COOKIES) # Update the session cookies from the request
     
     if request.method == 'POST':        
-        print(f"Data sent to API: {request.POST}")
+        print(f"Data before frontend processing: {request.POST}")
         
         # ERRORS: Handle client-side errors (form validation)
         form_data, form_error = process_form_data(request)        
@@ -162,7 +164,8 @@ def register_view(request):
         # API CALL: If not client side errors then sends registration data to API
         url = urljoin(BASE_API_URL, "users/")
         csrf_token = request.COOKIES.get('csrftoken') or get_token(request)
-        session.headers.update({'X-CSRFToken': csrf_token})  
+        session.headers.update({'X-CSRFToken': csrf_token})
+        print(f"Data sent to API: {form_data}")
         response = session.post(url, data=form_data, headers={'X-CSRFToken': csrf_token})        
         
         # ERRORS: Handle server-side errors (API response)
@@ -173,7 +176,7 @@ def register_view(request):
             return redirect('register')
         
         # Authenticate and log in after successful registration
-        print(f"API response data: {data}")            
+        print(f"API response data: {data}")          
         username = form_data["username"]
         print (f"Created user: {username}")
         user = User.objects.get(username=username)
