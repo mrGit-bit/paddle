@@ -10,13 +10,15 @@
     <div class="col-md-6">
       <h2 class="text-center mb-4">Create an Account</h2>
 
-      <!-- Display errors if any -->
+      <!-- Display success or error messages -->
       {% if messages %}
+      <div class="container">
         {% for message in messages %}
-          <div class="alert alert-danger">
+          <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% endif %}" role="alert">
             {{ message }}
           </div>
         {% endfor %}
+      </div>
       {% endif %}
       
       <!-- Include the reusable user form -->     

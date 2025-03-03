@@ -1,8 +1,10 @@
+// path: paddle/frontend/static/frontend/js/matchDeleteHighlight.js
+
 document.addEventListener("DOMContentLoaded", function () {
     console.log("Document loaded. Initializing delete buttons...");
 
     // Select all delete buttons
-    const deleteButtons = document.querySelectorAll("[id^='delete-button-']");
+    const deleteButtons = document.querySelectorAll(".delete-button");
 
     deleteButtons.forEach(button => {
         button.addEventListener("click", function (event) {
@@ -11,7 +13,7 @@ document.addEventListener("DOMContentLoaded", function () {
             console.log("Delete button clicked:", button.id);
 
             // Extract the match ID from the button's ID
-            const matchId = button.id.replace("delete-button-", "");
+            const matchId = button.getAttribute("data-match-id");
             const matchCard = document.getElementById(`match-card-${matchId}`);
 
             if (matchCard) {
@@ -32,8 +34,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     if (confirmDelete) {
                         console.log("User confirmed deletion for match:", matchId);
-                        // Redirect to the delete URL
-                        window.location.href = button.getAttribute("href");
+                        // Send a DELETE request to the API view match_view
+                        fetch(`/matches/`, {
+                            method: "DELETE",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRFToken": getCSRFToken()
+                            },
+                            body: JSON.stringify({ match_id: matchId })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.message) {
+                                console.log("Match deleted successfully:", matchId);
+                                window.location.href = "/matches/";  // Redirect for PRG pattern
+                            } else {
+                                alert("Failed to delete match: " + data.error);
+                                matchCard.classList.remove("text-bg-secondary"); // Restore original style
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error deleting match:", error);
+                            alert("An error occurred while deleting the match.");
+                            matchCard.className = originalClasses; // Restore original style
+                        });
                     } else {
                         console.log("User canceled deletion for match:", matchId);
                         // Restore original background color if canceled
@@ -47,4 +71,18 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     });
+    // Function to get CSRF token from cookies
+    function getCSRFToken() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
+            cookies.forEach(cookie => {
+                const trimmed = cookie.trim();
+                if (trimmed.startsWith("csrftoken=")) {
+                    cookieValue = trimmed.substring("csrftoken=".length);
+                }
+            });
+        }
+        return cookieValue;
+    }
 });

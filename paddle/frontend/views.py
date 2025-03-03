@@ -52,6 +52,11 @@ def handle_api_response(response, success_callback=None):
         A tuple: (error_message, data).
     """
     if 200 <= response.status_code < 300:  # 2xx are successful responses
+        
+        # Handle 204 No Content response after deletion (no response body after successful deletion)
+        if response.status_code == 204:
+            return None, None        
+        
         # If a success callback is provided, process the response data
         if success_callback:
             return None, success_callback(response)
@@ -271,7 +276,11 @@ def process_matches(matches, current_user, user_icon):
     
     return matches  # Ensure processed list is returned
 
+@login_required
 def match_view(request, client=None):
+    """
+    Handles match listing, creation, and deletion using PRG (Post/Redirect/Get).
+    """
     # Debug requesting user
     print("Starting match_view")
     print(f"User calling match_view: {request.user} (Authenticated: {request.user.is_authenticated})")
@@ -284,7 +293,7 @@ def match_view(request, client=None):
     # Fetch players to populate the input form
     players_url = urljoin(BASE_API_URL, "games/players/")
     print(f"Requesting players from API: {players_url}")
-    players_response = session.get(players_url) # Use session instead of 'requests.get'
+    players_response = session.get(players_url) # Use 'session.get' instead of 'requests.get'
     _, players = handle_api_response(players_response, lambda res: res.json().get('results', []))
     
     # Separate registered and non-registered players
@@ -294,7 +303,7 @@ def match_view(request, client=None):
     # Fetch all matches 
     matches_url = urljoin(BASE_API_URL, "games/matches/")
     print(f"Requesting matches from API: {matches_url}")    
-    matches_response = session.get(matches_url) # Use session instead of 'requests.get'
+    matches_response = session.get(matches_url) # Use 'session.get' instead of 'requests.get'
     _, matches = handle_api_response(matches_response, lambda res: res.json().get('results', []))
     
     # Fetch only matches where the user has played
@@ -313,23 +322,15 @@ def match_view(request, client=None):
     # Add today's date to limit the date picker in the ISO format 'YYYY-MM-DD'
     today = date.today().isoformat()
     
-    # Centralized context dictionary
-    context = {
-        "players": players,
-        "registered_players": registered_players,
-        "existing_players": existing_players,
-        "matches": matches, # All matches
-        "user_matches": user_matches, # Matches played by the user
-        "today": today,
-        "error": None
-    }
+    
         
-    # Handle POST request: create a new match        
+    # Handle POST request: create a new match
     if request.method == 'POST':
         # Create a mutable copy of the POST data and 
         match_data = request.POST.copy()
-        # ensure team1_player1 is set to the current user
-        match_data['team1_player1'] = request.user.username  # Ensure current user is in the match (as team1_player1)
+        # Force team1_player1 to be set to the logged in user
+        # ensuring current user is in the match
+        match_data['team1_player1'] = request.user.username  
                 
         # Check if we have four different participant players
         print ("Validating match data")
@@ -342,8 +343,8 @@ def match_view(request, client=None):
         print (f"Participants: {participants}")
         print (f"Logged in user: {request.user.username}")
         if len(set(participants)) != 4:
-            context["error"] = "Try again, you have introduced duplicated players!"
-            return render(request, 'frontend/match.html', context)            
+            messages.error(request, "Try again, you have introduced duplicated players!")
+            return redirect('match') # Redirect to the match page using GET
         
         # Send match data as JSON to the API        
         match_response = session.post(
@@ -358,52 +359,54 @@ def match_view(request, client=None):
         # Handle API response
         error_message, _ = handle_api_response(match_response)
         if error_message:
-            context["error"] = error_message
+            messages.error(request, error_message)
             # Log the API response error to the console
             print(f"API response error: {error_message}")        
-            return render(request, 'frontend/match.html', context)
-        # If the match is correctly created then redirect to the hall of fame
-        print("Match created successfully, redirecting to the hall of fame")
-        return redirect('hall_of_fame')       
+            return redirect('match') # Redirect to the match page using PRG (POST-Redirect-Get) 
+        # If the match is correctly created
+        print("Match created successfully")
+        messages.success(request, "Match created successfully")
+        return redirect('match') # Redirect to the match page using PRG (POST-Redirect-Get)        
 
-    # Handle GET request: display the match form and a list of all matches played    
-    print("Rendering match.html")
-    return render(request, 'frontend/match.html', context)
-
-
-@login_required
-def delete_match_view(request, id):
-    """
-    View to delete a match by its ID. Only accessible to logged-in users.
-    """
-    # Debug the requesting user
-    print(f"User calling delete_match_view: {request.user} (Authenticated: {request.user.is_authenticated})")
-
-    # Create a session and pre-configure it
-    session = requests.Session()
-    session.cookies.update(request.COOKIES)  # Update the session cookies from the request    
-    csrf_token = request.COOKIES.get('csrftoken') or get_token(request)
+    # Handle DELETE request: delete a specific match
+    if request.method == 'DELETE':
+        delete_data = json.loads(request.body)
+        match_id = delete_data.get('match_id')
+        if not match_id:
+            return JsonResponse({"error": "Match ID not provided."}, status=400)        
     
     # Build the API URL for deleting a specific match
-    delete_url = urljoin(BASE_API_URL, f"games/matches/{id}/")
-    print(f"Requesting deletion of match at URL: {delete_url}")
-
+        delete_url = urljoin(BASE_API_URL, f"games/matches/{match_id}/")
+        print(f"Requesting deletion of match at URL: {delete_url}")
+    
     # Send the DELETE request to the API
-    response = session.delete(delete_url, headers={'X-CSRFToken': csrf_token})
-    print(f"API Response Status: {response.status_code}")
-    print(f"API Response Content: {response.content}")
-
+        match_response = session.delete(delete_url, headers={'X-CSRFToken': csrf_token})
+        print(f"API Response Status: {match_response.status_code}")
+        print(f"API Response Content: {match_response.content}")
+    
     # Handle API response
-    if response.status_code == 204:  # Successful deletion
-        print("Match deleted successfully.")
-        return redirect('match')
-    elif response.status_code == 403:  # Forbidden, user not authorized
-        print("Deletion forbidden: User not authorized to delete this match.")
-        return HttpResponseForbidden("You are not authorized to delete this match.")
-    else:
-        error_message, _ = handle_api_response(response)
-        print(f"Error deleting match: {error_message}")
-        return render(request, 'frontend/match.html', {"error": error_message})
+        error_message, _ = handle_api_response(match_response)
+        if error_message:
+            # Log the API response error to the console
+            print(f"API response error: {error_message}")        
+            return JsonResponse({"error": error_message}, status=400)
+    
+        # If the match is correctly deleted
+        print("Match deleted successfully")
+        return JsonResponse({"message": "Match deleted successfully"}, status=200)
+        
+    # Render the match page in GET requests    
+    context = {
+        "players": players,
+        "registered_players": registered_players,
+        "existing_players": existing_players,
+        "matches": matches, # All matches
+        "user_matches": user_matches, # Matches played by the user
+        "today": today,
+        "error": None
+    }  
+    print("Rendering match.html")
+    return render(request, 'frontend/match.html', context)
 
 # Login / logout endpoints 
 def login_view(request):

@@ -1,6 +1,6 @@
 <!-- path: frontend/templates/frontend/match_card.html -->
 <!-- Tab Content to be included in Match History --> 
-<!-- Two tabs: All Matches and My Matches --> 
+<!-- Included in two tabs: All Matches and My Matches --> 
 
 <div class="col-sm-12 col-lg-6 col-xxl-4 mb-4">
   <div id="match-card-{{ match.id }}" 
@@ -50,11 +50,11 @@
           {% if match in user_matches %}
             <div class="ms-auto">
               <!-- Delete Button -->
-              <a id="delete-button-{{ match.id }}" 
-                href="/matches/{{ match.id }}/delete" 
-                class="btn btn-secondary btn-sm">                  
+              <button id="delete-button-{{ match.id }}" 
+                data-match-id="{{ match.id }}"
+                class="btn btn-secondary btn-sm delete-button">                  
                 <i class="bi bi-trash"></i>
-              </a>
+              </button>
               <!-- Edit Button -->
               <button id="edit-button-{{ match.id }}" 
                 data-match-id="{{ match.id }}"
