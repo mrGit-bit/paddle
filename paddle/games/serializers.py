@@ -130,12 +130,17 @@ class MatchSerializer(serializers.ModelSerializer):
         return data
     
     def create_or_get_player(self, name):
-        """Helper method to get an existing player or create a new one."""
-        player, created = Player.objects.get_or_create(
-            name__iexact=name.strip(),
-            defaults={'name': name.strip()}
-        )
-        return player
+        """Helper method to get an existing player or create a new one.
+        Ensures players are unique case-insensitively before creating a new one.
+        """
+        normalized_name = name.strip().lower()  # Convert name to lowercase
+        player = Player.objects.filter(name__iexact=normalized_name).first()  # Case-insensitive search
+        
+        if player:
+            return player  # If a match is found, return it
+        
+        # If no existing player, create a new one
+        return Player.objects.create(name=name.strip())
 
     def create(self, validated_data):
         # Retrieve player names using pop

@@ -48,7 +48,7 @@
     <div class="invalid-feedback">Please enter a valid email address.</div>
   </div>
 
-  <!-- Registration fields only-->
+  <!-- Registration only-->
   {% if is_registration %}
     <!-- Password field -->
     <div class="mb-3 form-floating">
@@ -100,17 +100,42 @@
         Check if you are one of the existing players
       </label>
     </div>  
-
-    <!-- Buttons -->
+    
     <!-- Registration Submit Button -->  
     <button 
       type="submit" class="btn btn-primary w-100">Register</button>    
-    <!-- User details buttons -->  
-    {% else %}
+
+  <!-- User profile only-->
+  {% else %}
+    <!-- User fields for wins, matches and rate non editable and in the same row-->
+    <div class="row g-3">
+      <div class="col-sm-4">
+        <div class="form-floating">
+          <input type="text" class="form-control" id="wins" name="wins" value="{{ wins }}" readonly disabled />
+          <label for="wins">Wins</label>
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <div class="form-floating">
+          <input type="text" class="form-control" id="matches" name="matches" value="{{ matches }}" readonly disabled />
+          <label for="matches">Matches</label>
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <div class="form-floating">
+          <input type="text" class="form-control" id="rate" name="rate" value="{{ win_rate }}" readonly disabled />
+          <label for="rate">Win Rate (%)</label>
+        </div>
+      </div>
+    </div>
+    
+    <!-- User profile cancel and save buttons -->  
+    
     <div class="d-flex justify-content-between mt-4">
       <button type="button" id="cancel-btn" class="btn btn-secondary w-50  me-2" disabled>Cancel Changes</button>
       <button type="submit" id="save-btn" class="btn btn-success w-50" disabled>Save Changes</button>
     </div>
+  
   {% endif %}
 
 </form>

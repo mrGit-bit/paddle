@@ -1,6 +1,7 @@
 # games/models.py
 
 from django.db import models
+from django.db.models.functions import Lower
 from django.contrib.auth.models import User
 
 
@@ -8,10 +9,20 @@ class Player(models.Model):
     name = models.CharField(max_length=100, unique=True)  # Unique player name
     # Optional link to a registered user
     registered_user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True)  
-    wins = models.IntegerField(default=0)  # Tracks the number of wins
-    # Store matches the player participated in
-    matches = models.ManyToManyField('Match', related_name='players', blank=True)
+    wins = models.IntegerField(default=0)  # Tracks the number of wins    
+    matches = models.ManyToManyField('Match', related_name='players', blank=True) # Store matches the player has participated in
 
+    class Meta:
+        """
+        Forces the database to store and check names case-insensitively.
+        For instance: prevents the creation of players like "john" and "John" separately.
+        """
+        constraints = [
+            models.UniqueConstraint(
+                Lower('name'), name='unique_lower_name', violation_error_message="Player name must be unique (case insensitive)"
+            )
+        ]
+    
     def __str__(self):
         return self.name
 

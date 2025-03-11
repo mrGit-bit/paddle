@@ -11,190 +11,195 @@
   <h1 class="display-4">🎾Matches🎾</h1>    
 </div>
 
+
+<div class="container">
 <!-- Display success or error messages -->
-{% if messages %}
-  <div class="container">
+  {% if messages %}
+  <div class="row justify-content-center">
+    <div class="col-lg-8"> <!-- Match form width -->
     {% for message in messages %}
       <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% endif %}" role="alert">
         {{ message|linebreaksbr }}
-      </div>
+      </div>    
     {% endfor %}
+    </div>
   </div>
-{% endif %}
-
+  {% endif %}
   
-<!-- Add New Match or Edit Section -->
-<div class="row justify-content-center mb-5">    
-  <div class="col-sm-12">
-    <form id="add-edit-match-form" method="POST" action="" autocomplete="off" class="card p-4 shadow">
-      {% csrf_token %}
-      <h4 class="text-center mb-2">Add your new match results</h4>
-      <div class="row">
-        
-        <!-- Team 1 Card -->
-        <div class="col-sm-6 mb-3">
-          <div class="card shadow-sm">
-            <div class="card-body">
-              <h5 class="card-title">Team 1</h5>
-              
-              <!-- Team 1 Player 1 shall be the current user-->
-              <div class="mb-3 form-floating">
-                <input
-                type="text"
-                class="form-control"
-                id="team1_player1"
-                name="team1_player1"
-                value="{{ user.username }}"                  
-                readonly
-                disabled                  
-                />
-                <label for="team1_player1" class="form-label">You</label>
-              </div>
-              
-              <!-- Team 1 Player 2 options from the player list or new one-->
-              <div class="mb-3 form-floating">
-                <input
-                list = "players"
-                type="text"
-                class="form-control"
-                id="team1_player2"
-                name="team1_player2"
-                placeholder="Enter Player 2"                  
-                required
-                />
-                <label for="team1_player2" class="form-label">Player 2</label>
-              </div>
-              
-              <!-- Winner Team 1 Radio Button -->
-              <div class="form-check">
-                <input
+  
+  <!-- Add New Match or Edit Section -->
+  <div class="row justify-content-center mb-5">    
+    <div class="col-lg-8">
+      <form id="add-edit-match-form" method="POST" action="" autocomplete="off" class="card p-4 shadow">
+        {% csrf_token %}
+        <h4 class="text-center mb-2">Add your new match results</h4>
+        <div class="row">
+          
+          <!-- Team 1 Card -->
+          <div class="col-sm-6 mb-3">
+            <div class="card shadow-sm">
+              <div class="card-body">
+                <h5 class="card-title">Team 1</h5>
+                
+                <!-- Team 1 Player 1 shall be the current user-->
+                <div class="mb-3 form-floating">
+                  <input
+                  type="text"
+                  class="form-control"
+                  id="team1_player1"
+                  name="team1_player1"
+                  value="{{ user.username }}"                  
+                  readonly
+                  disabled                  
+                  />
+                  <label for="team1_player1" class="form-label">You</label>
+                </div>
+                
+                <!-- Team 1 Player 2 options from the player list or new one-->
+                <div class="mb-3 form-floating">
+                  <input
+                  list = "players"
+                  type="text"
+                  class="form-control"
+                  id="team1_player2"
+                  name="team1_player2"
+                  placeholder="Enter Player 2"                  
+                  required
+                  />
+                  <label for="team1_player2" class="form-label">Player 2</label>
+                </div>
+                
+                <!-- Winner Team 1 Radio Button -->
+                <div class="form-check">
+                  <input
                   class="form-check-input"
                   type="radio"
                   name="winning_team"
                   id="team1_wins"
                   value="1"
                   required
-                />
-                <label class="form-check-label" for="team1_wins">🏆 Winner</label>
+                  />
+                  <label class="form-check-label" for="team1_wins">🏆 Winner</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Team 2 Card -->
+          <div class="col-sm-6">
+            <div class="card shadow-sm">
+              <div class="card-body">
+                <h5 class="card-title">Team 2</h5>
+                <!-- Team 2 Player 1 choose from the player list or new one-->
+                <div class="mb-3 form-floating">
+                  <input
+                  list = "players"
+                  type="text"
+                  class="form-control"
+                  id="team2_player1"
+                  name="team2_player1"
+                  placeholder="Enter Player 1"
+                  required
+                  />
+                  <label for="team2_player1" class="form-label">Player 1</label>
+                </div>
+                <!-- Team 2 Player 2 choose from the player list or new one-->
+                <div class="mb-3 form-floating">
+                  <input
+                  list = "players"
+                  type="text"
+                  class="form-control"
+                  id="team2_player2"
+                  name="team2_player2"
+                  placeholder="Enter Player 2"
+                  required
+                  />
+                  <label for="team2_player2" class="form-label">Player 2</label>
+                </div>
+                <!-- Winner Radio Button -->
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    name="winning_team"
+                    id="team2_wins"
+                    value="2"
+                    />
+                  <label class="form-check-label" for="team2_wins">🏆Winner</label>
+                </div>
               </div>
             </div>
           </div>
         </div>
-        <!-- Team 2 Card -->
-        <div class="col-sm-6">
-          <div class="card shadow-sm">
-            <div class="card-body">
-              <h5 class="card-title">Team 2</h5>
-              <!-- Team 2 Player 1 choose from the player list or new one-->
-              <div class="mb-3 form-floating">
-                <input
-                list = "players"
-                type="text"
-                class="form-control"
-                id="team2_player1"
-                name="team2_player1"
-                placeholder="Enter Player 1"
-                required
-                />
-                <label for="team2_player1" class="form-label">Player 1</label>
-              </div>
-              <!-- Team 2 Player 2 choose from the player list or new one-->
-              <div class="mb-3 form-floating">
-                <input
-                list = "players"
-                type="text"
-                class="form-control"
-                id="team2_player2"
-                name="team2_player2"
-                placeholder="Enter Player 2"
-                required
-                />
-                <label for="team2_player2" class="form-label">Player 2</label>
-              </div>
-              <!-- Winner Radio Button -->
-              <div class="form-check">
-                <input
-                  class="form-check-input"
-                  type="radio"
-                  name="winning_team"
-                  id="team2_wins"
-                  value="2"
-                />
-                <label class="form-check-label" for="team2_wins">🏆Winner</label>
-              </div>
-            </div>
+        
+        <!-- Datalist options for Players input fields-->
+        <datalist id="players">
+          {% for player in all_players %}
+          <option value="{{ player.name }}">{{ player.name }}</option>
+          {% endfor %}
+        </datalist>
+        
+        <!-- Date and Submit Button -->
+        <div class="d-flex justify-content-between mt-3">
+          <!-- Date Picker limited to today (max must be in ISO format)-->
+          <div>
+            <label for="date_played" class="form-label">Date played</label>
+            <input
+            type="date"
+            class="form-control"
+            id="date_played"
+            name="date_played"            
+            max="{{ today }}"
+            required
+            />
           </div>
+          <!-- Submit Button -->
+          <button type="submit" class="btn btn-success">Add Match</button>
         </div>
-      </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- List of Matches Section -->
+  <h4 class="mb-4">Match History</h4>
 
-      <!-- Datalist options for Players input fields-->
-      <datalist id="players">
-        {% for player in players %}
-        <option value="{{ player.name }}">{{ player.name }}</option>
+  <!-- Match History Tabs -->
+  <ul class="nav nav-tabs mb-3" id="matchTabs">
+    <li class="nav-item">
+      <a class="nav-link active" id="user-matches-tab" data-bs-toggle="tab" href="#user-matches">My Matches</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" id="all-matches-tab" data-bs-toggle="tab" href="#all-matches">All Matches</a>
+    </li>
+  </ul>
+
+  <!-- Tab Content -->
+  <div class="tab-content">
+    <!-- My Matches Tab -->
+    <div class="tab-pane fade show active" id="user-matches">
+      <div class="row">
+        {% for match in user_matches %} <!-- Loop only through user matches -->
+          {% include "frontend/_match_card.html" with match=match %}
+        {% empty %}
+          <p class="text-center">You haven't played any matches yet.</p>
         {% endfor %}
-      </datalist>
-
-      <!-- Date and Submit Button -->
-      <div class="d-flex justify-content-between mt-3">
-        <!-- Date Picker limited to today (max must be in ISO format)-->
-        <div>
-          <label for="date_played" class="form-label">Date played</label>
-          <input
-          type="date"
-          class="form-control"
-          id="date_played"
-          name="date_played"            
-          max="{{ today }}"
-          required
-          />
-        </div>
-        <!-- Submit Button -->
-        <button type="submit" class="btn btn-success">Add Match</button>
       </div>
-    </form>
+    </div>
+    
+    <!-- All Matches Tab -->
+    <div class="tab-pane fade" id="all-matches">
+      <div class="row">
+        {% for match in matches %} <!-- Loop through all matches -->
+          {% include "frontend/_match_card.html" with match=match %}
+          {% empty %}
+          <p class="text-center">No matches found.</p>
+          {% endfor %}
+        </div>
+      </div>    
+      
+
+    </div>
   </div>
 </div>
-
-<!-- List of Matches Section -->
-<h4 class="mb-4">Match History</h4>
-
-<!-- Match History Tabs -->
-<ul class="nav nav-tabs mb-3" id="matchTabs">
-  <li class="nav-item">
-    <a class="nav-link active" id="user-matches-tab" data-bs-toggle="tab" href="#user-matches">My Matches</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" id="all-matches-tab" data-bs-toggle="tab" href="#all-matches">All Matches</a>
-  </li>
-</ul>
-
-<!-- Tab Content -->
-<div class="tab-content">
-  <!-- My Matches Tab -->
-  <div class="tab-pane fade show active" id="user-matches">
-    <div class="row">
-      {% for match in user_matches %} <!-- Loop only through user matches -->
-        {% include "frontend/_match_card.html" with match=match %}
-      {% empty %}
-        <p class="text-center">You haven't played any matches yet.</p>
-      {% endfor %}
-    </div>
-  </div>
-
-  <!-- All Matches Tab -->
-  <div class="tab-pane fade" id="all-matches">
-    <div class="row">
-      {% for match in matches %} <!-- Loop through all matches -->
-        {% include "frontend/_match_card.html" with match=match %}
-      {% empty %}
-        <p class="text-center">No matches found.</p>
-      {% endfor %}
-    </div>
-  </div>    
-
-
-</div> 
-  
 
 
 {% endblock %}

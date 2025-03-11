@@ -9,14 +9,13 @@
   <div class="row justify-content-center">
     <div class="col-md-6">
       <h2 class="text-center">User Profile</h2>
-      <p class="text-center mb-4"> Click any field below to edit it.</p>
+      <p class="text-center mb-4"> Click editable fields below to change it.</p>
 
-      <!-- Display errors if any -->
-      <!-- Error container for AJAX responses -->
+      <!-- Display errors if any with Error container for AJAX responses -->
       <div id="error-container"></div>
       
       <!-- Include the reusable user form -->
-      {% include "frontend/_user_form.html" with form_action=request.path is_registration=False players=players submit_label="Edit Changes" %}
+      {% include "frontend/_user_form.html" with form_action=request.path is_registration=False wins=wins matches=matches win_rate=win_rate %}            
 
       <p class="text-center mt-3">
         Do you want to reset your password? <a href="{% url 'login' %}"> Click here</a>.

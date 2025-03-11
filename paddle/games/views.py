@@ -37,13 +37,16 @@ class PlayerViewSet(viewsets.ModelViewSet):
         Custom endpoint to return a JSON dictionary with:
         - A list of registered users (players linked to a User account) with their ID and name.
         - A list of non-registered players with their ID and name.
-        Results are sorted alphabetically.
+        Results are sorted alphabetically case-insensitively.
         """
         print("Getting registered players names...")
-        registered_players = Player.objects.filter(registered_user__isnull=False).order_by('name').values('id', 'name')        
-
+        registered_players = Player.objects.filter(registered_user__isnull=False).values('id', 'name')
+        
         print("Getting non-registered players names...")
-        non_registered_players = Player.objects.filter(registered_user__isnull=True).order_by('name').values('id', 'name')
+        non_registered_players = Player.objects.filter(registered_user__isnull=True).values('id', 'name')
+        
+        registered_players = sorted(registered_players, key=lambda player: player['name'].lower())
+        non_registered_players = sorted(non_registered_players, key=lambda player: player['name'].lower())
         
         return Response({
             'registered_players': list(registered_players),

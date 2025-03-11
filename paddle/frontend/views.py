@@ -54,30 +54,36 @@ def handle_api_response(response, success_callback=None):
     if 200 <= response.status_code < 300:  # 2xx are successful responses
         
         # Handle 204 No Content response after deletion (no response body after successful deletion)
-        if response.status_code == 204:
-            return None, None        
+        if response.status_code == 204 or not response.content.strip():
+            return None, {} # Return an empty dictionary        
         
         # If a success callback is provided, process the response data
-        if success_callback:
-            return None, success_callback(response)
-        # If no success callback is provided, return the response data
-        # and None for the error message
-        return None, response.json()
+        try:
+            data = response.json()        
+            return None, success_callback(response) if success_callback else data # No assumption of "results" key
+        except ValueError:
+            return "Unexpected empty response from the API.", {}
     
     # Handle error response
     try:
         errors = response.json()
+        
+        # If 'non_field_errors' exists, return only its message
+        if "non_field_errors" in errors:
+            return " ".join(errors["non_field_errors"]), None  # Just show the message, no prefix        
+        
         if isinstance(errors, dict):
             error_messages = [f"{field.capitalize()}: {', '.join(messages)}" if isinstance(messages, list) else f"{field.capitalize()}: {messages}"
                               for field, messages in errors.items()]
             return "\n".join(error_messages), None
         return str(errors), None
-    except ValueError:
-        return "An unexpected error occurred.", None
+    except ValueError: # Handle empty or malformed JSON
+        return f"Unexpected API error (status {response.status_code}).", None
 
 def fetch_available_players(session, request):
     """
-    Fetch non-linked players from the API endpoint for names.
+    Fetch non-linked players from the API endpoint for names 
+    ort alphabetically case-insensitively.
     """
     print(f"{request.user} fetching available players...")
     print("Requesting API url:", urljoin(BASE_API_URL, "games/players/player_names/"))
@@ -89,6 +95,9 @@ def fetch_available_players(session, request):
         (player['id'], player['name'])
         for player in data.get('non_registered_players',[]) 
     ] if data else []
+    
+    # Sort players alphabetically in a case-insensitive manner
+    players.sort(key=lambda player: player[1].lower())
 
     return players
 
@@ -209,13 +218,31 @@ def user_view(request, id):
         print(f"Unauthorized access attempt by {request.user.username} to user {id}")
         return JsonResponse({'error': 'You are not authorized to view this profile.'}, status=403)
     
-    # GET DATA: Fetch user data from the API
-    try:
-        user = request.user  # Get the currently logged-in user
-    except User.DoesNotExist:
-        print(f"User {id} not found.")
-        return JsonResponse({'error': 'User not found.'}, status=404)
+    # GET DATA: Fetch user id details and its player stats from player_id endpoint
+    user_url = urljoin(BASE_API_URL, f"users/{id}/")
+    response = session.get(user_url)
+    user_error, user_data = handle_api_response(response)
 
+    if user_error:
+        print(f"Failed to fetch user details: {user_error}")
+        return JsonResponse({'error': user_error}, status=response.status_code)
+
+    player_id = user_data.get("player_id")
+
+    # Fetch player stats if player_id exists
+    wins, matches, win_rate = 0, 0, "0%"
+    if player_id:
+        player_url = urljoin(BASE_API_URL, f"games/players/{player_id}/")
+        player_error, player_data = handle_api_response(session.get(player_url))
+
+        if player_error:
+            print(f"Failed to fetch player details: {player_error}")
+        else:
+            wins = player_data.get("wins", 0)
+            matches = player_data.get("matches_played", 0)
+            win_rate = f"{player_data.get('win_rate', 0):.2f}%"
+    
+    # PATCH USER: Update user details
     if request.method == 'PATCH':
         print(f"PATCH data sent to API for user update: {request.body}")        
         # ERRORS: Parse PATCH data (since Django doesn't parse PATCH by default)
@@ -250,15 +277,22 @@ def user_view(request, id):
             return JsonResponse({'error': api_error}, status=response.status_code)
 
         # Refresh user data after successful update        
-        user.refresh_from_db()
+        request.user.refresh_from_db()
         print(f"API response data: {data}")
-        print(f"Updated user: {user}")
+        print(f"Updated user: {request.user}")
         # Return a JSON response instead of redirecting
         return JsonResponse({'success': 'User updated successfully.', 'user': data}, status=200)
 
     # For GET requests render the user profile page
     print(f"Rendering user profile page for user {id}")
-    return render (request, 'frontend/user.html', {"user": user})
+    context = {
+        'user': request.user,
+        'wins': wins,
+        'matches': matches,
+        'win_rate': win_rate
+    }
+    print(f"Context: {context}")
+    return render (request, 'frontend/user.html', context)
 
 def process_matches(matches, current_user, user_icon):
     """
@@ -280,10 +314,9 @@ def process_matches(matches, current_user, user_icon):
 def match_view(request, client=None):
     """
     Handles match listing, creation, and deletion using PRG (Post/Redirect/Get).
-    """
-    # Debug requesting user
-    print("Starting match_view")
-    print(f"User calling match_view: {request.user} (Authenticated: {request.user.is_authenticated})")
+    Tracks new matches involving the user.
+    """    
+    print(f"User calling match_view: {request.user}")
         
     # Create a session and pre-configure it
     session = requests.Session()
@@ -291,15 +324,21 @@ def match_view(request, client=None):
     csrf_token = request.COOKIES.get('csrftoken') or get_token(request)    
         
     # Fetch players to populate the input form
-    players_url = urljoin(BASE_API_URL, "games/players/")
-    print(f"Requesting players from API: {players_url}")
+    players_url = urljoin(BASE_API_URL, "games/players/player_names/")
+    print(f"Requesting players names from API: {players_url}")
     players_response = session.get(players_url) # Use 'session.get' instead of 'requests.get'
-    _, players = handle_api_response(players_response, lambda res: res.json().get('results', []))
+    print(f"Players API response status code: {players_response.status_code}")      
+    error_message, player_data = handle_api_response(players_response)
+    print(f"Error message after handle_api_response: {error_message}")    
     
-    # Separate registered and non-registered players
-    registered_players = [player for player in players if player.get('registered_user')]
-    existing_players = [player for player in players if not player.get('registered_user')]
-    
+    # Extract registered and non-registered players
+    registered_players = player_data.get("registered_players", [])    
+    existing_players = player_data.get("non_registered_players", [])    
+    # Merge both lists and sort alphabetically by name
+    all_players = sorted(
+        registered_players + existing_players, 
+        key=lambda p: p['name'].lower()) # Case-insensitive sorting    
+
     # Fetch all matches 
     matches_url = urljoin(BASE_API_URL, "games/matches/")
     print(f"Requesting matches from API: {matches_url}")    
@@ -312,6 +351,22 @@ def match_view(request, client=None):
     user_matches_response = session.get(user_matches_url)
     _, user_matches = handle_api_response(user_matches_response, lambda res: res.json().get('results', []))
     
+    # Get previously seen matches from session
+    seen_matches = set(request.session.get('seen_matches', []))  # Convert list to set
+    print(f"Seen matches from session: {seen_matches}")
+
+    # Identify new matches IDs (matches involving user that were not seen)
+    new_match_ids = [
+        match ["id"] for match in user_matches
+        if match["id"] not in seen_matches
+    ]
+    print(f"New match IDs: {new_match_ids}")
+    new_matches_number = len(new_match_ids) # Track the number of new matches for the navbar badge
+
+    # Store new match IDs in session
+    request.session['new_matches'] = new_match_ids
+    request.session.modified = True  # Ensure session is saved
+    
     # Add a Bootstrap icon for the current user and bold text 
     user_icon = mark_safe('<i class="bi bi-person-check-fill"></i><span class="fw-bold">' + request.user.username + '</span>')
     
@@ -321,8 +376,6 @@ def match_view(request, client=None):
         
     # Add today's date to limit the date picker in the ISO format 'YYYY-MM-DD'
     today = date.today().isoformat()
-    
-    
         
     # Handle POST request: create a new match
     if request.method == 'POST':
@@ -397,14 +450,25 @@ def match_view(request, client=None):
         
     # Render the match page in GET requests    
     context = {
-        "players": players,
+        "all_players": all_players,
         "registered_players": registered_players,
         "existing_players": existing_players,
         "matches": matches, # All matches
         "user_matches": user_matches, # Matches played by the user
+        "new_match_ids": new_match_ids,  # Pass new match IDs to template
+        "new_matches_number": new_matches_number, # Pass count for the navbar badge
         "today": today,
         "error": None
-    }  
+    }
+
+    # Mark all matches as "seen" when user views match.html
+    print("Add new matches as 'seen'")
+    request.session['seen_matches'] = list(seen_matches.union(new_match_ids))
+    print(f"New seen matches: {request.session['seen_matches']}")
+    request.session['new_matches'] = []  # Reset the new matches count
+    print("Resetting new matches count")
+    request.session.modified = True
+    
     print("Rendering match.html")
     return render(request, 'frontend/match.html', context)
 

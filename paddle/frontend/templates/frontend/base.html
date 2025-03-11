@@ -42,7 +42,13 @@
           <!-- Navbar for registered users -->
           {% if user.is_authenticated %}
           <ul class="navbar-nav me-auto">            
-            <li class="nav-item"><a class="nav-link" href="{% url 'match' %}">Matches</a></li>            
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'match' %}">Matches
+              {% if new_matches_number > 0 %}
+                <span class="badge rounded-pill bg-danger">{{ new_matches_number }}</span>
+              {% endif %}  
+              </a>
+            </li>            
           </ul>
           <ul class="navbar-nav ms-auto">
             <!-- User profile link with bootstrap icon and tooltip-->

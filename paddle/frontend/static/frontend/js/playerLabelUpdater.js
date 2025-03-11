@@ -1,4 +1,5 @@
-// Function to update label based on input
+// playerLabelUpdater.js
+// Function to update form labels based on input
 function updateLabel(inputElement) {
   const inputValue = inputElement.value.trim();
   const labelElement = inputElement.nextElementSibling;
