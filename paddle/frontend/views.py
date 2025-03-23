@@ -14,12 +14,41 @@ from games.models import Player
 import requests
 import json
 
-
 BASE_API_URL = settings.BASE_API_URL
 
+def get_new_match_ids(request):
+    """
+    Retrieves the list of new match IDs for the user.
+    A match is considered "new" if the user is a participant but hasn't seen it yet.
+    """
+
+    # Fetch matches where the user participated
+    matches_url = urljoin(BASE_API_URL, f"games/matches/?player={request.user.username}")
+    print(f"Requesting user matches from API: {matches_url}")
+
+    session = requests.Session()
+    session.cookies.update(request.COOKIES)
+    matches_response = session.get(matches_url)
+    _, user_matches = handle_api_response(matches_response, lambda res: res.json().get('results', []))
+    user_matches = user_matches or []  # Default to empty list if None
+    
+    # Get seen matches from session
+    seen_matches = set(request.session.get('seen_matches', []))
+    print(f"Seen matches from session: {seen_matches}")
+
+    # Identify new matches the user hasn't seen
+    new_match_ids = [match["id"] for match in user_matches if match["id"] not in seen_matches]
+    print(f"New match IDs: {new_match_ids}")
+
+    return new_match_ids  # Return the list of new match IDs
+
+
 def hall_of_fame_view(request):
+    """
+    Displays the Hall of Fame (players ranking) and tracks unseen matches.
+    """
     url = urljoin(BASE_API_URL, "games/players/")
-    print(f"{request.user} (Authenticated: {request.user.is_authenticated}) calling hall_of_fame_view...")    
+    print(f"{request.user} calling hall_of_fame_view...")    
     print(f"Requesting API url: {url}")
     # instead of using 'response = requests.get(url)' 
     # (that would work anyway because HoF is an open endpoint)
@@ -27,7 +56,6 @@ def hall_of_fame_view(request):
     session = requests.Session()
     session.cookies.update(request.COOKIES) # Maintain the session cookies from the request
     response = session.get(url)    
-    # print("API response content:", response.json())
     
     if response.status_code == 200:
         # 'results' is the usual key wrapper for the JSON content
@@ -38,8 +66,13 @@ def hall_of_fame_view(request):
         print(f"API request failed with status code: {response.status_code}")
         print("Falling back to an empty list of players")
         players = []  # Fallback in case of API failure
-
-    return render(request, "frontend/hall_of_fame.html", {"players": players})
+        
+    # Get list of new matches
+    new_match_ids = get_new_match_ids(request) or []  # Default to empty list if None
+    return render(request, "frontend/hall_of_fame.html", {
+        "players": players,
+        "new_matches_number": len(new_match_ids),
+        })
 
 def handle_api_response(response, success_callback=None):
     """
@@ -345,24 +378,15 @@ def match_view(request, client=None):
     matches_response = session.get(matches_url) # Use 'session.get' instead of 'requests.get'
     _, matches = handle_api_response(matches_response, lambda res: res.json().get('results', []))
     
-    # Fetch only matches where the user has played
+    # Fetch only user matches
     user_matches_url = f"{matches_url}?player={request.user.username}"
     print(f"Requesting user matches from API: {user_matches_url}")
     user_matches_response = session.get(user_matches_url)
     _, user_matches = handle_api_response(user_matches_response, lambda res: res.json().get('results', []))
     
-    # Get previously seen matches from session
-    seen_matches = set(request.session.get('seen_matches', []))  # Convert list to set
-    print(f"Seen matches from session: {seen_matches}")
-
-    # Identify new matches IDs (matches involving user that were not seen)
-    new_match_ids = [
-        match ["id"] for match in user_matches
-        if match["id"] not in seen_matches
-    ]
-    print(f"New match IDs: {new_match_ids}")
-    new_matches_number = len(new_match_ids) # Track the number of new matches for the navbar badge
-
+    # Get list of new matches
+    new_match_ids = get_new_match_ids(request)
+    
     # Store new match IDs in session
     request.session['new_matches'] = new_match_ids
     request.session.modified = True  # Ensure session is saved
@@ -456,14 +480,14 @@ def match_view(request, client=None):
         "matches": matches, # All matches
         "user_matches": user_matches, # Matches played by the user
         "new_match_ids": new_match_ids,  # Pass new match IDs to template
-        "new_matches_number": new_matches_number, # Pass count for the navbar badge
+        "new_matches_number": len(new_match_ids), # Pass count for the navbar badge
         "today": today,
         "error": None
     }
 
     # Mark all matches as "seen" when user views match.html
     print("Add new matches as 'seen'")
-    request.session['seen_matches'] = list(seen_matches.union(new_match_ids))
+    request.session['seen_matches'] = list(set(request.session.get('seen_matches', [])).union(new_match_ids))
     print(f"New seen matches: {request.session['seen_matches']}")
     request.session['new_matches'] = []  # Reset the new matches count
     print("Resetting new matches count")

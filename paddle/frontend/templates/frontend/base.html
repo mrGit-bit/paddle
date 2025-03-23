@@ -41,13 +41,16 @@
           
           <!-- Navbar for registered users -->
           {% if user.is_authenticated %}
-          <ul class="navbar-nav me-auto">            
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'match' %}">Matches
+          <ul class="navbar-nav me-auto">
+            <!-- Matches link with bootstrap badge for not seen matches -->            
+            <li class="nav-item">                              
               {% if new_matches_number > 0 %}
-                <span class="badge rounded-pill bg-danger">{{ new_matches_number }}</span>
-              {% endif %}  
-              </a>
+                <a class="nav-link d-inline-block position-relative" href="{% url 'match' %}#match-history">Matches
+                  <span class="position-absolute top-25 start-100 translate-middle badge rounded-pill bg-danger">{{ new_matches_number }}</span>
+                </a>
+              {% else %}
+                <a class="nav-link" href="{% url 'match' %}">Matches</a>  
+              {% endif %}              
             </li>            
           </ul>
           <ul class="navbar-nav ms-auto">

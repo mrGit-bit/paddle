@@ -11,9 +11,10 @@
     data-team2-player2="{{ match.team2_player2|striptags|escape }}"
     data-winning-team="{{ match.winning_team }}"
     data-date-played="{{ match.date_played|date:"Y-m-d" }}">
+    
+    
     <div class="card-body">
-      <div class="row">
-        
+      <div class="row">        
         <!-- Team 1 -->
         <div class="col">
           <div class="card shadow-sm h-60">
@@ -28,7 +29,7 @@
             </div>
           </div>
         </div>
-    
+        
         <!-- Team 2 -->
         <div class="col">
           <div class="card shadow-sm h-60">
@@ -45,13 +46,27 @@
         </div>
         
         <!-- Footer: Played Date & Actions -->
-        <div class="d-flex justify-content-between align-items-center mt-3">
-          <small class="text-muted">Played on {{ match.date_played|date:"d/m/Y" }}</small>
-          {% if match in user_matches %}
-            <div class="ms-auto">
+        <div class="d-flex align-items-center mt-3">
+
+          <!-- Played on Date -->
+          <small class="text-muted position-relative">Played on {{ match.date_played|date:"d/m/Y" }}
+          
+          <!-- "New!" Badge for unseen matches -->
+          {% if match.id in new_match_ids %}
+          <span class="position-absolute top-0 badge rounded-pill bg-warning text-dark"
+          style="font-size: 0.65rem; transform: translateY(-30%);">
+              New!
+            </span>
+          {% endif %}
+          
+          </small>  
+
+          <!-- Buttons for user matches -->
+          {% if match in user_matches %}          
+          <div class="ms-auto">
               <!-- Delete Button -->
               <button id="delete-button-{{ match.id }}" 
-                data-match-id="{{ match.id }}"
+              data-match-id="{{ match.id }}"
                 class="btn btn-secondary btn-sm delete-button">                  
                 <i class="bi bi-trash"></i>
               </button>

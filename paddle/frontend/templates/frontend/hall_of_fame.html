@@ -3,12 +3,16 @@
 <div class="text-center mb-4">
   <h1 class="display-4">🏆 Hall of Fame 🏆</h1>
   {% if user.is_authenticated %}
-  <p class="lead">Any new <a href="{% url 'match' %}">match</a> results?</p>
+    {% if new_matches_number > 0 %}
+      <p class="lead">You have {{ new_matches_number }} new match results to <a href="{% url 'match' %}#match-history">check</a>!</p>
+    {% else %}
+      <p class="lead">Any <a href="{% url 'match' %}">new match</a> results?</p>
+    {% endif %}
   {% else %}
-  <p class="lead">
-    Please <a href="{% url 'login' %}">login</a> or
-    <a href="{% url 'register' %}">register</a> to check & add match results
-  </p>
+    <p class="lead">
+      Please <a href="{% url 'login' %}">login</a> or
+      <a href="{% url 'register' %}">register</a> to check & add match results
+    </p>
   {% endif %}
 </div>
 
