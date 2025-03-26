@@ -29,22 +29,23 @@
     </thead>
     <tbody>
       {% for player in players %}
+      {% with rank=forloop.counter|add:pagination.ranking_offset %}
       <tr>
         <td>
-          {% if forloop.counter == 1 %}
+          {% if rank == 1 %}
           <strong style="font-size: 1.5em">🏆 {{ forloop.counter }}</strong>
-          {% elif forloop.counter == 2 %}
+          {% elif rank == 2 %}
           <strong style="font-size: 1.3em">🥈 {{ forloop.counter }}</strong>
-          {% elif forloop.counter == 3 %}
+          {% elif rank == 3 %}
           <strong style="font-size: 1.2em">🥉 {{ forloop.counter }}</strong>
-          {% else %} {{ forloop.counter }} {% endif %}
+          {% else %} {{ rank }} {% endif %}
         </td>
         <td>
-          {% if forloop.counter == 1 %}
+          {% if rank == 1 %}
           <strong style="font-size: 1.5em">{{ player.name }}</strong>
-          {% elif forloop.counter == 2 %}
+          {% elif rank == 2 %}
           <strong style="font-size: 1.3em">{{ player.name }}</strong>
-          {% elif forloop.counter == 3 %}
+          {% elif rank == 3 %}
           <strong style="font-size: 1.2em">{{ player.name }}</strong>
           {% else %} {{ player.name }} {% endif %}
         </td>
@@ -52,8 +53,12 @@
         <td>{{ player.matches_played }}</td>
         <td>{{ player.win_rate|floatformat:0 }}%</td>
       </tr>
+      {% endwith %}
       {% endfor %}
     </tbody>
   </table>
 </div>
+
+{% include "frontend/_pagination.html" with pagination=pagination %}
+
 {% endblock %}

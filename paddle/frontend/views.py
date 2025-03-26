@@ -42,35 +42,62 @@ def get_new_match_ids(request):
 
     return new_match_ids  # Return the list of new match IDs
 
+def fetch_paginated_api_data(request, endpoint):
+    """
+    Helper to fetch paginated data from an API endpoint.
+    
+    Returns:
+        - A list of items from the 'results' field.
+        - A pagination context dictionary: count, next, previous, current_page.
+    """
+    # Retrieves the requested page number from the query string in the URL
+    try:
+        page = int(request.GET.get("page", 1)) # default to page 1 if not provided
+    except ValueError:
+        page = 1  # fallback to page 1 if the value was invalid
+    
+    page_size = 12    
+    ranking_offset = (page - 1) * page_size    
+    
+    # instead of using 'response = requests.get(url)' we use 'session.get(url)'
+    session = requests.Session()
+    session.cookies.update(request.COOKIES)
+
+    full_url = urljoin(BASE_API_URL, f"{endpoint}?page={page}")
+    print(f"Fetching paginated data from: {full_url}")
+    response = session.get(full_url)
+
+    if response.status_code == 200:
+        data = response.json()
+        
+        items = data.get('results', [])        
+        count = data.get('count', 0)
+        total_pages = (count + page_size - 1) // page_size
+        
+        pagination = {            
+            "next": data.get("next"),
+            "previous": data.get("previous"),
+            "current_page": page,
+            "total_pages": total_pages,
+            "ranking_offset": ranking_offset
+        }
+        return items, pagination
+    else:
+        print(f"Failed to fetch paginated data. Status code: {response.status_code}")
+        return [], {}
 
 def hall_of_fame_view(request):
     """
     Displays the Hall of Fame (players ranking) and tracks unseen matches.
-    """
-    url = urljoin(BASE_API_URL, "games/players/")
-    print(f"{request.user} calling hall_of_fame_view...")    
-    print(f"Requesting API url: {url}")
-    # instead of using 'response = requests.get(url)' 
-    # (that would work anyway because HoF is an open endpoint)
-    # we use request.Session() for consistency with other endpoints
-    session = requests.Session()
-    session.cookies.update(request.COOKIES) # Maintain the session cookies from the request
-    response = session.get(url)    
+    """    
+    print(f"{request.user} calling hall_of_fame_view...")
+    # Call helper functions to fetch paginated data and not seen match IDs (in the session)
+    players, pagination = fetch_paginated_api_data(request, "games/players/")    
+    new_match_ids = get_new_match_ids(request) or []  # Matches the user hasn't seen in this session
     
-    if response.status_code == 200:
-        # 'results' is the usual key wrapper for the JSON content
-        # in the API response. Is used in DRF for the content
-        # when using pagination functionality
-        players = response.json().get('results', [])
-    else:
-        print(f"API request failed with status code: {response.status_code}")
-        print("Falling back to an empty list of players")
-        players = []  # Fallback in case of API failure
-        
-    # Get list of new matches
-    new_match_ids = get_new_match_ids(request) or []  # Default to empty list if None
     return render(request, "frontend/hall_of_fame.html", {
         "players": players,
+        "pagination": pagination,
         "new_matches_number": len(new_match_ids),
         })
 

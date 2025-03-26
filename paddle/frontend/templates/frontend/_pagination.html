@@ -1,0 +1,69 @@
+{% if pagination %}
+  <nav aria-label="Pagination">
+    <ul class="pagination justify-content-center mt-4">
+
+      <!-- Show current page number of total pages -->
+      <li class="page-item disabled">
+        <span class="page-link bg-light">
+          Page {{ pagination.current_page }} of {{ pagination.total_pages }}
+        </span>
+      </li>
+      
+      <!-- There is a previous page -->
+      {% if pagination.previous %}
+        <!-- Go to first page with skip backward icon -->
+        <li class="page-item">
+          <a class="page-link text-bg-light" href="?page=1" aria-label="First">
+            <i class="bi bi-skip-backward"></i>
+          </a>
+        </li>
+        <!-- If current page is 3 or more display dots -->
+        {% if pagination.current_page >= 3 %}
+          <li class="page-item disabled">
+            <span class="page-link bg-light">
+              <i class="bi bi-three-dots"></i>
+            </span>
+          </li>
+        {% endif %}
+        <!-- Previous page number -->
+        <li class="page-item">
+          <a class="page-link text-bg-light" href="?page={{ pagination.current_page|add:"-1" }}" aria-label="Previous">
+            {{ pagination.current_page|add:"-1" }}
+          </a>
+        </li>
+      {% endif %}
+      
+      <!-- Current page -->
+      <li class="page-item active">
+        <span class="page-link text-bg-secondary">
+          {{ pagination.current_page }}
+        </span>
+      </li>
+      
+      <!-- There is a next page -->
+      {% if pagination.next %}
+        <!-- Next page number -->
+        <li class="page-item">
+          <a class="page-link text-bg-light" href="?page={{ pagination.current_page|add:"1" }}" aria-label="Next">
+            {{ pagination.current_page|add:"1" }}
+          </a>
+        </li>
+        <!-- If current page is less than (total pages - 1) display dots -->
+        {% if pagination.current_page <= pagination.total_pages|add:"-2" %}
+          <li class="page-item disabled">
+            <span class="page-link bg-light">
+              <i class="bi bi-three-dots"></i>
+            </span>
+          </li>
+        {% endif %}
+        <!-- Go to last page with skip forward icon -->
+        <li class="page-item">
+          <a class="page-link text-bg-light" href="?page={{ pagination.total_pages }}" aria-label="Last">
+            <i class="bi bi-skip-forward"></i>
+          </a>
+        </li>
+      {% endif %}
+
+    </ul>
+  </nav>
+{% endif %}
