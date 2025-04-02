@@ -42,13 +42,20 @@ def get_new_match_ids(request):
 
     return new_match_ids  # Return the list of new match IDs
 
-def fetch_paginated_api_data(request, endpoint):
-    """
-    Helper to fetch paginated data from an API endpoint.
+def fetch_paginated_api_data(request, endpoint, query_params=None):
+    """    
+    Fetch paginated data from an API endpoint, with optional query parameters.
     
+    Args:
+        request: Django request object.
+        endpoint: Relative API path, e.g. 'games/matches/'.
+        query_params: Optional dict like {'player': 'mario'}.
+
     Returns:
-        - A list of items from the 'results' field.
-        - A pagination context dictionary: count, next, previous, current_page.
+        (items, pagination) tuple where
+            - items: A list of items for that page.
+            - pagination: A context dictionary with next and previous page links, current page number
+          a ranking offset to add to the player ranking in each page, and the total number of pages.
     """
     # Retrieves the requested page number from the query string in the URL
     try:
@@ -63,28 +70,35 @@ def fetch_paginated_api_data(request, endpoint):
     session = requests.Session()
     session.cookies.update(request.COOKIES)
 
-    full_url = urljoin(BASE_API_URL, f"{endpoint}?page={page}")
+    # Build full query string
+    query = f"?page={page}"
+    if query_params:
+        for key, value in query_params.items():
+            query += f"&{key}={value}"
+
+    full_url = urljoin(BASE_API_URL, f"{endpoint}{query}")
     print(f"Fetching paginated data from: {full_url}")
     response = session.get(full_url)
 
-    if response.status_code == 200:
-        data = response.json()
-        
-        items = data.get('results', [])        
-        count = data.get('count', 0)
-        total_pages = (count + page_size - 1) // page_size
-        
-        pagination = {            
-            "next": data.get("next"),
-            "previous": data.get("previous"),
-            "current_page": page,
-            "total_pages": total_pages,
-            "ranking_offset": ranking_offset
-        }
-        return items, pagination
-    else:
-        print(f"Failed to fetch paginated data. Status code: {response.status_code}")
-        return [], {}
+    
+    error, data = handle_api_response(response)
+    if error:
+        print(f"Failed to fetch paginated data: {error}")
+        return [], {}    
+    
+    items = data.get('results', [])        
+    count = data.get('count', 0)
+    total_pages = (count + page_size - 1) // page_size
+    
+    pagination = {            
+        "next": data.get("next"),
+        "previous": data.get("previous"),
+        "current_page": page,
+        "total_pages": total_pages,
+        "ranking_offset": ranking_offset
+    }
+    return items, pagination
+    
 
 def hall_of_fame_view(request):
     """
@@ -399,17 +413,11 @@ def match_view(request, client=None):
         registered_players + existing_players, 
         key=lambda p: p['name'].lower()) # Case-insensitive sorting    
 
-    # Fetch all matches 
-    matches_url = urljoin(BASE_API_URL, "games/matches/")
-    print(f"Requesting matches from API: {matches_url}")    
-    matches_response = session.get(matches_url) # Use 'session.get' instead of 'requests.get'
-    _, matches = handle_api_response(matches_response, lambda res: res.json().get('results', []))
+    # Fetch all matches and pagination
+    matches, pagination = fetch_paginated_api_data(request, "games/matches/")
     
     # Fetch only user matches
-    user_matches_url = f"{matches_url}?player={request.user.username}"
-    print(f"Requesting user matches from API: {user_matches_url}")
-    user_matches_response = session.get(user_matches_url)
-    _, user_matches = handle_api_response(user_matches_response, lambda res: res.json().get('results', []))
+    user_matches, user_pagination = fetch_paginated_api_data(request,"games/matches/",{"player": request.user.username})
     
     # Get list of new matches
     new_match_ids = get_new_match_ids(request)
@@ -451,6 +459,7 @@ def match_view(request, client=None):
             return redirect('match') # Redirect to the match page using GET
         
         # Send match data as JSON to the API        
+        matches_url = urljoin(BASE_API_URL, "games/matches/")
         match_response = session.post(
             matches_url, # url must be the first positional argument
             json=match_data,
@@ -505,7 +514,9 @@ def match_view(request, client=None):
         "registered_players": registered_players,
         "existing_players": existing_players,
         "matches": matches, # All matches
+        "pagination": pagination,
         "user_matches": user_matches, # Matches played by the user
+        "user_pagination": user_pagination,
         "new_match_ids": new_match_ids,  # Pass new match IDs to template
         "new_matches_number": len(new_match_ids), # Pass count for the navbar badge
         "today": today,

@@ -135,10 +135,11 @@ paddle/
 │   │   ├── js/                   # JavaScript files
 │   │   │   ├── editUserProfile.js      # Send a PATCH request for updating user details
 │   │   │   ├── matchDeleteHighlight.js # On deletion update match card background dynamically
-│   │   │   ├── matchEdit.js            # Update match card and form dynamically
+│   │   │   ├── matchEdit.js            # Update match card and form for editing
 │   │   │   ├── passwordValidation.js   # Confirm password match
 │   │   │   ├── playerLabelUpdater.js   # Update player labels dynamically on match form
-│   │   │   └── winningTeamHighlight.js # Update winning team card dynamically on match form
+│   │   │   ├── tabPaginationReset.js   # Update pagination dynamically on tab change in match.html history
+│   │   │   └── winningTeamHighlight.js # Update winning team card background dynamically on match form
 │   ├── templates/frontend/       # Django templates
 │   │   ├── _match_card.html      # Match history card to be included in match.html
 │   │   ├── _user_form.html       # Reusable user form for register.html and user.html
@@ -284,23 +285,11 @@ These partial templates are reusable components designed to be included in full 
 - `editUserProfile.js`: Allows editing of allowed user details in `user.html`. _Only the email field is editable._ By changing the value on the email field in the user profile, "Cancel Changes" and "Save Changes" buttons are enabled:
   - When the user clicks "Save Changes", the endpoint of the API is called by PATCH.
   - When the user clicks "Cancel Changes", the form is reset to the original values.
-
-<div style="text-align: right"><a href="#index">Back to Index</a></div>
-
----
-
-## 🧪 Testing
-
-The project comes with a suite of tests for the `games`, `users`, and `frontend` apps. The tests can be run using the `pytest` command from the project's root directory. These tests cover authentication, authorization and model logic. Frontend template rendering tests are left for future development.
-
-The test files follow the naming conventions:
-
-- `games/tests/test_permissions.py`
-- `games/tests/test_players.py`
-- `games/tests/test_stats.py`
-- `users/tests/test_authentication.py`
-- `users/tests/test_permissions.py`
-- `users/tests/test_register.py`
+- `tabPaginationReset.js` is loaded with match.html for:
+  - Showing the correct pagination on initial load based on the tab state or URL anchor;
+  - Hiding the inactive tab’s pagination;
+  - Resetting pagination to page 1 when switching tabs; and,
+  - Updating the browser’s URL with the correct ?page=1#tab-id on tab switch.
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 
@@ -327,10 +316,29 @@ The backend utilizes Django REST Framework's (DRF) built-in pagination capabilit
 
 The frontend leverages Bootstrap 5's pagination component to provide a user-friendly interface for navigating through paginated data.
 
-- **How it Works:** The frontend dynamically generates pagination links based on the `next` and `previous` URLs provided in the API response.
-- **Implementation:** The pagination component `_pagination.html` is loaded in the `hall_of_fame.html` and `match.html` templates.
-- **User Experience:** The pagination component seamlessly integrates with the application's design, allowing users to easily navigate between pages of players or matches. It displays the current page number and provides links to the previous and next pages, if available.
-- **Dynamic Rendering:** The pagination component is dynamically rendered based on the data received from the API, ensuring that the correct number of pages and navigation links are displayed.
+- **How it Works:** The frontend dynamically generates pagination links based on the `next`, `previous`, `count`, and `current_page` fields provided by the frontend view. These links allow users to navigate between pages of data of 12 items per page maximum.
+- **Implementation:** The pagination component `_pagination.html` is loaded in: 
+  - `hall_of_fame.html` for player ranking pages of 12 players; and,
+  - `match.html` with two independent pagination for My Matches and All Matches tabs. Pagination is displayed only for the active tab, and hidden for the inactive one. A dedicated JavaScript file (tabPaginationReset.js) is used to reset the pagination to the first page when a new tab is selected, hiding the pagination for the inactive tab and updating the URL hash accordingly.
+- **User Experience:** The pagination component seamlessly integrates with the application's design, allowing users to easily navigate between pages of maximum 12 players or matches. It displays the current page number, number of total pages and provides links to previous and next pages (if available). and full rewind or fast forward to the first or last page.
+- **Dynamic Rendering:** The pagination component is dynamically rendered based on the data received from the API, ensuring that the correct number of pages and relevant navigation links are displayed.
+
+<div style="text-align: right"><a href="#index">Back to Index</a></div>
+
+---
+
+## 🧪 Testing
+
+The project comes with a suite of tests for the `games`, `users`, and `frontend` apps. The tests can be run using the `pytest` command from the project's root directory. These tests cover authentication, authorization and model logic. Frontend template rendering tests are left for future development.
+
+The test files follow the naming conventions:
+
+- `games/tests/test_permissions.py`
+- `games/tests/test_players.py`
+- `games/tests/test_stats.py`
+- `users/tests/test_authentication.py`
+- `users/tests/test_permissions.py`
+- `users/tests/test_register.py`
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 

@@ -183,6 +183,12 @@
           <p class="text-center">You haven't played any matches yet.</p>
         {% endfor %}
       </div>
+      
+      <!-- Pagination for user matches -->
+      <div id="user-pagination" data-pagination="user" style="display: none;">
+        {% include "frontend/_pagination.html" with pagination=user_pagination anchor="#user-matches" %}
+      </div>
+      
     </div>
     
     <!-- All Matches Tab -->
@@ -194,10 +200,15 @@
           <p class="text-center">No matches found.</p>
           {% endfor %}
         </div>
-      </div>    
+      </div>
       
-
+      <!-- Pagination for all matches -->
+      <div id="all-pagination" data-pagination="all" style="display: none;">
+        {% include "frontend/_pagination.html" with pagination=pagination anchor="#all-matches" %}
+      </div>
+      
     </div>
+
   </div>
 </div>
 
@@ -233,5 +244,9 @@
 
   <!-- Load JavaScript to perform actions when pressed edit button -->
   <script src="{% static 'frontend/js/matchEdit.js' %}"></script>
+
+  <!-- Load JavaScript to show only active tab pagination -->
+  <script src="{% static 'frontend/js/tabPaginationReset.js' %}"></script>
+  
 
 {% endblock %}
