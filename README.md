@@ -318,7 +318,7 @@ The backend utilizes Django REST Framework's (DRF) built-in pagination capabilit
 The frontend leverages Bootstrap 5's pagination component to provide a user-friendly interface for navigating through paginated data.
 
 - **How it Works:** The frontend dynamically generates pagination links based on the `next`, `previous`, `count`, and `current_page` fields provided by the frontend view. These links allow users to navigate between pages of data of 12 items per page maximum.
-- **Implementation:** The pagination component `_pagination.html` is loaded in: 
+- **Implementation:** The pagination component `_pagination.html` is loaded in:
   - `hall_of_fame.html` for player ranking pages of 12 players; and,
   - `match.html` with two independent pagination for My Matches and All Matches tabs. Pagination is displayed only for the active tab, and hidden for the inactive one. A dedicated JavaScript file (tabPaginationReset.js) is used to reset the pagination to the first page when a new tab is selected, hiding the pagination for the inactive tab and updating the URL hash accordingly.
 - **User Experience:** The pagination component seamlessly integrates with the application's design, allowing users to easily navigate between pages of maximum 12 players or matches. It displays the current page number, number of total pages and provides links to previous and next pages (if available). and full rewind or fast forward to the first or last page.

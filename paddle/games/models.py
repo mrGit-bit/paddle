@@ -47,25 +47,9 @@ class Player(models.Model):
     def losses(self):
         return max(0, self.matches_played - self.wins)
     
-    def clean(self):
-        # Validate positive values
-        if self.wins < 0:
-            raise ValidationError({'wins': "Wins must be zero or positive."})
+    # Data integrity is enforced in views/serializers to avoid partial updates 
+    # during cascading changes  (e.g., match deletions).
 
-        if self.matches_played < 0:
-            raise ValidationError("Number of matches played must be zero or positive.")
-
-        # Wins cannot exceed matches
-        if self.wins > self.matches_played:
-            raise ValidationError("Wins cannot exceed number of matches played.")
-
-        # Win rate bounds check (only for safety — should never trigger from our logic)
-        if not (0 <= self.win_rate <= 100):
-            raise ValidationError("Win rate must be between 0% and 100%.")
-
-    def save(self, *args, **kwargs):
-        self.full_clean()  # Ensure all constraints are validated before saving
-        super().save(*args, **kwargs)
 
 
 class Match(models.Model):    
