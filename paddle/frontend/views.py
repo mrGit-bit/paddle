@@ -281,6 +281,31 @@ def register_view(request):
     # Render the registration form with available players context    
     return render(request, 'frontend/register.html', {"players": players})
 
+def get_player_ranking(session, player_id):
+    """Returns the player's rank and total number of players."""
+    url = urljoin(BASE_API_URL, "games/players/")
+    response = session.get(url)
+    error, data = handle_api_response(response)
+
+    if error or not data:
+        print(f"Ranking API error: {error}")
+        return None, None
+
+    # Sort players by number of wins (descending), case-insensitive
+    players = sorted(
+        data.get("results", []),
+        key=lambda p: (-p.get("wins", 0), p.get("name", "").lower())
+    )
+
+    total_players = len(players)
+
+    # Find the index of the given player ID (1-based ranking)
+    for index, player in enumerate(players, start=1):
+        if player["id"] == player_id:
+            return index, total_players # Player found, return its rank and total number of players
+
+    return None, total_players  # Player not found, but return total number of players
+
 @login_required
 def user_view(request, id):
     print(f"Received request for user {id}: {request.method}")
@@ -305,10 +330,12 @@ def user_view(request, id):
 
     # Fetch player stats if player_id exists
     wins, matches, win_rate = 0, 0, "0%"
+    ranking_position, ranking_total = None, None
     if player_id:
+        ranking_position, ranking_total = get_player_ranking(session, player_id)
+        
         player_url = urljoin(BASE_API_URL, f"games/players/{player_id}/")
         player_error, player_data = handle_api_response(session.get(player_url))
-
         if player_error:
             print(f"Failed to fetch player details: {player_error}")
         else:
@@ -363,7 +390,9 @@ def user_view(request, id):
         'user': request.user,
         'wins': wins,
         'matches': matches,
-        'win_rate': win_rate
+        'win_rate': win_rate,
+        'ranking_position': ranking_position,
+        'ranking_total': ranking_total,
     }
     print(f"Context: {context}")
     return render (request, 'frontend/user.html', context)

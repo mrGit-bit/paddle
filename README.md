@@ -25,6 +25,7 @@ This web application is built using:
 - [📡 API Endpoints](#📡-api-endpoints)
 - [🌐 Frontend Endpoints & Templates](#🌐-frontend-endpoints--templates)
 - [🛠️ JavaScript Functionalities](#🛠️-javascript-functionalities)
+- [📑 Pagination](#📑-pagination)
 - [🧪 Testing](#🧪-testing)
 - [🚀 Future Enhancements](#🚀-future-enhancements)
 - [🚀 Installation](#🚀-installation)
@@ -40,8 +41,8 @@ This web application is built using:
 - Displays a ranked list of paddle tennis players based on their number of wins.
 - Publicly accessible (no authentication required).
 - **Implementation**:
-  - The `PlayerViewSet` in `views.py` retrieves players, ordering them by the `wins` field to create the ranking.
-  - The `PlayerSerializer` uses `SerializerMethodField` to dynamically calculate `matches_played`, `losses`, and `win_rate`.
+  - The `PlayerViewSet` in `views.py` retrieves players, ordering them by the `ranking_position` field to create the ranking.
+  - The `models.py` calculate `matches_played`, `losses`, and `win_rate` as `@property` decorators for read-only fields.
 
 #### Match Results
 

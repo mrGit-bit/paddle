@@ -1,40 +1,21 @@
 # games/serializers.py
 
 from rest_framework import serializers
-
 from .models import Player, Match
 from datetime import date
-from django.contrib.auth.models import User
-
 
 class PlayerSerializer(serializers.ModelSerializer):
-    # Dynamically determine matches played, losses, and win rate
-    matches_played = serializers.SerializerMethodField()
-    losses = serializers.SerializerMethodField()
-    win_rate = serializers.SerializerMethodField()
+    # Model  @property attributes (read only)
+    matches_played = serializers.ReadOnlyField()
+    losses = serializers.ReadOnlyField()
+    win_rate = serializers.ReadOnlyField()    
     
     class Meta:
         model = Player
-        fields = ['id', 'name', 'registered_user', 'matches_played', 'wins', 
-                  'losses', 'win_rate', 'matches']
-
-    def get_matches_played(self, obj):
-        """Calculate the total number of matches the player has played."""
-        # Use count() instead of len() for ManyToManyField
-        return obj.matches.count()
-
-    def get_losses(self, obj):
-        """Calculate the total number of matches the player has lost."""
-        matches_played = self.get_matches_played(obj)
-        return matches_played - obj.wins
-
-    def get_win_rate(self, obj):
-        """Calculate the win rate of the player."""
-        matches_played = self.get_matches_played(obj)
-        if matches_played == 0:
-            return 0.0
-        return (obj.wins / matches_played) * 100
-
+        fields = [
+            'id', 'name', 'registered_user', 'matches_played', 'wins', 
+            'losses', 'win_rate', 'matches', 'ranking_position'
+            ]
 
 class MatchSerializer(serializers.ModelSerializer):
     # Accept player names as an input string   
@@ -43,16 +24,18 @@ class MatchSerializer(serializers.ModelSerializer):
     team2_player1 = serializers.CharField()
     team2_player2 = serializers.CharField()
         
-    # Dynamically determine winning and losing players
+    # Return winners and losers as JSON objects with id and name
     winning_players = serializers.SerializerMethodField()
     losing_players = serializers.SerializerMethodField()    
     
     class Meta:
         model = Match
         fields = [
-            'id', 'team1_player1', 'team1_player2',
+            'id', 
+            'team1_player1', 'team1_player2',
             'team2_player1', 'team2_player2',
-            'winning_team', 'date_played', 'winning_players', 'losing_players'
+            'winning_team', 'date_played', 
+            'winning_players', 'losing_players',
         ]
     
     def validate(self, data):
@@ -135,12 +118,7 @@ class MatchSerializer(serializers.ModelSerializer):
         """
         normalized_name = name.strip().lower()  # Convert name to lowercase
         player = Player.objects.filter(name__iexact=normalized_name).first()  # Case-insensitive search
-        
-        if player:
-            return player  # If a match is found, return it
-        
-        # If no existing player, create a new one
-        return Player.objects.create(name=name.strip())
+        return player or Player.objects.create(name=name.strip())
 
     def create(self, validated_data):
         # Retrieve player names using pop
@@ -189,13 +167,10 @@ class MatchSerializer(serializers.ModelSerializer):
 
 
     def get_winning_players(self, obj):
-        """Retrieve the list of players who won the match."""
-        # Call method from the model instance
-        winning_players, _ = obj.get_players_by_result()
-        return winning_players
+        """Retrieve the list of player names who won the match."""        
+        return [{"id": player.id, "name": player.name} for player in obj.winning_players]
 
     def get_losing_players(self, obj):
-        """Retrieve the list of players who lost the match."""
-        # Call method from the model instance
-        _, losing_players = obj.get_players_by_result()
-        return losing_players
+        """Retrieve the list of player names who lost the match."""
+        return [{"id": player.id, "name": player.name} for player in obj.losing_players]
+        

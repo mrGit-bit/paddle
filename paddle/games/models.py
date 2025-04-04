@@ -3,14 +3,16 @@
 from django.db import models
 from django.db.models.functions import Lower
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+
 
 
 class Player(models.Model):
-    name = models.CharField(max_length=100, unique=True)  # Unique player name
-    # Optional link to a registered user
-    registered_user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True)  
+    name = models.CharField(max_length=100, unique=True)  # Unique player name enforced later
+    registered_user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True) # Optional link to a registered user
     wins = models.IntegerField(default=0)  # Tracks the number of wins    
     matches = models.ManyToManyField('Match', related_name='players', blank=True) # Store matches the player has participated in
+    ranking_position = models.PositiveIntegerField(default=0)
 
     class Meta:
         """
@@ -19,12 +21,51 @@ class Player(models.Model):
         """
         constraints = [
             models.UniqueConstraint(
-                Lower('name'), name='unique_lower_name', violation_error_message="Player name must be unique (case insensitive)"
+                Lower('name'), 
+                name='unique_lower_name', 
+                violation_error_message="Player name must be unique (case insensitive)"
             )
         ]
     
     def __str__(self):
         return self.name
+    
+    # ==== Calculated player stats ====
+    @property
+    def matches_played(self):
+        if not self.id:
+            return 0
+        return self.matches.count()
+
+    @property
+    def win_rate(self):
+        if self.matches_played == 0:
+            return 0.0
+        return (self.wins / self.matches_played) * 100
+    
+    @property
+    def losses(self):
+        return max(0, self.matches_played - self.wins)
+    
+    def clean(self):
+        # Validate positive values
+        if self.wins < 0:
+            raise ValidationError({'wins': "Wins must be zero or positive."})
+
+        if self.matches_played < 0:
+            raise ValidationError("Number of matches played must be zero or positive.")
+
+        # Wins cannot exceed matches
+        if self.wins > self.matches_played:
+            raise ValidationError("Wins cannot exceed number of matches played.")
+
+        # Win rate bounds check (only for safety — should never trigger from our logic)
+        if not (0 <= self.win_rate <= 100):
+            raise ValidationError("Win rate must be between 0% and 100%.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()  # Ensure all constraints are validated before saving
+        super().save(*args, **kwargs)
 
 
 class Match(models.Model):    
@@ -42,27 +83,27 @@ class Match(models.Model):
     def __str__(self):
         return f"Match on {self.date_played}"
 
-    def get_players_by_result(self):
-        """Retrieve lists of winning and losing players.
-        Keeps the model logic separated from the serializer logic, 
-        inside the Match model, where it belongs.        
-        """
-        
+    # ==== Calculated match properties ====
+    @property
+    def all_players(self):
+        return [
+            self.team1_player1,
+            self.team1_player2,
+            self.team2_player1,
+            self.team2_player2,
+        ]
+
+    @property
+    def winning_players(self):
         if self.winning_team == 1:
-            winning_players = [self.team1_player1.name, self.team1_player2.name]
-            losing_players = [self.team2_player1.name, self.team2_player2.name]
-
+            return [self.team1_player1, self.team1_player2]
         elif self.winning_team == 2:
-            winning_players = [self.team2_player1.name, self.team2_player2.name]
-            losing_players = [self.team1_player1.name, self.team1_player2.name]
-        
-        # not applicable because winning_team is not null and only 1 or 2 is allowed
-        # else:
-        #     winning_players = []
-        #     losing_players = []
+            return [self.team2_player1, self.team2_player2]
+        return []
 
-        return winning_players, losing_players
-
+    @property
+    def losing_players(self):
+        return [p for p in self.all_players if p not in self.winning_players]
     
 
 

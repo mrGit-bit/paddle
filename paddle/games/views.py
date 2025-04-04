@@ -1,6 +1,5 @@
 # games/views.py
 
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny, BasePermission
 from rest_framework.response import Response
@@ -8,11 +7,23 @@ from rest_framework.decorators import action
 from .models import Player, Match
 from .serializers import PlayerSerializer, MatchSerializer
 
+def update_player_rankings():  
+    """
+    Calculate the ranking position of the player.
+    Ranked by wins, then by win rate, and then by number of matches played.
+    """
+    players = Player.objects.all()
+    sorted_players = sorted(
+        players,
+        key=lambda p: (-p.wins, -p.win_rate, -p.matches_played)
+    )
+    for index, player in enumerate(sorted_players, start=1):
+        player.ranking_position = index
+        player.save()
+
 class PlayerViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet for handling CRUD operations related to players.
-    """
-    queryset = Player.objects.all().order_by('-wins')
+    
+    queryset = Player.objects.all().order_by('ranking_position')
     serializer_class = PlayerSerializer    
 
     def get_permissions(self):
@@ -131,14 +142,13 @@ class MatchViewSet(viewsets.ModelViewSet):
         """
         # Get the old state of the match before updating
         old_match = self.get_object()
-        old_winning_players, old_losing_players = old_match.get_players_by_result()
+        old_winning_players = old_match.winning_players
+        old_losing_players = old_match.losing_players
         
         # Reset stats for all players in the old match
-        for player_name in old_winning_players + old_losing_players:
-            player = Player.objects.get(name__iexact=player_name)
-            if old_match.id in player.matches.values_list('id', flat=True):
-                player.matches.remove(old_match)
-            if player_name in old_winning_players:
+        for player in old_winning_players + old_losing_players:
+            player.matches.remove(old_match)
+            if player in old_winning_players and player.wins > 0:
                 player.wins -= 1
             player.save()
 
@@ -156,44 +166,42 @@ class MatchViewSet(viewsets.ModelViewSet):
     
     def update_player_stats(self, match):
         """
-        Updates only the wins and matches fields of the players involved in the match.
-        because number of matches played, win rate, and losses are not fields in the Player model,
-        and are calculated dynamically in PlayerSerializer.py
+        Updates wins, matches of the players involved in the match and 
+        updates player rankings for all players
         """
-        # Retrieve the winning and losing players using the model´s method
-        winning_players, losing_players = match.get_players_by_result()
+        # Retrieve the winning and losing players as objects
+        winning_players = match.winning_players
+        losing_players = match.losing_players
 
         # Update win/loss stats for winning players
-        for player_name in winning_players:
-            player = Player.objects.get(name__iexact=player_name)
+        for player in winning_players:
             player.wins += 1
-            if match.id not in player.matches.values_list('id', flat=True):
-                player.matches.add(match)           
+            player.matches.add(match)
             player.save()
 
-        # Update loss stats for losing players
-        for player_name in losing_players:
-            player = Player.objects.get(name__iexact=player_name)
-            if match.id not in player.matches.values_list('id', flat=True):
-                player.matches.add(match)
+        for player in losing_players:
+            player.matches.add(match)
             player.save()
+        
+        update_player_rankings()
     
     def update_player_stats_on_delete(self, match):
         """
         Updates player stats when a match is deleted. 
         - Decrements wins for winning players.
         - Removes match from players' match history.
+        - Updates all player rankings
         """
-        winning_players, losing_players = match.get_players_by_result()
+        winning_players = match.winning_players
+        losing_players = match.losing_players
 
-        for player_name in winning_players + losing_players:
-            player = Player.objects.get(name__iexact=player_name)
-            if match.id in player.matches.values_list('id', flat=True):
-                player.matches.remove(match)
-            if player_name in winning_players:
-                player.wins -= 1  # Reduce win count if applicable
+        for player in winning_players + losing_players:
+            player.matches.remove(match)
+            if player in winning_players and player.wins > 0:
+                player.wins -= 1
             player.save()
 
+        update_player_rankings()
     
     def get_serializer_context(self):
         """Add request context to the serializer."""
