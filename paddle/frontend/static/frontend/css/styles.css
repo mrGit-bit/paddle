@@ -21,17 +21,6 @@ h1, h2, h3 {
   font-size: 1.2em;
 }
 
-/* Colors */
-/* Base background and text colors */
-
-/* Body */
-/*
-body {
-  background-color: #004B23; 
-  color: #FFFF00; 
-}
-*/
-
 /* Navbar */
 .navbar {
   background-color: #144D29; /* dark green background */
@@ -46,24 +35,28 @@ body {
   color: #FFD700 !important; /* Gold for hover */
 }
 
+/* HoF table */
+
+/* In small screens, ensures that overflowing content is hidden 
+and replaced by an ellipsis (…) */
+.table-responsive {
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+.table td, .table th {
+  max-width: 0; /* Essential for ellipsis to work properly */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis; /* Add ellipsis for overflowing content */
+}
+
+
 /* Table headers */
 .table thead th {
   background-color: #144D29; /* dark green background */
   color: whitesmoke; /* White text for headers */  
   font-weight: bold;  
 }
-
-/* Buttons */
-/* 
-.btn-primary {
-  background-color: #004B23; 
-  border-color: #004B23; 
-  color: #FFFF00; 
-}
-
-.btn-primary:hover {
-  background-color: #005A30; 
-} */
 
 /* Alignments */
 /* Align all numeric table headers to the center for better readability */
@@ -84,14 +77,44 @@ body {
     text-align: center;
 }
 
-
-/* Footer */
-footer {
-  background-color: #004B23; /* Dark green */
-  color: #FFFF00; /* Bright yellow text */
-  padding: 20px;
-  text-align: center;
+/* Highlights in HoF table*/
+/* Ranking highlight for top 3 players */
+@media (max-width: 576px) {
+  .table tbody td strong {
+    font-size: 1.0em !important;
+  }
 }
+
+@media (min-width: 577px) and (max-width: 768px) {
+  .table tbody td strong {
+    font-size: 1.2em !important;
+  }
+}
+
+@media (min-width: 769px) {
+  /* Desktop */
+  .table tbody td strong.rank-1 {
+    font-size: 1.5em;
+  }
+  .table tbody td strong.rank-2 {
+    font-size: 1.3em;
+  }
+  .table tbody td strong.rank-3 {
+    font-size: 1.2em;
+  }
+}
+
+/* Table row highlight for the current user player */
+.highlight-zoom {  
+  border: 5px solid #144D29;
+  font-weight: 600;
+  color: #144D29;
+  box-shadow: 0 0 50px rgba(25, 135, 84, 0.3); /* matches green tone */    
+  position: relative;
+  z-index: 2;
+}
+
+
 
 /* Form validation styles */
 
@@ -129,5 +152,20 @@ select:valid ~ .invalid-feedback {
   display: none;
 }
 
+/* Match cards */
+/* Ensure player names stay on one line */
+/* and truncate long player names */
+.card-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
+/* Footer */
+footer {
+  background-color: #144D29;/* Dark green */
+  color: #FFFF00; /* Bright yellow text */
+  padding: 20px;
+  text-align: center;
+}
 

@@ -16,6 +16,62 @@ import json
 
 BASE_API_URL = settings.BASE_API_URL
 
+def get_player_stats(request, player_id=None):
+    """
+    The default player_id is the player_id of the authenticated user.
+    If the user is not authenticated, the function returns an empty dictionary.    
+    Returns a dictionary containing the player's stats 
+    (wins, matches, win rate, ranking position & ranking total).
+    """
+    session = requests.Session()
+    session.cookies.update(request.COOKIES)
+
+    # If no player_id provided, will be get from the authenticated user
+    if player_id is None and request.user.is_authenticated:
+        try:
+            player_id = Player.objects.get(registered_user=request.user).id
+        except Player.DoesNotExist:
+            player_id = None
+
+    # Default stat values
+    stats = {
+        "player_id": player_id,
+        "wins": 0,
+        "matches": 0,
+        "win_rate": "0%",
+        "ranking_position": 0,
+        "ranking_total": 0      # total number of players        
+    }
+
+    if not player_id:
+        return stats
+    
+    # Fetch player details from API
+    player_url = urljoin(BASE_API_URL, f"games/players/{player_id}/")
+    player_error, player_data = handle_api_response(session.get(player_url))
+
+    if player_error:
+        print(f"Error fetching player stats for player {player_id}: {player_error}")
+        return stats
+
+    # Get total number of players (ranking total) from "count" field of pagination
+    pagination_url = urljoin(BASE_API_URL, "games/players/")
+    pagination_error, pagination_data = handle_api_response(session.get(pagination_url))
+    if pagination_error:
+        print(f"Error fetching player stats for player {player_id}: {pagination_error}")
+        return stats
+    
+    stats.update({
+        "wins": player_data.get("wins", 0),
+        "matches": player_data.get("matches_played", 0),
+        "win_rate": f"{player_data.get('win_rate', 0):.2f}%",
+        "ranking_position": player_data.get("ranking_position", 0),
+        "ranking_total": pagination_data.get("count", 0)
+    })
+
+    return stats
+
+
 def get_new_match_ids(request):
     """
     Retrieves the list of new match IDs for the user.
@@ -54,8 +110,8 @@ def fetch_paginated_api_data(request, endpoint, query_params=None):
     Returns:
         (items, pagination) tuple where
             - items: A list of items for that page.
-            - pagination: A context dictionary with next and previous page links, current page number
-          a ranking offset to add to the player ranking in each page, and the total number of pages.
+            - pagination: A context dictionary with next and previous page links, current page number,
+          and ranking offset (first player ranking of the page).
     """
     # Retrieves the requested page number from the query string in the URL
     try:
@@ -63,8 +119,7 @@ def fetch_paginated_api_data(request, endpoint, query_params=None):
     except ValueError:
         page = 1  # fallback to page 1 if the value was invalid
     
-    page_size = 12    
-    ranking_offset = (page - 1) * page_size    
+    page_size = 12     
     
     # instead of using 'response = requests.get(url)' we use 'session.get(url)'
     session = requests.Session()
@@ -79,40 +134,77 @@ def fetch_paginated_api_data(request, endpoint, query_params=None):
     full_url = urljoin(BASE_API_URL, f"{endpoint}{query}")
     print(f"Fetching paginated data from: {full_url}")
     response = session.get(full_url)
-
     
     error, data = handle_api_response(response)
     if error:
         print(f"Failed to fetch paginated data: {error}")
         return [], {}    
     
-    items = data.get('results', [])        
-    count = data.get('count', 0)
-    total_pages = (count + page_size - 1) // page_size
+    items = data.get('results', []) # list of items for the current page
+    count = data.get('count', 0) # total number of items
+    total_pages = (count + page_size - 1) // page_size # total number of pages
     
-    pagination = {            
+    pagination = {
+        "count": count,            
         "next": data.get("next"),
         "previous": data.get("previous"),
         "current_page": page,
-        "total_pages": total_pages,
-        "ranking_offset": ranking_offset
+        "total_pages": total_pages,        
     }
-    return items, pagination
-    
+    return items, pagination    
 
 def hall_of_fame_view(request):
     """
-    Displays the Hall of Fame (players ranking) and tracks unseen matches.
+    Returns: 
+    - paginated list of players of 12 players per page with pagination data;
+    - for the authenticated users only:
+        - tracks unseen matches for tha user and session to be displayed in the navbar
+        - returns user page number (where the user player is in)
+        - if the user is not in the current page returns user player, previous player and following player
+    to later create a mini table with these three players.
     """    
     print(f"{request.user} calling hall_of_fame_view...")
-    # Call helper functions to fetch paginated data and not seen match IDs (in the session)
-    players, pagination = fetch_paginated_api_data(request, "games/players/")    
-    new_match_ids = get_new_match_ids(request) or []  # Matches the user hasn't seen in this session
+    
+    # Get current players objects for the current page
+    players, pagination = fetch_paginated_api_data(request, "games/players/")   
+    
+    
+    # If the user is authenticated, get user player data
+    # default values in case the user is not authenticated
+    user_page, user_player, previous_player, following_player = None, None, None, None
+    new_match_ids = []
+    
+    if request.user.is_authenticated:
+        
+        # Get unseen user match IDs in the current user session for the navbar badge
+        new_match_ids = get_new_match_ids(request) or []        
+        
+        # Get current authenticated user's player object
+        user_player = Player.objects.get(registered_user=request.user)
+        
+        # Check what page is the user player on    
+        user_player_rank = user_player.ranking_position
+        current_page = request.GET.get("page", 1)
+        user_page = ((user_player_rank - 1) // 12) + 1     
+    
+        # Check if the user player is not in the current page,
+        if user_page != int(current_page):
+            # Get player objects for the previous and following players in the ranking list
+            previous_player = Player.objects.filter(ranking_position=user_player_rank - 1).first()
+            following_player = Player.objects.filter(ranking_position=user_player_rank + 1).first()
+        else:
+            previous_player, following_player = None, None
+    
+    print(f"User page: {user_page}, User player: {user_player}, Previous player: {previous_player}, Following player: {following_player}")
     
     return render(request, "frontend/hall_of_fame.html", {
-        "players": players,
+        "players": players,        
         "pagination": pagination,
         "new_matches_number": len(new_match_ids),
+        "user_page": user_page,
+        "user_player": user_player,
+        "previous_player": previous_player,
+        "following_player": following_player,
         })
 
 def handle_api_response(response, success_callback=None):
@@ -281,67 +373,30 @@ def register_view(request):
     # Render the registration form with available players context    
     return render(request, 'frontend/register.html', {"players": players})
 
-def get_player_ranking(session, player_id):
-    """Returns the player's rank and total number of players."""
-    url = urljoin(BASE_API_URL, "games/players/")
-    response = session.get(url)
-    error, data = handle_api_response(response)
-
-    if error or not data:
-        print(f"Ranking API error: {error}")
-        return None, None
-
-    # Sort players by number of wins (descending), case-insensitive
-    players = sorted(
-        data.get("results", []),
-        key=lambda p: (-p.get("wins", 0), p.get("name", "").lower())
-    )
-
-    total_players = len(players)
-
-    # Find the index of the given player ID (1-based ranking)
-    for index, player in enumerate(players, start=1):
-        if player["id"] == player_id:
-            return index, total_players # Player found, return its rank and total number of players
-
-    return None, total_players  # Player not found, but return total number of players
-
 @login_required
 def user_view(request, id):
     print(f"Received request for user {id}: {request.method}")
     session = requests.Session()
     session.cookies.update(request.COOKIES)
     
+    # GET DATA
     # Ensure the user can only access their own profile
     if request.user.id != id:
         print(f"Unauthorized access attempt by {request.user.username} to user {id}")
         return JsonResponse({'error': 'You are not authorized to view this profile.'}, status=403)
     
-    # GET DATA: Fetch user id details and its player stats from player_id endpoint
-    user_url = urljoin(BASE_API_URL, f"users/{id}/")
-    response = session.get(user_url)
-    user_error, user_data = handle_api_response(response)
-
-    if user_error:
-        print(f"Failed to fetch user details: {user_error}")
-        return JsonResponse({'error': user_error}, status=response.status_code)
-
-    player_id = user_data.get("player_id")
-
-    # Fetch player stats if player_id exists
-    wins, matches, win_rate = 0, 0, "0%"
-    ranking_position, ranking_total = None, None
-    if player_id:
-        ranking_position, ranking_total = get_player_ranking(session, player_id)
-        
-        player_url = urljoin(BASE_API_URL, f"games/players/{player_id}/")
-        player_error, player_data = handle_api_response(session.get(player_url))
-        if player_error:
-            print(f"Failed to fetch player details: {player_error}")
-        else:
-            wins = player_data.get("wins", 0)
-            matches = player_data.get("matches_played", 0)
-            win_rate = f"{player_data.get('win_rate', 0):.2f}%"
+    # Get player object of the authenticated user
+    user_player = Player.objects.get(registered_user=request.user)
+    
+    # Get total number of players in the database
+    total_players = Player.objects.count()
+    
+    # GET DATA: Fetch user details from the API endpoint
+    url = urljoin(BASE_API_URL, f"users/{id}/")
+    response = session.get(url)
+    api_error, data = handle_api_response(response)
+    if api_error:
+        print (f"Server-side error(s):\n{api_error}")
     
     # PATCH USER: Update user details
     if request.method == 'PATCH':
@@ -388,11 +443,8 @@ def user_view(request, id):
     print(f"Rendering user profile page for user {id}")
     context = {
         'user': request.user,
-        'wins': wins,
-        'matches': matches,
-        'win_rate': win_rate,
-        'ranking_position': ranking_position,
-        'ranking_total': ranking_total,
+        'user_player': user_player,
+        'total_players': total_players
     }
     print(f"Context: {context}")
     return render (request, 'frontend/user.html', context)

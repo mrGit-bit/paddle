@@ -5,7 +5,12 @@
 {% block title %}User Profile{% endblock %}
 
 {% block content %}
-<div class="container py-5">
+
+<div class="text-center mt-4">
+  <h1 class="display-4"> 🏆 Position #{{ user_player.ranking_position }} of {{ total_players }} 🏆</h1> 
+</div>
+
+<div class="container">
   <div class="row justify-content-center">
     <div class="col-md-6">
       <h2 class="text-center">User Profile</h2>
@@ -15,7 +20,7 @@
       <div id="error-container"></div>
       
       <!-- Include the reusable user form -->
-      {% include "frontend/_user_form.html" with form_action=request.path is_registration=False wins=wins matches=matches win_rate=win_rate %}            
+      {% include "frontend/_user_form.html" with form_action=request.path is_registration=False wins=user_player.wins matches=user_player.matches_played win_rate=user_player.win_rate %}            
 
       <p class="text-center mt-3">
         Do you want to reset your password? <a href="{% url 'login' %}"> Click here</a>.

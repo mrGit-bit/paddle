@@ -14,10 +14,10 @@
     
     
     <div class="card-body">
-      <div class="row">        
+      <div class="row d-flex align-items-stretch"> <!-- Force equal heights -->        
         <!-- Team 1 -->
-        <div class="col">
-          <div class="card shadow-sm h-60">
+        <div class="col-6 d-flex"> <!-- Half width -->
+          <div class="card shadow-sm flex-fill match-card-team">
             <div class="card-body {% if match.winning_team == 1 %} text-bg-success {% else %} text-bg-light {% endif %}">
               <h5 class="card-title">
                 {% if match.winning_team == 1 %}Winning 🏆{% else %}Losing 🌴{% endif %}
@@ -31,8 +31,8 @@
         </div>
         
         <!-- Team 2 -->
-        <div class="col">
-          <div class="card shadow-sm h-60">
+        <div class="col-6 d-flex"> <!-- Half width -->
+          <div class="card shadow-sm flex-fill match-card-team">
             <div class="card-body {% if match.winning_team == 2 %} text-bg-success {% else %} text-bg-light {% endif %}">
               <h5 class="card-title">
                 {% if match.winning_team == 2 %}Winning 🏆{% else %}Losing 🌴{% endif %}
