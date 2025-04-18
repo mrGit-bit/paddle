@@ -19,6 +19,8 @@ This web application is built using:
 ### 🔗 Index
 
 - [📖 Overview](#📖-overview)
+- [🔗 Index](#🔗-index)
+- [📚 Distinctiveness and complexity](#-distinctiveness-and-complexity)
 - [✨ Key Features & Implementation](#✨-key-features--implementation)
 - [🛠️ Technologies Used](#🛠️-technologies-used)
 - [🗂️ Project Structure](#🗂️-project-structure)
@@ -32,6 +34,17 @@ This web application is built using:
 - [🤝 Contributing](#🤝-contributing)
 - [📄 License](#📄-license)
 
+---
+
+### 📚 Distinctiveness and complexity
+
+The project develops a user-friendly ranking system for groups of friends who play paddle tennis together. Unlike other apps, this project allows every member of the group to access a ranking system and, after registering, add their own matches and players. This project is distinctiveness and complex because it involves a full-stack development: a RESTful API created with Django and Django Rest Framework (DRF) and a frontend created with Django templates, JavaScript, and Bootstrap 5.
+
+Some extra functionalities are added like pagination, match filtering, badge for new matches number, dynamic check when registering, and more.
+
+Everything is mobile responsive, ensuring that the experience is consistent across different devices and screen sizes.
+
+<div style="text-align: right"><a href="#index">Back to Index</a></div>
 ---
 
 ### ✨ Key Features & Implementation
@@ -440,11 +453,13 @@ These enhancements represent major architectural or feature additions that will 
 1. Python 3.8 or higher
 2. pip (Python package manager)
 3. pytest (for running tests)
+4. virtualenv (recommended, for creating isolated environments)
+5. Git (for cloning the repository)
 
 ### 🏗️ Steps
 
 1. Clone the repository:  
-   `git clone https://github.com/your-repo/paddle.git`  
+   `git clone https://github.com/me50/USERNAME/blob/web50/projects/2020/x/capstone/paddle.git`  
    `cd paddle`
 
 2. Create and activate a virtual environment:  
@@ -457,16 +472,29 @@ These enhancements represent major architectural or feature additions that will 
 4. Configure the database in `settings.py`:  
    - Update the `DATABASES` setting with your PostgreSQL credentials or use the default SQLite for development.
 
+    ```python
+    DATABASES = {
+      'default': {
+          'ENGINE': 'django.db.backends.postgresql',
+          'NAME': 'your_db_name',
+          'USER': 'your_db_user',
+          'PASSWORD': 'your_db_password',
+          'HOST': 'localhost',
+          'PORT': '5432',
+      }
+    }
+    ```
+
 5. Apply migrations:  
    `python manage.py migrate`
 
-6. Create a superuser:  
+6. Create a Django superuser:  
    `python manage.py createsuperuser`
 
 7. Run the development server:  
    `python manage.py runserver`
 
-8. Access the app at:  
+8. Access the app locally at:  
    `http://127.0.0.1:8000/`
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
