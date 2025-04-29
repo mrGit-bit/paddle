@@ -11,6 +11,7 @@ def update_player_rankings():
     """
     Calculate the ranking position of the player.
     Ranked by wins, then by win rate, and then by number of matches played.
+    Rank only players with at least one match played.
     """
     players = Player.objects.all()
     sorted_players = sorted(
@@ -26,7 +27,7 @@ class PlayerViewSet(viewsets.ModelViewSet):
     """
     ViewSet for handling CRUD operations related to players.
     """
-    queryset = Player.objects.all().order_by('ranking_position')
+    queryset = Player.objects.exclude(ranking_position=0).order_by('ranking_position')
     serializer_class = PlayerSerializer
 
     def get_permissions(self):

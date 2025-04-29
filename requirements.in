@@ -1,7 +1,7 @@
 # Dependencies for a pre-production state
 
 # Django and friends
-django>=3.2,<4.0
+django>=4.2  # Django 4.2 or higher
 django-environ>=0.8.1
 django-extensions>=3.1.5
 

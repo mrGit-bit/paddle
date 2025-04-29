@@ -8,7 +8,7 @@ asgiref==3.8.1
     # via django
 coverage==7.8.0
     # via -r requirements.in
-django==3.2.25
+django==5.2
     # via
     #   -r requirements.in
     #   django-allauth
@@ -37,7 +37,5 @@ pytest==8.3.5
     # via pytest-django
 pytest-django==4.11.1
     # via -r requirements.in
-pytz==2025.2
-    # via django
 sqlparse==0.5.3
     # via django

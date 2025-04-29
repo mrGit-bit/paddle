@@ -38,11 +38,24 @@ This web application is built using:
 
 ### 📚 Distinctiveness and complexity
 
-The project develops a user-friendly ranking system for groups of friends who play paddle tennis together. Unlike other apps, this project allows every member of the group to access a ranking system and, after registering, add their own matches and players. This project is distinctiveness and complex because it involves a full-stack development: a RESTful API created with Django and Django Rest Framework (DRF) and a frontend created with Django templates, JavaScript, and Bootstrap 5.
+### 📚 Distinctiveness and Complexity
 
-Some extra functionalities are added like pagination, match filtering, badge for new matches number, dynamic check when registering, and more.
+This project implements a ranking system for my group of friends who usually play paddle tennis together. We are around 30–40 players, and we play without fixed partners.
 
-Everything is mobile responsive, ensuring that the experience is consistent across different devices and screen sizes.
+Unlike other projects in this course, this project was built entirely based on my own requirements. Starting with the idea of having a web app to manage a ranking and having personal specifications like, for example, **all group members can view the ranking system without needing to register**, to enhance members of the group to register and when registered, users can **add their own match results**.
+
+The project is complex because it is a full-stack web application that includes:
+
+- A **RESTful API** built with Django and Django REST Framework (DRF); independently created from,
+- a **frontend** developed using Django templates, vanilla JavaScript, and Bootstrap 5.
+- Additional user-friendly features have been introduced which include:
+  - **Pagination** for easier navigation
+  - **Match filtering** by own matches and all matches
+  - A **badge indicator** for the number of new matches not reviewed in the current session
+  - **Real-time validation** during user registration
+  - **Mini Hall of Fame**: personalized ranking section for users not appearing on the current page
+
+The entire application is fully **mobile responsive**, ensuring a consistent experience across different devices and screen sizes.
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 ---
@@ -142,12 +155,12 @@ paddle/
 │   ├── models.py
 │   ├── urls.py
 │   └── tests/         # Tests for users API
-├── frontend/          # Frontend logic and templates
+├── frontend/          # Frontend logic (in views.py), js, styles and html templates
 │   ├── static/frontend/          # Static files for the frontend
 │   │   ├── css/                  # Stylesheets
 │   │   │   └── styles.css        # Custom styles for the frontend overriding Bootstrap styles
 │   │   ├── js/                   # JavaScript files
-│   │   │   ├── editUserProfile.js      # Send a PATCH request for updating user details
+│   │   │   ├── editUserProfile.js      # Send a PATCH request to the API for updating user details
 │   │   │   ├── matchDeleteHighlight.js # On deletion update match card background dynamically
 │   │   │   ├── matchEdit.js            # Update match card and form for editing
 │   │   │   ├── passwordValidation.js   # Confirm password match
@@ -156,20 +169,22 @@ paddle/
 │   │   │   └── winningTeamHighlight.js # Update winning team card background dynamically on match form
 │   ├── templates/frontend/       # Django templates
 │   │   ├── _match_card.html      # Match history card to be included in match.html
+│   │   ├── _pagination.html      # Reusable pagination component
 │   │   ├── _user_form.html       # Reusable user form for register.html and user.html
 │   │   ├── base.html             # Base template with common navigation bar & footer
 │   │   ├── hall_of_fame.html     # Template for Hall of Fame
+│   │   ├── hof_user_snippet.html # Template for mini table to be included in hall_of_fame.html
 │   │   ├── login.html            # Template for user login
 │   │   ├── match.html            # Template for adding and reviewing match results
 │   │   ├── register.html         # Template for user registration
 │   │   └── user.html             # Template for checking or editing user details
-│   │   └── images/               # Images
 │   ├── __init__.py
 │   ├── test_frontend.py          # Tests for frontend
-│   ├── urls.py                   # URL routing for template views
+│   ├── urls.py                   # URL routing for template
 │   └── views.py                  # Views to render the templates
 ├── README.md          # Project documentation
-├── requirements.txt   # Dependencies for the project
+├── requirements.in    # Dependencies for the project loaded with "pip-compile requirements.in"
+├── requirements.txt   # Dependencies for the project to be installed with "pip install -r requirements.txt"
 └── manage.py          # Django entry point
 ```
 
@@ -458,18 +473,18 @@ These enhancements represent major architectural or feature additions that will 
 
 ### 🏗️ Steps
 
-1. Clone the repository:  
-   `git clone https://github.com/me50/USERNAME/blob/web50/projects/2020/x/capstone/paddle.git`  
+1. Clone the repository:
+   `git clone https://github.com/me50/USERNAME/blob/web50/projects/2020/x/capstone/paddle.git`
    `cd paddle`
 
-2. Create and activate a virtual environment:  
-   `python -m venv venv`  
+2. Create and activate a virtual environment:
+   `python -m venv venv`
    `source venv/bin/activate` (For Windows: `venv\Scripts\activate`)
 
-3. Install dependencies:  
+3. Install dependencies:
    `pip install -r requirements.txt`
 
-4. Configure the database in `settings.py`:  
+4. Configure the database in `settings.py`:
    - Update the `DATABASES` setting with your PostgreSQL credentials or use the default SQLite for development.
 
     ```python
@@ -485,17 +500,36 @@ These enhancements represent major architectural or feature additions that will 
     }
     ```
 
-5. Apply migrations:  
+5. Update your deployment or production URLs in `settings.py` as needed:
+
+    ```python
+    SITE_URL = os.getenv("SITE_URL", "https://your-deployment-url.com") # Your deployment URL or Github Codespace URL
+    (...)
+    ALLOWED_HOSTS = [
+    "your-deployment-url.com", # Your deployment URL or Github Codespace URL
+    "127.0.0.1", # Local development
+    "localhost", # Local development
+    ]
+    (...)
+    CSRF_TRUSTED_ORIGINS = [
+    "https://your-deployment-url.com",  # Your deployment URL or Github Codespace URL
+    "http://127.0.0.1:8000",  # Local development
+    "http://localhost:8000",  # Local development
+    ]
+    ```
+
+6. Apply migrations:
    `python manage.py migrate`
 
-6. Create a Django superuser:  
+7. Create a Django superuser:
    `python manage.py createsuperuser`
 
-7. Run the development server:  
+8. Run the development server:
    `python manage.py runserver`
 
-8. Access the app locally at:  
-   `http://127.0.0.1:8000/`
+9. Access the app at:
+   `http://127.0.0.1:8000/` # Local development
+   `https://your-deployment-url.com/` # Your deployment URL or Github Codespace URL
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 
@@ -505,10 +539,10 @@ These enhancements represent major architectural or feature additions that will 
 
 Contributions are welcome! Please follow these steps:
 
-1. Fork the repository.  
-2. Create a feature branch: `git checkout -b feature-name`.  
-3. Commit your changes: `git commit -m 'Add feature'`.  
-4. Push to the branch: `git push origin feature-name`.  
+1. Fork the repository.
+2. Create a feature branch: `git checkout -b feature-name`.
+3. Commit your changes: `git commit -m 'Add feature'`.
+4. Push to the branch: `git push origin feature-name`.
 5. Open a pull request.
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
