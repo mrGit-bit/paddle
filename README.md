@@ -5,7 +5,7 @@
 
 ## 📖 Overview
 
-Paddle Tennis Hall of Fame is a web application designed for groups of friends who play paddle tennis together. It helps them manage their own "Hall of Fame" within their tennis club.
+Paddle Tennis Hall of Fame is a web application designed for groups of friends who play paddle tennis together. It helps them manage their own "Hall of Fame" within their group.
 
 Registered users can track matches played, update match results, view player rankings, and access player statistics.
 
@@ -20,7 +20,6 @@ This web application is built using:
 
 - [📖 Overview](#📖-overview)
 - [🔗 Index](#🔗-index)
-- [📚 Distinctiveness and complexity](#-distinctiveness-and-complexity)
 - [✨ Key Features & Implementation](#✨-key-features--implementation)
 - [🛠️ Technologies Used](#🛠️-technologies-used)
 - [🗂️ Project Structure](#🗂️-project-structure)
@@ -36,31 +35,22 @@ This web application is built using:
 
 ---
 
-### 📚 Distinctiveness and complexity
+### ✨ Key Features & Implementation
 
-### 📚 Distinctiveness and Complexity
+#### Basic Functionalities
 
-This project implements a ranking system for my group of friends who usually play paddle tennis together. We are around 30–40 players, and we play without fixed partners.
-
-Unlike other projects in this course, this project was built entirely based on my own requirements. Starting with the idea of having a web app to manage a ranking and having personal specifications like, for example, **all group members can view the ranking system without needing to register**, to enhance members of the group to register and when registered, users can **add their own match results**.
-
-The project is complex because it is a full-stack web application that includes:
+Full-stack web application that includes:
 
 - A **RESTful API** built with Django and Django REST Framework (DRF); independently created from,
 - a **frontend** developed using Django templates, vanilla JavaScript, and Bootstrap 5.
 - Additional user-friendly features have been introduced which include:
-  - **Pagination** for easier navigation
-  - **Match filtering** by own matches and all matches
-  - A **badge indicator** for the number of new matches not reviewed in the current session
-  - **Real-time validation** during user registration
+  - **Pagination** for easier navigation;
+  - **Match filtering** by own matches and all matches;
+  - A **badge indicator** for the number of new matches not reviewed in the current session;
+  - **Real-time validation** during user registration; and,
   - **Mini Hall of Fame**: personalized ranking section for users not appearing on the current page
 
 The entire application is fully **mobile responsive**, ensuring a consistent experience across different devices and screen sizes.
-
-<div style="text-align: right"><a href="#index">Back to Index</a></div>
----
-
-### ✨ Key Features & Implementation
 
 #### Hall of Fame Rankings
 
@@ -74,6 +64,8 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
 
 - Authenticated users can add and update match results.
 - Each match consists of two teams, each with two players.
+- Team players could be one of three categories: registered, existing non-registered players, and new players.
+- Those categories are automatically populated when adding the player´s names.
 - When a new match is added, new players are created if they don't exist.
 - Users can only add, update, or delete matches in which they are a participant.
 - **Implementation**:
@@ -86,14 +78,14 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
 - Users can register, log in, and manage their profiles.
 - During registration, users can link their account to an existing player or create a new one.
 - When linking to an existing player, the user takes over the player's stats, and the player's name is changed to the user's username.
-- Users can only update or delete their own profiles, unless they are an admin.
+- Users can only update their own profiles, unless they are an admin, in which case they can update and delete any profile.
 - **Implementation**:
   - The `UserSerializer` includes a `player_id` field for optional linking to an existing player.
   - The `UserViewSet` restricts profile modification to the user's own profile or admins.
 
 #### Player Details
 
-- Provides detailed profiles for each player, including their match history and stats such as wins, matches played, win rate, and losses.
+- Provides detailed profiles for each player, including their ranking position, match history and stats such as wins, matches played, win rate, and losses.
 - Only admins can update or delete player details.
 - **Implementation**:
   - The `PlayerSerializer` uses calculated fields: `matches_played`, `losses`, and `win_rate`.
@@ -105,11 +97,12 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
   - View the Hall of Fame.
   - Register.
   - Log in.
-- Authenticated users can also:
+- Authenticated users can:
+  - View the Hall of Fame.
   - Add match results.
   - Update or delete their own match results.
-  - View and update their profile.
-  - View player stats.
+  - View and update their editable fields in their own user profile.
+  - View own player stats.
 - Admins have full access, including creating, updating, and deleting matches, players, and users.
 - **Implementation**:
   - DRF's built-in session authentication is used.
@@ -130,7 +123,7 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
   - Built-in session authentication from DRF.
 - **Frontend**:
   - Django Templates.
-  - JavaScript.
+  - Vanilla JavaScript.
   - Bootstrap 5.
 - **Database**: SQLite for development and testing.
 
@@ -228,13 +221,13 @@ The `games` app manages both players and matches.
 
 `/api/games/players/player_names/`:
 
-- `GET`: Returns a JSON dictionary with a list of registered users (players linked to a User account) and a list of non-registered players, both with their ID and name. Results are sorted alphabetically. Publicly accessible. Will be used:
+- `GET`: Returns a JSON dictionary with a list of registered users (players already linked to a User account) and a list of non-registered players, both with their ID and name. Results are sorted alphabetically. Publicly accessible. This endpoint is used:
   - During user registration: to provide a list of non-registered players to choose from;
-  - When introducing new match results: to differentiate between registered players and new players.
+  - When introducing new match results: to differentiate between registered players, existing non-registered players and new players.
 
 ### Endpoints for the `users` app
 
-Manages user registration, login, logout, linking of existing non-registered players, and user profiles management.
+Manages user registration, login, logout, linking of existing non-registered players during user registration, and user profiles management.
 
 `/api/users/`:
 
@@ -248,7 +241,7 @@ Manages user registration, login, logout, linking of existing non-registered pla
 
 ### Endpoints for the `api-auth` browsable API
 
-In development, the `api-auth` app provides endpoints for login and logout for the browsable API.
+In development, the `api-auth` app provides endpoints for login and logout when using the browsable API.
 
 `/api-auth/login/`: Login endpoint for the browsable API.
 
@@ -262,14 +255,15 @@ In development, the `api-auth` app provides endpoints for login and logout for t
 
 ### 🏗️ Foundation Template
 
-All templates extend a base layout using `{% extends "base.html" %}` where:
+All templates extend a base layout using `{% extends "base.html" %}` where `base.html` provides the site-wide layout, including the common navigation bar and standard footer. It serves as the foundation for all pages, ensuring a consistent look and feel across the site.
 
-- `base.html`: Provides the site-wide layout, including the common navigation bar and standard footer. It serves as the foundation for all pages, ensuring a consistent look and feel across the site. The navigation bar is:
-  - Collapsible on small screens.
-  - Sticky on scroll.
-  - Links accessible to unauthenticated users: Paddle HoF, Register, and Login.
-  - Links accessible to authenticated users: Paddle HoF, Matches, User Profile (displaying the _current_ user's name), and Logout.
-  - Matches should display a badge with the number of _pending_ matches for the current user in that session. By clicking on the badge the user is redirected to the `match.html` page. The badge is only displayed if there are any pending matches. The matches in the dropdown are ordered by date.
+The navigation bar is:
+
+- Collapsible on small screens.
+- Sticky to the top on scroll.
+- Links accessible to unauthenticated users are: Paddle HoF, Register, and Login.
+- Links accessible to authenticated users are: Paddle HoF, Matches, User Profile (displaying the _current_ user's name in the navbar), and Logout.
+- Matches link should display a badge with the number of _pending_ matches for the current user in that session. By clicking on the badge the user is redirected to the `match.html` page. The badge is only displayed if there are any pending matches.
 
 ### 🔗 URLs & Full Page Templates
 
@@ -282,18 +276,18 @@ These are the full-page templates directly mapped to URLs:
 | `/login/`               | User login                            | `login.html`        | User & password fields and login button.                                                                                                         |
 | `/logout/`              | User logout                           | N/A - View handled  | Logout link with bootstrap icon. _This action is a redirection._                                                                                 |
 | `/users/<id>/`          | User details and editing              | `user.html`         | User profile stats and editable fields.                                                                                                          |
-| `/matches/`             | Match results and editing             | `match.html`        | Form for adding and editing matches and match history, both for the user and all matches. Displays the list of matches using `_match_card.html`. |
+| `/matches/`             | Match results and editing             | `match.html`        | Form for adding and editing matches, and match history, filtered only for the user or non filtered for all players. Displays the list of matches using `_match_card.html`. |
 | `/matches/<id>/delete/` | Delete match                          | N/A - View handled  | Trash button with bootstrap icon. _This action is a redirection_.                                                                                |
 
 ### 📂 Partial & Reusable Templates
 
-These partial templates are reusable components designed to be included in full templates using `{% include %}`:
+These partial templates are reusable components designed to be included in other templates using `{% include %}`:
 
-- `_match_card.html`: Displays a match card used in the tabs of the Match History section of `match.html`. With color indication for winning team in green background, date played with a badge indication for _not yet reviewed_ matches by the user in that session, and delete and edit buttons for matches where the user is a participant. The edit button let the user edit his own matches.
+- `_match_card.html`: Displays match cards to be used in the tabs of the Match History section of `match.html`. Includes teams with color indication for winning team in green background, date played with a "new!" badge indication for _not yet reviewed_ matches by the user in that session, and delete and edit buttons for matches where the user is a participant. The edit button let the user edit his own matches.
 
-- `_user_form.html`: A dynamic form for creating and editing users. Reused in both `register.html` (for new users) and `user.html` (for editing profiles).
+- `_user_form.html`: A dynamic form for creating and editing users. Reused in both `register.html` (for new users) and `user.html` (for editing allowed fields of the user profile).
 
-- `_pagination.html`: A reusable template for pagination, used in `hall_of_fame.html` and `match.html`. It shows "Previous" button if there is a previous page, the current page number and "Next" button if there is a next page.
+- `_pagination.html`: A reusable template for pagination, used in `hall_of_fame.html` and `match.html`. It shows current page number with indication of total pages,"Rewind", "Fast Forward" and following and previous page number, any of them showed only when available.
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 
@@ -302,23 +296,22 @@ These partial templates are reusable components designed to be included in full 
 ## 🛠️ JavaScript Functionalities
 
 - `passwordValidation.js`: Checks if the password and confirm password fields match, and dynamically displays an error message if they don't. Is used in `register.html`.
-- `playerLabelUpdater.js`: The label of the player input field updates dynamically as the user types, based on the input value to distinguish between registered players, existing players, and new players in the form fields of `match.html`.
-- `winningTeamHighlight.js`: Dynamically updates the background of the "Team 1" and "Team 2" cards in the form fields of `match.html` based on the selection of the "winning_team" radio button.
+- `playerLabelUpdater.js`: The label of the player input field updates dynamically as the user types, based on the input value to distinguish between registered players, existing (but not registered) players, and new players in the form fields of `match.html`.
+- `winningTeamHighlight.js`: Dynamically updates the background of the "Team 1" and "Team 2" cards in the form fields of `match.html` based on the selection of the "winning_team" radio button with green background for the winning team.
 - `matchDeleteHighlight.js`: Dynamically updates the background of the match card in the form fields of `match.html` to indicate deletion _before sending the DELETE request_.
 - `matchEdit.js`: Allows editing of match details in `match.html`. The Edit button is only visible in matches of the match history section where the current user is a participant. By clicking on the edit button in a match card, the following happens:
   - The selected match card to be edited is highlighted.
   - The form in `match.html` is pre-filled with the data of the selected match.
   - The html is focused on the form.
-  - The "Add Match" button is changed to "Edit Match". When the user clicks "Edit Match", the endpoint of the API is called by PUT.
+  - The "Add Match" button is changed to "Edit Match". When the user clicks "Edit Match", the endpoint of the API is called by PUT (the API will delete the match and create a new one) .
   - A "Cancel Edit" button is added to the form, which allows canceling the edit and reloads the default `match.html`.
-- `editUserProfile.js`: Allows editing of allowed user details in `user.html`. _Only the email field is editable._ By changing the value on the email field in the user profile, "Cancel Changes" and "Save Changes" buttons are enabled:
+- `editUserProfile.js`: Allows editing of allowed user details in `user.html`. _Only the email field has been flagged as editable so far._ By changing the value on the email field in the user profile, "Cancel Changes" and "Save Changes" buttons are enabled:
   - When the user clicks "Save Changes", the endpoint of the API is called by PATCH.
   - When the user clicks "Cancel Changes", the form is reset to the original values.
 - `tabPaginationReset.js` is loaded with match.html for:
-  - Showing the correct pagination on initial load based on the tab state or URL anchor;
+  - Showing the correct pagination on initial load based on the active tab;
   - Hiding the inactive tab’s pagination;
-  - Resetting pagination to page 1 when switching tabs; and,
-  - Updating the browser’s URL with the correct ?page=1#tab-id on tab switch.
+  - Resetting pagination to page 1 when switching between tabs.
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 
@@ -348,8 +341,8 @@ The frontend leverages Bootstrap 5's pagination component to provide a user-frie
 - **How it Works:** The frontend dynamically generates pagination links based on the `next`, `previous`, `count`, and `current_page` fields provided by the frontend view. These links allow users to navigate between pages of data of 12 items per page maximum.
 - **Implementation:** The pagination component `_pagination.html` is loaded in:
   - `hall_of_fame.html` for player ranking pages of 12 players; and,
-  - `match.html` with two independent pagination for My Matches and All Matches tabs. Pagination is displayed only for the active tab, and hidden for the inactive one. A dedicated JavaScript file (tabPaginationReset.js) is used to reset the pagination to the first page when a new tab is selected, hiding the pagination for the inactive tab and updating the URL hash accordingly.
-- **User Experience:** The pagination component seamlessly integrates with the application's design, allowing users to easily navigate between pages of maximum 12 players or matches. It displays the current page number, number of total pages and provides links to previous and next pages (if available). and full rewind or fast forward to the first or last page.
+  - `match.html` with two independent pagination subset for _My Matches_ and _All Matches_ tabs. Pagination is displayed only for the active tab, and hidden for the inactive one. A dedicated JavaScript file (`tabPaginationReset.js`) is used to reset the pagination to the first page when a new tab is selected, hiding the pagination for the inactive tab and updating the URL hash accordingly.
+- **User Experience:** The pagination component seamlessly integrates with the application's design, allowing users to easily navigate between pages of maximum 12 players or matches. It displays the current page number, number of total pages and provides links to previous and next pages (if available). Also full rewind or fast forward to the first or last page are available when needed.
 - **Dynamic Rendering:** The pagination component is dynamically rendered based on the data received from the API, ensuring that the correct number of pages and relevant navigation links are displayed.
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
@@ -385,21 +378,21 @@ These are relatively easy to implement and will quickly improve the application'
     - **Description:** Introduce a system for users to confirm their participation in matches.  A "pending confirmation" badge will replace the current "not seen" badge on unconfirmed matches. Users can confirm matches via a new "Confirm" button or by using the existing "Edit" or "Delete" buttons. Each user can only confirm a match once. The navigation bar will display the total number of matches using a badge with that number awaiting confirmation by the current user. The user who created the match is automatically considered to have confirmed it.
     - **Benefit:** Enhances data accuracy and user engagement by requiring verification of match results from all participants.
     - **Implementation Details:**
-        - Add a `created_by` field (User ID) to the `Match` model to track the match creator.
-        - Add a `confirmed_by` field (list of User IDs) to the `Match` model to track confirmations.
-        - Automatically add the `created_by` user's ID to the `confirmed_by` list upon match creation.
-        - Add the user's ID to the `confirmed_by` list when they edit a match or click the "Confirm" button.
+        - Add a `created_by` field (User ID and name) to the `Match` model to track the match creator.
+        - Add a `confirmed_by` field (User IDs and names) to the `Match` model to track confirmations.
+        - Automatically add the `created_by` user's ID and user name to the `confirmed_by` list upon match creation.
+        - Add the user's ID to the `confirmed_by` list when they edit a match or click the _Confirm_ button.
         - Update the navigation bar badge to show the number of matches pending confirmation for the current user.
-        - Use the current "New!" badge to highlight matches awaiting confirmation and display "Confirm," "Edit," and "Delete" buttons in the `_match_card.html` template only in those matches.
+        - Use the current _New!_ badge to highlight matches awaiting confirmation of the current user, and display "Confirm," "Edit," and "Delete" buttons in the `_match_card.html` template only in those matches.
 
 2. **User Password Management:**
     - **Description:** Allow users to change or reset their passwords.
     - **Benefit:** Enhances user account security and usability.
-    - **Implementation Note:** Leverage Django's built-in authentication and password reset views, potentially integrating an email service for reset links.
+    - **Implementation Notes:** Leverage Django's built-in authentication and password reset views, potentially integrating an email service for reset links. The email field in `models.py` should not be left blank, as the reset link will not work if it is.
 
 3. **Multiple Groups of Friends:**
-    - **Description:**  Enhance the application to support multiple, independent groups of friends, each with its own isolated data. Each group will have its own unique Hall of Fame, players, matches, and users, completely separate from other groups. A new landing page will allow visitors to enter a group code to access a specific group's data. Visitors can explore the group's public information and later register to become a full user within that group.
-    - **Benefit:**  Significantly expands the application's utility by enabling multiple, unrelated groups of friends to use the platform independently. This increases the potential user base and fosters a sense of community within each group.
+    - **Description:**  Enhance the application to support multiple, independent groups of friends, each with its own isolated data. Each group will have its own unique Hall of Fame, players, matches, and users, completely separate from other groups. A new landing page will allow visitors to enter a group code to access a specific group's data. Visitors can explore the group's public information only if they know the group code, and later register to become a full user within that group.
+    - **Benefit:**  Significantly expands the application's utility by enabling multiple, unrelated groups of friends to use the platform independently. This increases the potential user base and fosters a sense of community within each group. Also enhances security and privacy by isolating data and access controls within each group.
     - **Implementation Details:**
         - **Group Model:**
             - Introduce in the `users` app a new `Group` model to represent each group of friends.
@@ -421,6 +414,7 @@ These are relatively easy to implement and will quickly improve the application'
                 - Redirect the visitor to the Hall of Fame page for that group.
                 - Display in the Navbar indication of the group's name.
                 - Provide options for visitors to log in or register to become a user of that group.
+                - No need to enter the code again in the same session of that user or visitor for future group access, as it is stored in the session and the landing page will be the HoF for that group.
             - If the code is invalid, display a error message and implement security measures to prevent brute-force attempts to guess group codes.
         - **Group Management:**
             - Only admin users can create, update, delete or change code groups.
