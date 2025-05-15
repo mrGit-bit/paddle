@@ -6,6 +6,14 @@
 #
 asgiref==3.8.1
     # via django
+build==1.2.2.post1
+    # via pip-tools
+certifi==2025.4.26
+    # via requests
+charset-normalizer==3.4.2
+    # via requests
+click==8.2.0
+    # via pip-tools
 coverage==7.8.0
     # via -r requirements.in
 django==5.2
@@ -25,17 +33,39 @@ django-filter==23.5
     # via -r requirements.in
 djangorestframework==3.16.0
     # via -r requirements.in
+idna==3.10
+    # via requests
 iniconfig==2.1.0
     # via pytest
 mock==5.2.0
     # via -r requirements.in
 packaging==24.2
-    # via pytest
+    # via
+    #   build
+    #   pytest
+pip-tools==7.4.1
+    # via -r requirements.in
 pluggy==1.5.0
     # via pytest
+pyproject-hooks==1.2.0
+    # via
+    #   build
+    #   pip-tools
 pytest==8.3.5
     # via pytest-django
 pytest-django==4.11.1
     # via -r requirements.in
+python-decouple==3.8
+    # via -r requirements.in
+requests==2.32.3
+    # via -r requirements.in
 sqlparse==0.5.3
     # via django
+urllib3==2.4.0
+    # via requests
+wheel==0.45.1
+    # via pip-tools
+
+# The following packages are considered to be unsafe in a requirements file:
+# pip
+# setuptools
