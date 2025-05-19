@@ -133,9 +133,57 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
 
 ## 🗂️ Project Structure
 
+- Folder structure:
+
 ```bash
 paddle/
+├── config/                 # Project configuration and settings
+├── fixtures/               # Test data
+├── frontend/               # Frontend logic (in views.py), js, styles and html 
+│   ├── migrations/         # Migrations for the frontend app
+│   ├── static/frontend/    # Static files for the frontend
+│     ├── css/              # CSS styles for the frontend
+│     └── js/               # JavaScript files for the frontend
+│   └── templates/frontend/ # HTML templates for the frontend
+├── games/                  # API app for players & matches
+│   ├── migrations/         # Migrations for the games app
+│   └── tests/              # Tests for games API
+├── staticfiles/            # Collected static files 
+├── users/                  # API app for user management
+│   ├── migrations/         # Migrations for the users app
+│   └── tests/              # Tests for users API
+├── .coverage               # Test coverage report
+├── README.md               # Project documentation
+├── requirements.in         # pip-tools dependencies
+├── requirements.txt        # Compiled dependencies
+└── .env                    # Environment variables
+```
+
+- Configuration files:
+
+```bash
 ├── config/            # Project configuration and settings
+│ ├── __init__.py
+│ ├── base.py         # Common settings
+│ ├── dev.py          # Development-specific settings
+│ ├── prod.py         # Production-specific settings│    
+│ ├── urls.py
+│ └── wsgi.py
+```
+
+- Tests folders and files:
+
+```bash
+├── fixtures/          # Test data
+├── games/             # API app for players & matches
+│   └── tests/         # Tests for games API
+├── users/             # API app for user management
+│   └── tests/         # Tests for users API
+```
+
+- API Apps:
+
+```bash
 ├── games/             # API app for players & matches
 │   ├── serializers.py
 │   ├── views.py
@@ -148,8 +196,13 @@ paddle/
 │   ├── models.py
 │   ├── urls.py
 │   └── tests/         # Tests for users API
-├── frontend/          # Frontend logic (in views.py), js, styles and html templates
-│   ├── static/frontend/          # Static files for the frontend
+```
+
+- Frontend apps and files:
+
+```bash
+├── frontend/                     # Frontend logic (in views.py), js, styles and html templates
+│   ├── static/frontend/          # Static files for the frontend in development
 │   │   ├── css/                  # Stylesheets
 │   │   │   └── styles.css        # Custom styles for the frontend overriding Bootstrap styles
 │   │   ├── js/                   # JavaScript files
@@ -158,9 +211,9 @@ paddle/
 │   │   │   ├── matchEdit.js            # Update match card and form for editing
 │   │   │   ├── passwordValidation.js   # Confirm password match
 │   │   │   ├── playerLabelUpdater.js   # Update player labels dynamically on match form
-│   │   │   ├── tabPaginationReset.js   # Update pagination dynamically on tab change in match.html history
-│   │   │   └── winningTeamHighlight.js # Update winning team card background dynamically on match form
-│   ├── templates/frontend/       # Django templates
+│   │   │   ├── tabPaginationReset.js   # Update pagination dynamically on tab change
+│   │   │   └── winningTeamHighlight.js # Update winning team card background
+│   ├── templates/frontend/       # Folder containing Django templates
 │   │   ├── _match_card.html      # Match history card to be included in match.html
 │   │   ├── _pagination.html      # Reusable pagination component
 │   │   ├── _user_form.html       # Reusable user form for register.html and user.html
@@ -172,13 +225,8 @@ paddle/
 │   │   ├── register.html         # Template for user registration
 │   │   └── user.html             # Template for checking or editing user details
 │   ├── __init__.py
-│   ├── test_frontend.py          # Tests for frontend
-│   ├── urls.py                   # URL routing for template
-│   └── views.py                  # Views to render the templates
-├── README.md          # Project documentation
-├── requirements.in    # Dependencies for the project loaded with "pip-compile requirements.in"
-├── requirements.txt   # Dependencies for the project to be installed with "pip install -r requirements.txt"
-└── manage.py          # Django entry point
+│   ├── urls.py                   # URLs frontend configuration
+│   └── views.py                  # Views logic to render the templates
 ```
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
@@ -374,7 +422,18 @@ This section details the planned improvements for the Paddle Tennis Hall of Fame
 
 These are relatively easy to implement and will quickly improve the application's value.
 
-1. **Match Confirmation System:**
+1. **Americano tournament application:**
+    - **Description:** Add a feature to allow users to apply to an Americano tournament, arrange matches, add and view match results and at the end of the tournament when all matches are played, displays the final results.
+    - **Benefit:** Engage new players in every Americano tournament.
+    - **Implementation Details:**
+        - Add a new "Americano" menu item to the navigation bar.
+        - Create a new API endpoint for the "Americano" tournament.
+        - Create a new frontend view for the "Americano" tournament application.
+        - Create a new frontend template for the "Americano" tournament application.
+        - Add "Americanos played" and "Americanos positions" fields to the `Player` model.
+        - Add "Americano stats" in the player details.
+
+2. **Match Confirmation System:**
     - **Description:** Introduce a system for users to confirm their participation in matches.  A "pending confirmation" badge will replace the current "not seen" badge on unconfirmed matches. Users can confirm matches via a new "Confirm" button or by using the existing "Edit" or "Delete" buttons. Each user can only confirm a match once. The navigation bar will display the total number of matches using a badge with that number awaiting confirmation by the current user. The user who created the match is automatically considered to have confirmed it.
     - **Benefit:** Enhances data accuracy and user engagement by requiring verification of match results from all participants.
     - **Implementation Details:**
@@ -385,10 +444,24 @@ These are relatively easy to implement and will quickly improve the application'
         - Update the navigation bar badge to show the number of matches pending confirmation for the current user.
         - Use the current _New!_ badge to highlight matches awaiting confirmation of the current user, and display "Confirm," "Edit," and "Delete" buttons in the `_match_card.html` template only in those matches.
 
-2. **User Password Management:**
+3. **User Password Management:**
     - **Description:** Allow users to change or reset their passwords.
     - **Benefit:** Enhances user account security and usability.
     - **Implementation Notes:** Leverage Django's built-in authentication and password reset views, potentially integrating an email service for reset links. The email field in `models.py` should not be left blank, as the reset link will not work if it is.
+
+### Medium-Term Enhancements (Important & Moderately Complex)
+
+These enhancements are more involved but will significantly improve the application's functionality and user experience.
+
+1. **Hall of Fame Background Video:**
+    - **Description:** Add a short video or animated loop in the landing page background.
+    - **Benefit:** Enhance visual appeal and user engagement.
+    - **Implementation Note:** Use a lightweight video format to prevent slowing down page loading. Consider lazy loading or conditional playback for mobile devices.
+
+2. **User Profile Avatars:**
+    - **Description:** Integrate randomized avatar images for player profiles.
+    - **Benefit:** Adds visual appeal and personalization to user profiles.
+    - **Implementation Note:** Utilize an avatar generation API (e.g., `https://avatars.dicebear.com`) or a set of default local images.
 
 3. **Multiple Groups of Friends:**
     - **Description:**  Enhance the application to support multiple, independent groups of friends, each with its own isolated data. Each group will have its own unique Hall of Fame, players, matches, and users, completely separate from other groups. A new landing page will allow visitors to enter a group code to access a specific group's data. Visitors can explore the group's public information only if they know the group code, and later register to become a full user within that group.
@@ -422,20 +495,6 @@ These are relatively easy to implement and will quickly improve the application'
             - Update the navigation bar to display the name of the current group the visitor or user is viewing.            -
         - **Considerations:**
             - **Permissions:** Visitors of that group (not logged in users) shall have the same permissions as current non-authenticated users.
-
-### Medium-Term Enhancements (Important & Moderately Complex)
-
-These enhancements are more involved but will significantly improve the application's functionality and user experience.
-
-1. **Hall of Fame Background Video:**
-    - **Description:** Add a short video or animated loop in the landing page background.
-    - **Benefit:** Enhance visual appeal and user engagement.
-    - **Implementation Note:** Use a lightweight video format to prevent slowing down page loading. Consider lazy loading or conditional playback for mobile devices.
-
-2. **User Profile Avatars:**
-    - **Description:** Integrate randomized avatar images for player profiles.
-    - **Benefit:** Adds visual appeal and personalization to user profiles.
-    - **Implementation Note:** Utilize an avatar generation API (e.g., `https://avatars.dicebear.com`) or a set of default local images.
 
 ### Long-Term Enhancements (Complex & Strategic)
 
