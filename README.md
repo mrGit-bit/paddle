@@ -138,6 +138,8 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
 ```bash
 paddle/
 ├── config/                 # Project configuration and settings
+│   └── settings/           # Different settings for development and production
+├── db.sqlite3              # SQLite database
 ├── fixtures/               # Test data
 ├── frontend/               # Frontend logic (in views.py), js, styles and html 
 │   ├── migrations/         # Migrations for the frontend app
@@ -163,10 +165,12 @@ paddle/
 
 ```bash
 ├── config/            # Project configuration and settings
-│ ├── __init__.py
-│ ├── base.py         # Common settings
-│ ├── dev.py          # Development-specific settings
-│ ├── prod.py         # Production-specific settings│    
+│   ├── __init__.py    # Allows notations like config.settings, config.urls, etc.
+│   └── settings/      # Different settings for development and production
+│     ├── __init__.py  # Allows i.e. from config.settings import dev
+│     ├── base.py      # Common settings
+│     ├── dev.py       # Development-specific settings
+│     └── prod.py      # Production-specific settings│    
 │ ├── urls.py
 │ └── wsgi.py
 ```
@@ -518,71 +522,151 @@ These enhancements represent major architectural or feature additions that will 
 
 ### 📋 Prerequisites
 
-1. Python 3.8 or higher
-2. pip (Python package manager)
-3. pytest (for running tests)
-4. virtualenv (recommended, for creating isolated environments)
-5. Git (for cloning the repository)
+- Python 3.8 or higher: Required to run Django 5.x and supported packages.
+- pip (Python package manager): comes pre-installed with Python.
+- Git (for cloning the repository)
+- virtualenv (recommended, for creating isolated environments)
+
+For testing, development and configuration you may also need:
+
+- `pytest` and `pytest-django` (for running tests)
+- `coverage` (for generating test coverage reports)
+- `django-extensions` (for additional Django commands)
+- `python-decouple` (for managing environment variables)
+- `pip-tools` (for managing requirements)
 
 ### 🏗️ Steps
 
-1. Clone the repository:
-   `git clone https://github.com/me50/USERNAME/blob/web50/projects/2020/x/capstone/paddle.git`
-   `cd paddle`
+- Clone the repository:
+  - `git clone https://github.com/mrGit-bit/paddle`
+  - `cd paddle`
 
-2. Create and activate a virtual environment:
-   `python -m venv venv`
-   `source venv/bin/activate` (For Windows: `venv\Scripts\activate`)
+- Create and activate a virtual environment:
+  - `python -m venv venv`
+  - `source venv/bin/activate` (For Windows: `venv\Scripts\activate`)
 
-3. Install dependencies:
-   `pip install -r requirements.txt`
+- Install dependencies:
+  - `pip install -r requirements.txt`
 
-4. Configure the database in `settings.py`:
-   - Update the `DATABASES` setting with your PostgreSQL credentials or use the default SQLite for development.
+### ⚙️ Environment Configuration
 
-    ```python
-    DATABASES = {
-      'default': {
-          'ENGINE': 'django.db.backends.postgresql',
-          'NAME': 'your_db_name',
-          'USER': 'your_db_user',
-          'PASSWORD': 'your_db_password',
-          'HOST': 'localhost',
-          'PORT': '5432',
-      }
-    }
-    ```
+This project uses `python-decouple` to manage environment variables from a `.env` file.  
+The app dynamically loads either development or production settings based on the value of `DJANGO_ENVIRONMENT`.
 
-5. Update your deployment or production URLs in `settings.py` as needed:
+#### 1. Setup your `.env` file
 
-    ```python
-    SITE_URL = os.getenv("SITE_URL", "https://your-deployment-url.com") # Your deployment URL or Github Codespace URL
-    (...)
-    ALLOWED_HOSTS = [
-    "your-deployment-url.com", # Your deployment URL or Github Codespace URL
-    "127.0.0.1", # Local development
-    "localhost", # Local development
-    ]
-    (...)
-    CSRF_TRUSTED_ORIGINS = [
-    "https://your-deployment-url.com",  # Your deployment URL or Github Codespace URL
-    "http://127.0.0.1:8000",  # Local development
-    "http://localhost:8000",  # Local development
-    ]
-    ```
+Copy the example file to create your actual configuration:
 
-6. Apply migrations:
+```bash
+cp .env.example .env
+```
+
+Then edit .env with the values for your local or production environment.
+
+#### 2. Set the environment variables
+
+| Variable               | Description                                  | Example                      |
+| ---------------------- | -------------------------------------------- | ---------------------------- |
+| `DJANGO_ENVIRONMENT`   | Which settings to load: `dev` or `prod`      | `dev`                        |
+| `SECRET_KEY`           | Django secret key                            | `django-insecure-...`        |
+| `DEBUG`                | Toggle debug mode (`True` or `False`)        | `True`                       |
+| `ALLOWED_HOSTS`        | Comma-separated list of allowed hostnames    | `127.0.0.1,localhost`        |
+| `CSRF_TRUSTED_ORIGINS` | Comma-separated list of trusted CSRF origins | `http://127.0.0.1:8000`      |
+| `SITE_URL`             | Full URL to the app                          | `http://127.0.0.1:8000/`     |
+| `BASE_API_URL`         | Root URL of the backend API                  | `http://127.0.0.1:8000/api/` |
+
+#### 3. 🔁 Switch between environments
+
+You can switch between development and production by changing just one line in your .`env` file:
+
+```bash
+DJANGO_ENVIRONMENT=dev   # for local development
+DJANGO_ENVIRONMENT=prod  # for production (e.g., PythonAnywhere)
+```
+
+#### 4. Settings architecture
+
+The Django settings are split across multiple files for better separation of development and production configurations:
+
+```bash
+config/
+└── settings/
+    ├── __init__.py    # Loads either dev.py or prod.py based on DJANGO_ENVIRONMENT
+    ├── base.py        # Shared settings for all environments
+    ├── dev.py         # Development-only settings
+    └── prod.py        # Production-only settings
+```
+
+`base.py` contains all settings common to both environments: apps, middleware, templates, DRF config, etc.
+
+`dev.py` and `prod.py` import from `base.py` and override or extend as needed (e.g., databases, debug, host permissions).
+
+`__init__.py` automatically determines which file to load based on the DJANGO_ENVIRONMENT variable defined in your .env file.
+
+#### 🧪 Local Development
+
+- Apply migrations:
    `python manage.py migrate`
 
-7. Create a Django superuser:
+- Create a Django superuser:
    `python manage.py createsuperuser`
 
-8. Run the development server:
-   `python manage.py runserver`
+- Run the development server:
 
-9. Access the app at:
-   `http://127.0.0.1:8000/` # Local development
-   `https://your-deployment-url.com/` # Your deployment URL or Github Codespace URL
+```bash
+cd paddle
+python manage.py runserver
+```
+
+- Access the app at: `http://localhost:8000/`
+
+#### 🚀 PythonAnywhere Deployment
+
+- Clone your repo on PythonAnywhere:
+
+```bash
+git clone https://github.com/mrGit-bit/paddle.git
+cd paddle
+```
+
+- Create and activate a virtual environment:
+
+```bash
+python3.10 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+- Create a .env file with your production settings (see above).
+
+- Apply migrations and collect static files:
+
+```bash
+python manage.py migrate
+python manage.py collectstatic
+```
+
+- In your PythonAnywhere Web settings:
+  - Set the working directory to `/home/yourusername/paddle`
+  - Set the virtualenv path to `/home/yourusername/paddle/venv`
+  - Edit the WSGI file to load:
+
+```bash
+os.environ['DJANGO_SETTINGS_MODULE'] = 'config.settings'
+```
+
+- Reload your web app from the PythonAnywhere dashboard.
+
+- Access the app at `https://yourusername.pythonanywhere.com/`
+
+#### Switching Between Environments
+
+The settings module is chosen automatically based on the `.env` variable:
+
+| Mode        | `DJANGO_ENVIRONMENT` | Settings File           |
+|-------------|--------------------|-------------------------|
+| Development | `dev`                | `config/settings/dev.py`  |
+| Production  | `prod`               | `config/settings/prod.py` |
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 
