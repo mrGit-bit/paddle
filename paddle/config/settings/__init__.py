@@ -1,8 +1,10 @@
 # path: paddle/config/settings/__init__.py
-import os
+from decouple import config
 
 # Default to 'dev' if DJANGO_ENVIRONMENT is not explicitly set
-env = os.environ.get("DJANGO_ENVIRONMENT", "dev").lower()
+env = config("DJANGO_ENVIRONMENT", default="dev").lower()
+print(f"DJANGO_ENVIRONMENT set to: {env}")
+print(f"DEBUG set to: {config('DEBUG', default=True, cast=bool)}")
 
 if env == "prod":
     from .prod import *
