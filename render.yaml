@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: paddle-hof
+    env: python
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+      python manage.py migrate --noinput
+    startCommand: gunicorn config.wsgi:application
+    envVars:
+      - key: DJANGO_ENVIRONMENT
+        value: prod
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: your-app.onrender.com
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://your-app.onrender.com
+      - key: BASE_API_URL
+        value: https://your-app.onrender.com/api/
+      - key: SITE_URL
+        value: https://your-app.onrender.com
