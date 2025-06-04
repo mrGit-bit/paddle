@@ -13,12 +13,12 @@ services:
       - key: DEBUG
         value: "False"
       - key: SECRET_KEY
-        generateValue: true
+        generateValue: true  # Let Render generate a secure value for you
       - key: ALLOWED_HOSTS
-        value: your-app.onrender.com
+        value: paddle.onrender.com
       - key: CSRF_TRUSTED_ORIGINS
-        value: https://your-app.onrender.com
+        value: https://paddle.onrender.com
       - key: BASE_API_URL
-        value: https://your-app.onrender.com/api/
+        value: https://paddle.onrender.com/api/
       - key: SITE_URL
-        value: https://your-app.onrender.com
+        value: https://paddle.onrender.com
