@@ -16,10 +16,10 @@ services:
       - key: SECRET_KEY
         generateValue: true  # Let Render generate a secure value for you
       - key: ALLOWED_HOSTS
-        value: padel.onrender.com
+        value: padel-jebm.onrender.com
       - key: CSRF_TRUSTED_ORIGINS
-        value: https://padel.onrender.com
+        value: https://padel-jebm.onrender.com
       - key: BASE_API_URL
-        value: https://padel.onrender.com/api/
+        value: https://padel-jebm.onrender.com/api/
       - key: SITE_URL
-        value: https://padel.onrender.com
+        value: https://padel-jebm.onrender.com
