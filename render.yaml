@@ -7,7 +7,7 @@ services:
       pip install -r requirements.txt      
       python paddle/manage.py collectstatic --noinput
       python paddle/manage.py migrate --noinput
-    startCommand: gunicorn config.wsgi:application --chdir paddle
+    startCommand: gunicorn config.wsgi:application --chdir paddle --workers 3
     envVars:
       - key: DJANGO_ENVIRONMENT
         value: prod
