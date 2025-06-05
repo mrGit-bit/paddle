@@ -14,8 +14,10 @@ charset-normalizer==3.4.2
     # via requests
 click==8.2.0
     # via pip-tools
-coverage==7.8.0
-    # via -r requirements.in
+coverage[toml]==7.8.0
+    # via
+    #   -r requirements.in
+    #   pytest-cov
 django==5.2
     # via
     #   -r requirements.in
@@ -55,7 +57,11 @@ pyproject-hooks==1.2.0
     #   build
     #   pip-tools
 pytest==8.3.5
-    # via pytest-django
+    # via
+    #   pytest-cov
+    #   pytest-django
+pytest-cov==6.1.1
+    # via -r requirements.in
 pytest-django==4.11.1
     # via -r requirements.in
 python-decouple==3.8

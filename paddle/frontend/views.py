@@ -8,198 +8,122 @@ from django.middleware.csrf import get_token
 from django.utils.safestring import mark_safe
 from django.http import HttpResponseForbidden, JsonResponse
 from django.conf import settings
+from django.core.paginator import Paginator
 from datetime import date, datetime
-from urllib.parse import urljoin
-from games.models import Player
-import requests
+from games.models import Player, Match
 import json
-
-BASE_API_URL = settings.BASE_API_URL
 
 def get_player_stats(request, player_id=None):
     """
-    The default player_id is the player_id of the authenticated user.
-    If the user is not authenticated, the function returns an empty dictionary.
     Returns a dictionary containing the player's stats
     (wins, matches, win rate, ranking position & ranking total).
     """
-    session = requests.Session()
-    session.cookies.update(request.COOKIES)
-
-    # If no player_id provided, will be get from the authenticated user
     if player_id is None and request.user.is_authenticated:
         try:
-            player_id = Player.objects.get(registered_user=request.user).id
+            player = Player.objects.get(registered_user=request.user)
+            player_id = player.id
         except Player.DoesNotExist:
             player_id = None
 
-    # Default stat values
     stats = {
         "player_id": player_id,
         "wins": 0,
         "matches": 0,
         "win_rate": "0%",
         "ranking_position": 0,
-        "ranking_total": 0      # total number of players
+        "ranking_total": Player.objects.count(),
     }
 
     if not player_id:
         return stats
 
-    # Fetch player details from API
-    player_url = urljoin(BASE_API_URL, f"games/players/{player_id}/")
-    player_error, player_data = handle_api_response(session.get(player_url))
-
-    if player_error:
-        print(f"Error fetching player stats for player {player_id}: {player_error}")
-        return stats
-
-    # Get total number of players (ranking total) from "count" field of pagination
-    pagination_url = urljoin(BASE_API_URL, "games/players/")
-    pagination_error, pagination_data = handle_api_response(session.get(pagination_url))
-    if pagination_error:
-        print(f"Error fetching player stats for player {player_id}: {pagination_error}")
-        return stats
-
-    stats.update({
-        "wins": player_data.get("wins", 0),
-        "matches": player_data.get("matches_played", 0),
-        "win_rate": f"{player_data.get('win_rate', 0):.2f}%",
-        "ranking_position": player_data.get("ranking_position", 0),
-        "ranking_total": pagination_data.get("count", 0)
-    })
-
+    try:
+        player = Player.objects.get(id=player_id)
+        stats.update({
+            "player_id": player.id,
+            "wins": player.wins,
+            "matches": player.matches_played,
+            "win_rate": f"{player.win_rate:.2f}%",
+            "ranking_position": player.ranking_position,
+        })
+    except Player.DoesNotExist:
+        pass
     return stats
-
 
 def get_new_match_ids(request):
     """
     Retrieves the list of new match IDs for the user.
     A match is considered "new" if the user is a participant but hasn't seen it yet.
     """
+    if not request.user.is_authenticated:
+        return []
 
-    # Fetch matches where the user participated
-    matches_url = urljoin(BASE_API_URL, f"games/matches/?player={request.user.username}")
-    print(f"Requesting user matches from API: {matches_url}")
+    # Find matches where the user is a participant
+    user_player = Player.objects.filter(registered_user=request.user).first()
+    if not user_player:
+        return []
 
-    session = requests.Session()
-    session.cookies.update(request.COOKIES)
-    matches_response = session.get(matches_url)
-    _, user_matches = handle_api_response(matches_response, lambda res: res.json().get('results', []))
-    user_matches = user_matches or []  # Default to empty list if None
+    matches = Match.objects.filter(
+        team1_player1=user_player
+    ) | Match.objects.filter(
+        team1_player2=user_player
+    ) | Match.objects.filter(
+        team2_player1=user_player
+    ) | Match.objects.filter(
+        team2_player2=user_player
+    )
+    matches = matches.distinct()
 
-    # Get seen matches from session
     seen_matches = set(request.session.get('seen_matches', []))
-    print(f"Seen matches from session: {seen_matches}")
+    new_match_ids = [match.id for match in matches if match.id not in seen_matches]
+    return new_match_ids
 
-    # Identify new matches the user hasn't seen
-    new_match_ids = [match["id"] for match in user_matches if match["id"] not in seen_matches]
-    print(f"New match IDs: {new_match_ids}")
-
-    return new_match_ids  # Return the list of new match IDs
-
-def fetch_paginated_api_data(request, endpoint, query_params=None):
+def fetch_paginated_data(queryset, request, page_size=12):
     """
-    Fetch paginated data from an API endpoint, with optional query parameters.
-
-    Args:
-        request: Django request object.
-        endpoint: Relative API path, e.g. 'games/matches/'.
-        query_params: Optional dict like {'player': 'mario'}.
-
-    Returns:
-        (items, pagination) tuple where
-            - items: A list of items for that page.
-            - pagination: A context dictionary with next and previous page links, current page number,
-          and ranking offset (first player ranking of the page).
+    Helper to paginate a queryset.
     """
-    # Retrieves the requested page number from the query string in the URL
     try:
-        page = int(request.GET.get("page", 1)) # default to page 1 if not provided
+        page = int(request.GET.get("page", 1))
     except ValueError:
-        page = 1  # fallback to page 1 if the value was invalid
+        page = 1
 
-    page_size = 12
-
-    # instead of using 'response = requests.get(url)' we use 'session.get(url)'
-    session = requests.Session()
-    session.cookies.update(request.COOKIES)
-
-    # Build full query string
-    query = f"?page={page}"
-    if query_params:
-        for key, value in query_params.items():
-            query += f"&{key}={value}"
-
-    full_url = urljoin(BASE_API_URL, f"{endpoint}{query}")
-    print(f"Fetching paginated data from: {full_url}")
-    response = session.get(full_url)
-
-    error, data = handle_api_response(response)
-    if error:
-        print(f"Failed to fetch paginated data: {error}")
-        return [], {}
-
-    items = data.get('results', []) # list of items for the current page
-    count = data.get('count', 0) # total number of items
-    total_pages = (count + page_size - 1) // page_size # total number of pages
-
+    paginator = Paginator(queryset, page_size)
+    page_obj = paginator.get_page(page)
+    items = list(page_obj.object_list)
     pagination = {
-        "count": count,
-        "next": data.get("next"),
-        "previous": data.get("previous"),
+        "count": paginator.count,
+        "next": page_obj.next_page_number() if page_obj.has_next() else None,
+        "previous": page_obj.previous_page_number() if page_obj.has_previous() else None,
         "current_page": page,
-        "total_pages": total_pages,
+        "total_pages": paginator.num_pages,
     }
     return items, pagination
 
 def hall_of_fame_view(request):
     """
-    Returns:
-    - paginated list of players of 12 players per page with pagination data;
-    - for the authenticated users only:
-        - tracks unseen matches for tha user and session to be displayed in the navbar
-        - returns user page number (where the user player is in)
-        - if the user is not in the current page returns user player, previous player and following player
-    to later create a mini table with these three players.
+    Renders the Hall of Fame page with paginated players.
     """
-    print(f"{request.user} calling hall_of_fame_view...")
+    players_qs = Player.objects.exclude(ranking_position=0).order_by('ranking_position')
+    players, pagination = fetch_paginated_data(players_qs, request)
 
-    # Get current players objects for the current page
-    players, pagination = fetch_paginated_api_data(request, "games/players/")
-
-
-    # If the user is authenticated, get user player data
-    # default values in case the user is not authenticated
     user_page, user_player, previous_player, following_player = None, None, None, None
     new_match_ids = []
 
     if request.user.is_authenticated:
-
-        # Get unseen user match IDs in the current user session for the navbar badge
         new_match_ids = get_new_match_ids(request) or []
-
-        # Get current authenticated user's player object
         try:
             user_player = Player.objects.get(registered_user=request.user)
             user_player_rank = user_player.ranking_position
-            current_page = request.GET.get("page", 1)
+            current_page = int(request.GET.get("page", 1))
             user_page = ((user_player_rank - 1) // 12) + 1
         except Player.DoesNotExist:
             user_player = None
-        print(f"Authenticated user player: {user_player}")
 
-        # Check what page is the user player on
-
-        # Check if the user player is not in the current page,
-        if user_player and user_page != int(current_page):
-            # Get player objects for the previous and following players in the ranking list
+        if user_player and user_page != current_page:
             previous_player = Player.objects.filter(ranking_position=user_player_rank - 1).first()
             following_player = Player.objects.filter(ranking_position=user_player_rank + 1).first()
         else:
             previous_player, following_player = None, None
-
-    print(f"User page: {user_page}, User player: {user_player}, Previous player: {previous_player}, Following player: {following_player}")
 
     return render(request, "frontend/hall_of_fame.html", {
         "players": players,
@@ -209,67 +133,17 @@ def hall_of_fame_view(request):
         "user_player": user_player,
         "previous_player": previous_player,
         "following_player": following_player,
-        })
+    })
 
-def handle_api_response(response, success_callback=None):
+def fetch_available_players():
     """
-    Handles API responses, extracting errors or passing the data to a callback.
-    Returns errors from the API (e.g., duplicate username, server errors)
-    Args:
-        response: The API response object.
-        success_callback: A function to call with the response data if successful.
-    Returns:
-        A tuple: (error_message, data).
+    Fetch non-linked players and registered players, sorted alphabetically.
     """
-    if 200 <= response.status_code < 300:  # 2xx are successful responses
-
-        # Handle 204 No Content response after deletion (no response body after successful deletion)
-        if response.status_code == 204 or not response.content.strip():
-            return None, {} # Return an empty dictionary
-
-        # If a success callback is provided, process the response data
-        try:
-            data = response.json()
-            return None, success_callback(response) if success_callback else data # No assumption of "results" key
-        except ValueError:
-            return "Unexpected empty response from the API.", {}
-
-    # Handle error response
-    try:
-        errors = response.json()
-
-        # If 'non_field_errors' exists, return only its message
-        if "non_field_errors" in errors:
-            return " ".join(errors["non_field_errors"]), None  # Just show the message, no prefix
-
-        if isinstance(errors, dict):
-            error_messages = [f"{field.capitalize()}: {', '.join(messages)}" if isinstance(messages, list) else f"{field.capitalize()}: {messages}"
-                              for field, messages in errors.items()]
-            return "\n".join(error_messages), None
-        return str(errors), None
-    except ValueError: # Handle empty or malformed JSON
-        return f"Unexpected API error (status {response.status_code}).", None
-
-def fetch_available_players(session, request):
-    """
-    Fetch non-linked players from the API endpoint for names
-    ort alphabetically case-insensitively.
-    """
-    print(f"{request.user} fetching available players...")
-    print("Requesting API url:", urljoin(BASE_API_URL, "games/players/player_names/"))
-    response = session.get(urljoin(BASE_API_URL, "games/players/player_names/"))
-    print("API response status code:", response.status_code)
-    _, data = handle_api_response(response)
-
-    players = [
-        (player['id'], player['name'])
-        for player in data.get('non_registered_players',[])
-    ] if data else []
-
-    # Sort players alphabetically in a case-insensitive manner
-    players.sort(key=lambda player: player[1].lower())
-
-    return players
+    registered_players = Player.objects.filter(registered_user__isnull=False).values('id', 'name')
+    non_registered_players = Player.objects.filter(registered_user__isnull=True).values('id', 'name')
+    registered_players = sorted(registered_players, key=lambda player: player['name'].lower())
+    non_registered_players = sorted(non_registered_players, key=lambda player: player['name'].lower())
+    return list(registered_players), list(non_registered_players)
 
 def process_form_data(request):
     """
@@ -279,366 +153,303 @@ def process_form_data(request):
     """
     form_data = {}
 
-    # Handle POST (from registration)
     if request.method == 'POST':
-        # Extract data from request.POST
         form_data = {
             "username": request.POST.get("username", "").strip(),
             "email": request.POST.get("email", "").strip(),
             "password": request.POST.get("password"),
             "confirm_password": request.POST.get("confirm_password"),
-            "player_id": request.POST.get("player_id") or None, # Only player can be None
+            "player_id": request.POST.get("player_id") or None,
         }
-        # Validate required fields
         required_fields = ["username", "email", "password", "confirm_password"]
         for field in required_fields:
             if not form_data.get(field):
                 return None, f"The field '{field}' is required."
-
-        # Validate password match
         if form_data["password"] != form_data["confirm_password"]:
             return None, "Passwords do not match."
-
-        # Remove confirm_password from final cleaned data
         form_data.pop("confirm_password", None)
 
-    # Handle PATCH (for user profile updates)
     elif request.method == 'PATCH':
-        # Parse JSON data from request.body
         try:
             data = json.loads(request.body)
             form_data = {
-                # Fields that can not be updated
                 "username": None,
                 "password": None,
                 "player_id": None,
-
-                # Fields that can be updated
                 "email": data.get("email", "").strip() or None,
             }
         except json.JSONDecodeError:
             return None, "Invalid JSON in request body."
 
-
-    # Clean form data by removing unmodified or None fields
     cleaned_data = {
         "username": form_data.get("username"),
         "email": form_data.get("email"),
         "password": form_data.get("password"),
         "player_id": form_data.get("player_id"),
     }
-
     return cleaned_data, None
 
 def register_view(request):
-    session = requests.Session()
-    session.cookies.update(request.COOKIES) # Update the session cookies from the request
-
     if request.method == 'POST':
-        print(f"Data before frontend processing: {request.POST}")
-
-        # ERRORS: Handle client-side errors (form validation)
         form_data, form_error = process_form_data(request)
         if form_error:
-            print (f"Client-side error: {form_error}")
-            # Use Django messages to pass error to the redirected GET request
             messages.error(request, form_error)
-            return redirect('register')  # Redirect to the register page using GET
-
-        # API CALL: If not client side errors then sends registration data to API
-        url = urljoin(BASE_API_URL, "users/")
-        csrf_token = request.COOKIES.get('csrftoken') or get_token(request)
-        session.headers.update({'X-CSRFToken': csrf_token})
-        print(f"Data sent to API: {form_data}")
-        response = session.post(url, data=form_data, headers={'X-CSRFToken': csrf_token})
-
-        # ERRORS: Handle server-side errors (API response)
-        api_error, data = handle_api_response(response)
-        if api_error:
-            print (f"Server-side error(s):\n{api_error}")
-            messages.error(request, api_error)
             return redirect('register')
 
-        # Authenticate and log in after successful registration
-        print(f"API response data: {data}")
-        username = form_data["username"]
-        print (f"Created user: {username}")
-        user = User.objects.get(username=username)
-        if user.check_password(form_data["password"]):
-            login(request, user)  # Log in the user with session
-            print(f"Authenticated user: {request.user}")
-            # Redirect to the match page after successful registration
-            return redirect('match')
-        # If authentication fails then return to the register page
-        return render(request, 'frontend/register.html', {"error": "Authentication failed", "players": players})
+        # Check for duplicate username
+        if User.objects.filter(username__iexact=form_data["username"]).exists():
+            messages.error(request, f"Username '{form_data['username']}' is already taken. Please choose another one.")
+            return redirect('register')
 
-    # GET DATA: Fetch non-linked players from the API endpoint
-    players = fetch_available_players(session, request)
-    # Render the registration form with available players context
+        # Create user
+        user = User(username=form_data["username"], email=form_data["email"])
+        user.set_password(form_data["password"])
+        user.save()
+
+        # Link to player or create new player
+        player_id = form_data.get("player_id")
+        if player_id:
+            player = Player.objects.filter(id=player_id, registered_user__isnull=True).first()
+            if player:
+                player.registered_user = user
+                player.name = user.username
+                player.save()
+            else:
+                messages.error(request, "Selected player is already linked or does not exist.")
+                user.delete()
+                return redirect('register')
+        else:
+            Player.objects.create(
+                name=user.username,
+                registered_user=user,
+                wins=0
+            )
+
+        login(request, user)
+        return redirect('match')
+
+    registered_players, non_registered_players = fetch_available_players()
+    players = [('', 'New Player')] + [(p['id'], p['name']) for p in non_registered_players]
     return render(request, 'frontend/register.html', {"players": players})
 
 @login_required
 def user_view(request, id):
-    print(f"Received request for user {id}: {request.method}")
-    session = requests.Session()
-    session.cookies.update(request.COOKIES)
-
-    # GET DATA
-    # Ensure the user can only access their own profile
     if request.user.id != id:
-        print(f"Unauthorized access attempt by {request.user.username} to user {id}")
         return JsonResponse({'error': 'You are not authorized to view this profile.'}, status=403)
 
-    # Get player object of the authenticated user
-    user_player = Player.objects.get(registered_user=request.user)
-
-    # Get total number of players in the database
+    user_player = Player.objects.filter(registered_user=request.user).first()
     total_players = Player.objects.count()
 
-    # GET DATA: Fetch user details from the API endpoint
-    url = urljoin(BASE_API_URL, f"users/{id}/")
-    response = session.get(url)
-    api_error, data = handle_api_response(response)
-    if api_error:
-        print (f"Server-side error(s):\n{api_error}")
-
-    # PATCH USER: Update user details
     if request.method == 'PATCH':
-        print(f"PATCH data sent to API for user update: {request.body}")
-        # ERRORS: Parse PATCH data (since Django doesn't parse PATCH by default)
         try:
             form_data = json.loads(request.body)
         except json.JSONDecodeError:
-            print(f"Invalid JSON in request body: {request.body}")
             return JsonResponse({'error': 'Invalid JSON in request body.'}, status=400)
 
-        # ERRORS: Handle client-side errors (form validation)
         form_data, form_error = process_form_data(request)
         if form_error:
-            print (f"Client-side error: {form_error}")
             return JsonResponse({'error': form_error}, status=400)
-        print(f"Form data: {form_data}")
 
-        # Prepare data for API update (only modified fields)
-        update_data = {k: v for k, v in form_data.items() if v is not None}
-        print(f"Update data: {update_data}")
+        update_data = {k: v for k, v in form_data.items() if v is not None and k == "email"}
+        if update_data.get("email"):
+            request.user.email = update_data["email"]
+            request.user.save()
+            request.user.refresh_from_db()
+            return JsonResponse({'success': 'User updated successfully.', 'user': {
+                "id": request.user.id,
+                "username": request.user.username,
+                "email": request.user.email,
+            }}, status=200)
+        else:
+            return JsonResponse({'error': 'No valid fields to update.'}, status=400)
 
-        # API CALL: If not client side errors send PATCH data to API
-        update_url = urljoin(BASE_API_URL, f"users/{id}/")
-        csrf_token = request.COOKIES.get('csrftoken') or get_token(request)
-        session.headers.update({'X-CSRFToken': csrf_token, 'Content-Type': 'application/json'})
-        response = session.patch(update_url, data=json.dumps(update_data), headers={'X-CSRFToken': csrf_token})
-
-        # ERRORS: Handle server-side errors (API response)
-        api_error, data = handle_api_response(response)
-        if api_error:
-            print (f"Server-side error(s):\n{api_error}")
-            # If server-side error then return to the user page
-            return JsonResponse({'error': api_error}, status=response.status_code)
-
-        # Refresh user data after successful update
-        request.user.refresh_from_db()
-        print(f"API response data: {data}")
-        print(f"Updated user: {request.user}")
-        # Return a JSON response instead of redirecting
-        return JsonResponse({'success': 'User updated successfully.', 'user': data}, status=200)
-
-    # For GET requests render the user profile page
-    print(f"Rendering user profile page for user {id}")
     context = {
         'user': request.user,
         'user_player': user_player,
         'total_players': total_players
     }
-    print(f"Context: {context}")
-    return render (request, 'frontend/user.html', context)
+    return render(request, 'frontend/user.html', context)
 
 def process_matches(matches, current_user, user_icon):
     """
     Processes a list of matches by:
-    - Highlighting the current user with an icon.
+    - Highlighting the current user with an icon (for display only).
     - Converting date_played from string to date object.
     """
     for match in matches:
         for key in ["team1_player1", "team1_player2", "team2_player1", "team2_player2"]:
-            if match[key] == current_user:
-                match[key] = user_icon
-
-        if isinstance(match.get("date_played"), str):
-            match["date_played"] = datetime.strptime(match["date_played"], "%Y-%m-%d").date()
-
-    return matches  # Ensure processed list is returned
+            player = getattr(match, key)
+            # Add a display attribute for the template
+            if player and player.name == current_user:
+                setattr(match, f"{key}_display", user_icon)
+            elif player:
+                setattr(match, f"{key}_display", player.name)
+            else:
+                setattr(match, f"{key}_display", "")
+        if isinstance(getattr(match, "date_played", None), str):
+            match.date_played = datetime.strptime(match.date_played, "%Y-%m-%d").date()
+    return matches
 
 @login_required
 def match_view(request, client=None):
-    """
-    Handles match listing, creation, and deletion using PRG (Post/Redirect/Get).
-    Tracks new matches involving the user.
-    """
-    print(f"User calling match_view: {request.user}")
+    user_player = Player.objects.filter(registered_user=request.user).first()
+    if not user_player:
+        messages.error(request, "You are not associated with any player.")
+        return redirect('hall_of_fame')
 
-    # Create a session and pre-configure it
-    session = requests.Session()
-    session.cookies.update(request.COOKIES)  # Update the session cookies from the request
-    csrf_token = request.COOKIES.get('csrftoken') or get_token(request)
-
-    # Fetch players to populate the input form
-    players_url = urljoin(BASE_API_URL, "games/players/player_names/")
-    print(f"Requesting players names from API: {players_url}")
-    players_response = session.get(players_url) # Use 'session.get' instead of 'requests.get'
-    print(f"Players API response status code: {players_response.status_code}")
-    error_message, player_data = handle_api_response(players_response)
-    print(f"Error message after handle_api_response: {error_message}")
-
-    # Extract registered and non-registered players
-    registered_players = player_data.get("registered_players", [])
-    existing_players = player_data.get("non_registered_players", [])
-    # Merge both lists and sort alphabetically by name
+    # Fetch players for form
+    registered_players, non_registered_players = fetch_available_players()
     all_players = sorted(
-        registered_players + existing_players,
-        key=lambda p: p['name'].lower()) # Case-insensitive sorting
+        list(registered_players) + list(non_registered_players),
+        key=lambda p: p['name'].lower()
+    )
 
-    # Fetch all matches and pagination
-    matches, pagination = fetch_paginated_api_data(request, "games/matches/")
+    # Fetch all matches and paginated
+    matches_qs = Match.objects.all().order_by('-date_played')
+    matches, pagination = fetch_paginated_data(matches_qs, request)
 
     # Fetch only user matches
-    user_matches, user_pagination = fetch_paginated_api_data(request,"games/matches/",{"player": request.user.username})
+    user_matches_qs = Match.objects.filter(
+        team1_player1=user_player
+    ) | Match.objects.filter(
+        team1_player2=user_player
+    ) | Match.objects.filter(
+        team2_player1=user_player
+    ) | Match.objects.filter(
+        team2_player2=user_player
+    )
+    user_matches_qs = user_matches_qs.distinct().order_by('-date_played')
+    user_matches, user_pagination = fetch_paginated_data(user_matches_qs, request)
 
     # Get list of new matches
     new_match_ids = get_new_match_ids(request)
-
-    # Store new match IDs in session
     request.session['new_matches'] = new_match_ids
-    request.session.modified = True  # Ensure session is saved
+    request.session.modified = True
 
-    # Add a Bootstrap icon for the current user and bold text
     user_icon = mark_safe('<i class="bi bi-person-check-fill"></i><span class="fw-bold">' + request.user.username + '</span>')
 
-    # Process matches
-    matches = process_matches(matches, request.user.username, user_icon) # All matches processed
-    user_matches = process_matches(user_matches, request.user.username, user_icon) # User matches processed
+    matches = process_matches(matches, request.user.username, user_icon)
+    user_matches = process_matches(user_matches, request.user.username, user_icon)
 
-    # Add today's date to limit the date picker in the ISO format 'YYYY-MM-DD'
     today = date.today().isoformat()
 
     # Handle POST request: create a new match
     if request.method == 'POST':
-        # Create a mutable copy of the POST data and
         match_data = request.POST.copy()
-        # Force team1_player1 to be set to the logged in user
-        # ensuring current user is in the match
         match_data['team1_player1'] = request.user.username
 
-        # Check if we have four different participant players
-        print ("Validating match data")
         participants = [
-        match_data.get('team1_player1'),
-        match_data.get('team1_player2'),
-        match_data.get('team2_player1'),
-        match_data.get('team2_player2')
+            match_data.get('team1_player1'),
+            match_data.get('team1_player2'),
+            match_data.get('team2_player1'),
+            match_data.get('team2_player2')
         ]
-        print (f"Participants: {participants}")
-        print (f"Logged in user: {request.user.username}")
         if len(set(participants)) != 4:
             messages.error(request, "Try again, you have introduced duplicated players!")
-            return redirect('match') # Redirect to the match page using GET
+            return redirect('match')
 
-        # Send match data as JSON to the API
-        matches_url = urljoin(BASE_API_URL, "games/matches/")
-        match_response = session.post(
-            matches_url, # url must be the first positional argument
-            json=match_data,
-            headers={'X-CSRFToken': csrf_token})
+        # Create or get players
+        def get_or_create_player(name):
+            return Player.objects.filter(name__iexact=name.strip()).first() or Player.objects.create(name=name.strip())
 
-        # Log API response
-        print(f"API Response Status: {match_response.status_code}")
-        print(f"API Response Content: {match_response.content}")
+        team1_player1 = get_or_create_player(match_data['team1_player1'])
+        team1_player2 = get_or_create_player(match_data['team1_player2'])
+        team2_player1 = get_or_create_player(match_data['team2_player1'])
+        team2_player2 = get_or_create_player(match_data['team2_player2'])
 
-        # Handle API response
-        error_message, _ = handle_api_response(match_response)
-        if error_message:
-            messages.error(request, error_message)
-            # Log the API response error to the console
-            print(f"API response error: {error_message}")
-            return redirect('match') # Redirect to the match page using PRG (POST-Redirect-Get)
-        # If the match is correctly created
-        print("Match created successfully")
+        try:
+            date_played = datetime.strptime(match_data.get('date_played'), "%Y-%m-%d").date()
+        except Exception:
+            messages.error(request, "Invalid date format.")
+            return redirect('match')
+
+        if date_played > date.today():
+            messages.error(request, "Date cannot be in the future.")
+            return redirect('match')
+
+        # Check for duplicate match on same date
+        team1_sorted = sorted([team1_player1.name.lower(), team1_player2.name.lower()])
+        team2_sorted = sorted([team2_player1.name.lower(), team2_player2.name.lower()])
+        existing_matches = Match.objects.filter(date_played=date_played)
+        for match in existing_matches:
+            existing_team1_sorted = sorted([match.team1_player1.name.lower(), match.team1_player2.name.lower()])
+            existing_team2_sorted = sorted([match.team2_player1.name.lower(), match.team2_player2.name.lower()])
+            if (team1_sorted == existing_team1_sorted and team2_sorted == existing_team2_sorted) or \
+               (team1_sorted == existing_team2_sorted and team2_sorted == existing_team1_sorted):
+                messages.error(request, "A match with the same teams and date already exists.")
+                return redirect('match')
+
+        winning_team = match_data.get('winning_team')
+        if winning_team not in ['1', '2']:
+            messages.error(request, "Please select the winning team.")
+            return redirect('match')
+
+        match = Match.objects.create(
+            team1_player1=team1_player1,
+            team1_player2=team1_player2,
+            team2_player1=team2_player1,
+            team2_player2=team2_player2,
+            winning_team=int(winning_team),
+            date_played=date_played
+        )
         messages.success(request, "Match created successfully")
-        return redirect('match') # Redirect to the match page using PRG (POST-Redirect-Get)
+        return redirect('match')
 
     # Handle DELETE request: delete a specific match
     if request.method == 'DELETE':
-        delete_data = json.loads(request.body)
-        match_id = delete_data.get('match_id')
-        if not match_id:
-            return JsonResponse({"error": "Match ID not provided."}, status=400)
-
-    # Build the API URL for deleting a specific match
-        delete_url = urljoin(BASE_API_URL, f"games/matches/{match_id}/")
-        print(f"Requesting deletion of match at URL: {delete_url}")
-
-    # Send the DELETE request to the API
-        match_response = session.delete(delete_url, headers={'X-CSRFToken': csrf_token})
-        print(f"API Response Status: {match_response.status_code}")
-        print(f"API Response Content: {match_response.content}")
-
-    # Handle API response
-        error_message, _ = handle_api_response(match_response)
-        if error_message:
-            # Log the API response error to the console
-            print(f"API response error: {error_message}")
-            return JsonResponse({"error": error_message}, status=400)
-
-        # If the match is correctly deleted
-        print("Match deleted successfully")
-        return JsonResponse({"message": "Match deleted successfully"}, status=200)
+        try:
+            delete_data = json.loads(request.body)
+            match_id = delete_data.get('match_id')
+            match = Match.objects.get(id=match_id)
+            # Only allow participants or admin to delete
+            if not (request.user.is_staff or Player.objects.filter(registered_user=request.user, id__in=[
+                match.team1_player1.id, match.team1_player2.id, match.team2_player1.id, match.team2_player2.id
+            ]).exists()):
+                return JsonResponse({"error": "You are not authorized to delete this match."}, status=403)
+            match.delete()
+            return JsonResponse({"message": "Match deleted successfully"}, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
 
     # Render the match page in GET requests
     context = {
         "all_players": all_players,
         "registered_players": registered_players,
-        "existing_players": existing_players,
-        "matches": matches, # All matches
+        "existing_players": non_registered_players,
+        "matches": matches,
         "pagination": pagination,
-        "user_matches": user_matches, # Matches played by the user
+        "user_matches": user_matches,
         "user_pagination": user_pagination,
-        "new_match_ids": new_match_ids,  # Pass new match IDs to template
-        "new_matches_number": len(new_match_ids), # Pass count for the navbar badge
+        "new_match_ids": new_match_ids,
+        "new_matches_number": len(new_match_ids),
         "today": today,
         "error": None
     }
 
     # Mark all matches as "seen" when user views match.html
-    print("Add new matches as 'seen'")
     request.session['seen_matches'] = list(set(request.session.get('seen_matches', [])).union(new_match_ids))
-    print(f"New seen matches: {request.session['seen_matches']}")
-    request.session['new_matches'] = []  # Reset the new matches count
-    print("Resetting new matches count")
+    request.session['new_matches'] = []
     request.session.modified = True
 
-    print("Rendering match.html")
     return render(request, 'frontend/match.html', context)
 
-# Login / logout endpoints
 def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
         if user:
-            login(request, user)  # Use Django's default login
+            login(request, user)
             return redirect('hall_of_fame')
         else:
             return render(request, 'frontend/login.html', {"error": "Invalid credentials."})
     return render(request, 'frontend/login.html')
 
-@login_required  # The login_required decorator ensures the user is logged in
-# otherwise redirects him to the login page
-# (set in settings.py with LOGIN_URL='/login/')
+@login_required
 def logout_view(request):
     if request.method == 'POST':
-        logout(request)  # Use Django's default logout
-        return redirect('hall_of_fame') # Redirect to the home page after logout
-    return redirect('login') # Redirect to the login page for GET requests to logout
+        logout(request)
+        return redirect('hall_of_fame')
+    return redirect('login')
 
 

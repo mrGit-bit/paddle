@@ -10,11 +10,11 @@ class PlayerPermissionsTests(APITestCase):
         self.admin_user = User.objects.create_superuser(username="admin", password="adminpassword")
         self.regular_user = User.objects.create_user(username="user", password="userpassword")
 
-        # Create test players
-        self.player1 = Player.objects.create(name="Player 1")
-        self.player2 = Player.objects.create(name="Player 2")
-        self.player3 = Player.objects.create(name="Player 3")
-        self.player4 = Player.objects.create(name="Player 4")
+        # Create test players with non-zero ranking_position
+        self.player1 = Player.objects.create(name="Player 1", ranking_position=1)
+        self.player2 = Player.objects.create(name="Player 2", ranking_position=2)
+        self.player3 = Player.objects.create(name="Player 3", ranking_position=3)
+        self.player4 = Player.objects.create(name="Player 4", ranking_position=4)
 
         # Create a match
         self.match = Match.objects.create(

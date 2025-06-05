@@ -11,6 +11,7 @@ django-filter>=22.1
 
 # Testing
 pytest-django>=4.4.0
+pytest-cov>=3.0.0
 coverage>=6.4.2
 mock>=4.0.3
 

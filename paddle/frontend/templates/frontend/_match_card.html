@@ -5,10 +5,10 @@
 <div class="col-sm-12 col-lg-6 col-xxl-4 mb-4">
   <div id="match-card-{{ match.id }}" 
     class="card shadow h-100"
-    data-team1-player1="{{ match.team1_player1|striptags|escape }}"
-    data-team1-player2="{{ match.team1_player2|striptags|escape }}"
-    data-team2-player1="{{ match.team2_player1|striptags|escape }}"
-    data-team2-player2="{{ match.team2_player2|striptags|escape }}"
+    data-team1-player1="{{ match.team1_player1_display|striptags|escape }}"
+    data-team1-player2="{{ match.team1_player2_display|striptags|escape }}"
+    data-team2-player1="{{ match.team2_player1_display|striptags|escape }}"
+    data-team2-player2="{{ match.team2_player2_display|striptags|escape }}"
     data-winning-team="{{ match.winning_team }}"
     data-date-played="{{ match.date_played|date:"Y-m-d" }}">
     
@@ -23,8 +23,8 @@
                 {% if match.winning_team == 1 %}Winning 🏆{% else %}Losing 🌴{% endif %}
               </h5>
               <p class="card-text">
-                {{ match.team1_player1 }}<br />
-                {{ match.team1_player2 }}
+                {{ match.team1_player1_display|safe }}<br />
+                {{ match.team1_player2_display|safe }}
               </p>
             </div>
           </div>
@@ -38,8 +38,8 @@
                 {% if match.winning_team == 2 %}Winning 🏆{% else %}Losing 🌴{% endif %}
               </h5>
               <p class="card-text">
-                {{ match.team2_player1 }}<br />
-                {{ match.team2_player2 }}
+                {{ match.team2_player1_display|safe }}<br />
+                {{ match.team2_player2_display|safe }}
               </p>
             </div>
           </div>

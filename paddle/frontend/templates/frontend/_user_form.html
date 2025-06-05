@@ -123,7 +123,7 @@
       </div>
       <div class="col-sm-4">
         <div class="form-floating">
-          <input type="text" class="form-control" id="rate" name="rate" value="{{ win_rate }}" readonly disabled />
+          <input type="text" class="form-control" id="rate" name="rate" value="{{ win_rate|floatformat:0 }}" readonly disabled />
           <label for="rate">Win Rate (%)</label>
         </div>
       </div>
