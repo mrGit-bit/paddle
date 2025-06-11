@@ -11,9 +11,9 @@ class UserViewSetPermissionsTests(APITestCase):
         self.admin_user = User.objects.create_superuser(username="admin", password="adminpassword", email="admin@example.com")
 
         # Ensure each user has a linked Player 
-        self.player1 = Player.objects.create(name=self.user1.username, registered_user=self.user1, wins=0)
-        self.player2 = Player.objects.create(name=self.user2.username, registered_user=self.user2, wins=0)
-        self.admin_player = Player.objects.create(name=self.admin_user.username, registered_user=self.admin_user, wins=0)
+        self.player1 = Player.objects.create(name=self.user1.username, registered_user=self.user1)
+        self.player2 = Player.objects.create(name=self.user2.username, registered_user=self.user2)
+        self.admin_player = Player.objects.create(name=self.admin_user.username, registered_user=self.admin_user)
         
     def test_create_user_permission(self):
         """Test that anyone can create a user."""
@@ -86,4 +86,18 @@ class UserViewSetPermissionsTests(APITestCase):
         """Test that authenticated users cannot delete another user's profile."""
         self.client.login(username="user1", password="password1")
         response = self.client.delete(f"/api/users/{self.user2.id}/")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_create_player_permissions_admin_user(self):
+        """Test that admin users can create a player for any user."""
+        self.client.login(username="admin", password="adminpassword")
+        player_data = {"name": "New Player"}  
+        response = self.client.post("/api/games/players/", player_data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_create_player_permission_regular_user(self):
+        """Test that regular users cannot create a player."""
+        self.client.login(username="user1", password="password1")
+        player_data = {"name": "New Player"}
+        response = self.client.post("/api/games/players/", player_data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

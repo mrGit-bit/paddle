@@ -10,55 +10,49 @@ from datetime import date
 
 class HallOfFameTests(APITestCase):
     def setUp(self):
-        # Create players
         self.p1 = Player.objects.create(name="Player 1")
         self.p2 = Player.objects.create(name="Player 2")
         self.p3 = Player.objects.create(name="Player 3")
-
+        self.p4 = Player.objects.create(name="Player 4")
         today = date.today()
 
-        # Create 7 wins for Player 3
+        # 7 wins for Player 1 and Player 3
         for _ in range(7):
-            match = Match.objects.create(
-                team1_player1=self.p3,
-                team1_player2=self.p1,
+            Match.objects.create(
+                team1_player1=self.p1,
+                team1_player2=self.p3,
                 team2_player1=self.p2,
-                team2_player2=self.p1,
+                team2_player2=self.p4,
                 winning_team=1,
                 date_played=today
             )
-            self.p3.matches.add(match)
-            self.p3.wins += 1
-            self.p3.save()
 
-        # Create 5 wins for Player 1
+        # 5 wins for Player 2 and Player 4
         for _ in range(5):
-            match = Match.objects.create(
-                team1_player1=self.p1,
-                team1_player2=self.p2,
-                team2_player1=self.p3,
+            Match.objects.create(
+                team1_player1=self.p2,
+                team1_player2=self.p4,
+                team2_player1=self.p1,
+                team2_player2=self.p3,
+                winning_team=1,
+                date_played=today
+            )
+
+        # 3 wins for Player 3 and Player 4
+        for _ in range(3):
+            Match.objects.create(
+                team1_player1=self.p3,
+                team1_player2=self.p4,
+                team2_player1=self.p1,
                 team2_player2=self.p2,
                 winning_team=1,
                 date_played=today
             )
-            self.p1.matches.add(match)
-            self.p1.wins += 1
-            self.p1.save()
-
-        # Create 3 wins for Player 2
-        for _ in range(3):
-            match = Match.objects.create(
-                team1_player1=self.p2,
-                team1_player2=self.p1,
-                team2_player1=self.p3,
-                team2_player2=self.p1,
-                winning_team=1,
-                date_played=today
-            )
-            self.p2.matches.add(match)
-            self.p2.wins += 1
-            self.p2.save()
-        # Need to update player rankings
+        # The total number of wins should be:
+        # Player 3: 7+3 = 10
+        # Player 4: 5+4 = 9
+        # Player 1: 7
+        # Player 2: 5
         update_player_rankings()
 
     def test_hall_of_fame_rankings(self):
@@ -67,8 +61,9 @@ class HallOfFameTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         players = response.json()['results']
         self.assertEqual(players[0]['name'], "Player 3")  # Highest wins
-        self.assertEqual(players[1]['name'], "Player 1")  # Second highest
-        self.assertEqual(players[2]['name'], "Player 2")  # Lowest
+        self.assertEqual(players[1]['name'], "Player 4")  # Second highest
+        self.assertEqual(players[2]['name'], "Player 1")  # Third
+        self.assertEqual(players[3]['name'], "Player 2")  # Fourth
 
     def test_player_names_endpoint(self):
         """Test the player_names endpoint returns registered and non-registered players, sorted alphabetically."""

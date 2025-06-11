@@ -10,11 +10,12 @@ class PlayerPermissionsTests(APITestCase):
         self.admin_user = User.objects.create_superuser(username="admin", password="adminpassword")
         self.regular_user = User.objects.create_user(username="user", password="userpassword")
 
-        # Create test players with non-zero ranking_position
-        self.player1 = Player.objects.create(name="Player 1", ranking_position=1)
-        self.player2 = Player.objects.create(name="Player 2", ranking_position=2)
-        self.player3 = Player.objects.create(name="Player 3", ranking_position=3)
-        self.player4 = Player.objects.create(name="Player 4", ranking_position=4)
+        # Create test players
+        self.player1 = Player.objects.create(name="Player 1", registered_user=self.regular_user)
+        self.player2 = Player.objects.create(name="Player 2")
+        self.player3 = Player.objects.create(name="Player 3")
+        self.player4 = Player.objects.create(name="Player 4")
+        self.admin_player = Player.objects.create(name=self.admin_user.username, registered_user=self.admin_user)
 
         # Create a match
         self.match = Match.objects.create(
@@ -44,7 +45,7 @@ class PlayerPermissionsTests(APITestCase):
 
     def test_create_player_permissions_admin_user(self):
         """Test that only admin users can create players."""
-        player_data = {"name": "New Player", "wins": 0}
+        player_data = {"name": "New Player"}  # Remove "wins": 0
         # Authenticated user
         self.client.force_authenticate(user=self.regular_user)
         response = self.client.post('/api/games/players/', player_data)

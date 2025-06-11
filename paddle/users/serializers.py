@@ -74,8 +74,7 @@ class UserSerializer(serializers.ModelSerializer):
         else:            
             player = Player.objects.create(
                 name=user.username,
-                registered_user=user,
-                wins=0                
+                registered_user=user,                   
             )
             # Since `matches` is ManyToMany, ensure to use `.set()` if needed
             player.matches.set([])  # Clear any existing matches to ensure a clean start

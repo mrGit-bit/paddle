@@ -76,7 +76,7 @@ class MatchFilterTests(APITestCase):
 
 class MatchEdgeCasesTests(APITestCase):
     def setUp(self):
-        # Create test players
+        # Create test players (remove wins=0)
         self.player1 = Player.objects.create(name="Player 1")
         self.player2 = Player.objects.create(name="Player 2")
         self.player3 = Player.objects.create(name="Player 3")

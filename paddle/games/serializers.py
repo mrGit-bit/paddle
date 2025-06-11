@@ -8,7 +8,8 @@ class PlayerSerializer(serializers.ModelSerializer):
     # Model  @property attributes (read only)
     matches_played = serializers.ReadOnlyField()
     losses = serializers.ReadOnlyField()
-    win_rate = serializers.ReadOnlyField()    
+    win_rate = serializers.ReadOnlyField()
+    wins = serializers.ReadOnlyField()    
     
     class Meta:
         model = Player
@@ -173,4 +174,3 @@ class MatchSerializer(serializers.ModelSerializer):
     def get_losing_players(self, obj):
         """Retrieve the list of player names who lost the match."""
         return [{"id": player.id, "name": player.name} for player in obj.losing_players]
-        

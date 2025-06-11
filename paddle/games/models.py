@@ -103,6 +103,14 @@ class Match(models.Model):
             return [self.team2_player1, self.team2_player2]
         return []
 
+    @property
+    def losing_players(self):
+        if self.winning_team == 1:
+            return [self.team2_player1, self.team2_player2]
+        elif self.winning_team == 2:
+            return [self.team1_player1, self.team1_player2]
+        return []
+
     def apply_match_effects(self):
         # Add this match to all players' matches
         for player in self.all_players:

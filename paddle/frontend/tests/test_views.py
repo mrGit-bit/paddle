@@ -12,8 +12,9 @@ class TestFrontendViews:
     def setup_method(self):
         self.client = Client()
         self.user = User.objects.create_user(username="testuser", password="testpass", email="test@example.com")
-        self.player = Player.objects.create(name="testuser", registered_user=self.user, wins=5, ranking_position=1)
-        self.other_player = Player.objects.create(name="other", wins=2, ranking_position=2)
+        self.player = Player.objects.create(name="testuser", registered_user=self.user, ranking_position=1)
+        self.other_player = Player.objects.create(name="other", ranking_position=2)
+        # Create matches to reflect wins
         self.match = Match.objects.create(
             team1_player1=self.player,
             team1_player2=self.other_player,
@@ -22,6 +23,7 @@ class TestFrontendViews:
             winning_team=1,
             date_played=date.today()
         )
+        # If you want to simulate more wins, create more matches where self.player is on the winning team
 
     def test_hall_of_fame_view(self):
         url = reverse("hall_of_fame")
@@ -50,7 +52,7 @@ class TestFrontendViews:
 
     def test_register_view_post_existing_player(self):
         url = reverse("register")
-        player = Player.objects.create(name="unlinked", wins=0, ranking_position=3)
+        player = Player.objects.create(name="unlinked", ranking_position=3)
         data = {
             "username": "linkeduser",
             "email": "linked@example.com",
@@ -132,8 +134,8 @@ class TestFrontendViews:
         self.client.login(username="testuser", password="testpass")
         url = reverse("match")
         # Create two more players for a valid match
-        player3 = Player.objects.create(name="player3", wins=0, ranking_position=3)
-        player4 = Player.objects.create(name="player4", wins=0, ranking_position=4)
+        player3 = Player.objects.create(name="player3", ranking_position=3)
+        player4 = Player.objects.create(name="player4", ranking_position=4)
         data = {
             "team1_player1": "testuser",
             "team1_player2": "other",
@@ -243,7 +245,7 @@ class TestFrontendViews:
         # Covers lines 246-247
         url = reverse("register")
         linked_user = User.objects.create_user(username="linked", password="pass", email="linked@example.com")
-        linked_player = Player.objects.create(name="linked", registered_user=linked_user, wins=0, ranking_position=3)
+        linked_player = Player.objects.create(name="linked", registered_user=linked_user, ranking_position=3)
         data = {
             "username": "newuser2",
             "email": "new2@example.com",

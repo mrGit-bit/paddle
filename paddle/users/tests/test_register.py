@@ -9,7 +9,7 @@ from users.serializers import UserSerializer
 
 class UserManagementTests(APITestCase):
     def setUp(self):
-        # Create existing non-registered player
+        # Create existing non-registered player (remove wins=0)
         self.existing_player = Player.objects.create(name="Existing Player")
 
     def test_register_new_user_with_existing_player(self):
@@ -108,10 +108,10 @@ class UserSerializerTests(APITestCase):
     def setUp(self):
         # Create a test player already linked to a user
         self.linked_user = User.objects.create_user(username="linked_user", password="testpassword")
-        self.linked_player = Player.objects.create(name="Linked Player", registered_user=self.linked_user, wins=0)
+        self.linked_player = Player.objects.create(name="Linked Player", registered_user=self.linked_user)
 
         # Create a test player not linked to any user
-        self.unlinked_player = Player.objects.create(name="Unlinked Player", wins=0)
+        self.unlinked_player = Player.objects.create(name="Unlinked Player")
 
     def test_register_user_with_unlinked_player(self):
         """Test creating a user with an unlinked player."""
