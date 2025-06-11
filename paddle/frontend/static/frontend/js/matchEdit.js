@@ -26,8 +26,6 @@ document.addEventListener("DOMContentLoaded", function () {
           team2_player2: matchCard.dataset.team2Player2,
         };
 
-        console.log("Loaded match data:", players);
-
         // Fill the form with the existing match data
         document.getElementById("team1_player1").value = players.team1_player1;
         document.getElementById("team1_player2").value = players.team1_player2;
@@ -40,10 +38,9 @@ document.addEventListener("DOMContentLoaded", function () {
           const label = document.querySelector(`label[for='${key}']`);
 
           if (players[key]?.trim().toLowerCase() === currentUser.trim().toLowerCase()) {
-            inputField.readOnly = true; // Keep field visible but read-only
-            inputField.disabled = true; // This field shall not be submitted
+            inputField.readOnly = true;
+            inputField.disabled = true;
             label.textContent = "You";
-
             // Create a hidden input to allow submitting the disabled value
             let hiddenInput = document.getElementById(`hidden-${key}`);
             if (!hiddenInput) {
@@ -53,8 +50,7 @@ document.addEventListener("DOMContentLoaded", function () {
               hiddenInput.name = key;
               matchForm.appendChild(hiddenInput);
             }
-            hiddenInput.value = players[key]; // Assign value to hidden input
-
+            hiddenInput.value = players[key];
           } else {
             inputField.readOnly = false;
             inputField.disabled = false;
@@ -62,7 +58,6 @@ document.addEventListener("DOMContentLoaded", function () {
           }
         });
 
-        
         // Keep the original winning team
         const originalWinningTeam = matchCard.dataset.winningTeam;
         if (originalWinningTeam === "1") {
@@ -72,11 +67,21 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         // Set the match date
-        document.getElementById("date_played").value =
-          matchCard.dataset.datePlayed;
+        document.getElementById("date_played").value = matchCard.dataset.datePlayed;
 
         // Change Submit Button to "Edit Match"
         submitButton.textContent = "Edit Match";
+
+        // Add or update hidden match_id field
+        let matchIdInput = document.getElementById("match_id");
+        if (!matchIdInput) {
+          matchIdInput = document.createElement("input");
+          matchIdInput.type = "hidden";
+          matchIdInput.id = "match_id";
+          matchIdInput.name = "match_id";
+          matchForm.appendChild(matchIdInput);
+        }
+        matchIdInput.value = matchId;
 
         // Add "Cancel Edit" Button (if not already added)
         if (!cancelButton) {
@@ -102,44 +107,12 @@ document.addEventListener("DOMContentLoaded", function () {
           buttonWrapper.appendChild(submitButton);
         }
 
-        // Form submission to use PUT
-        matchForm.onsubmit = async function (e) {
-          e.preventDefault();
-
-          const csrfToken = document.querySelector(
-            "[name=csrfmiddlewaretoken]"
-          ).value;
-
-          const formData = new FormData(matchForm);
-          const jsonData = Object.fromEntries(formData.entries());
-
-          console.log("Submitting edited match:", jsonData);
-
-          try {
-            let response = await fetch(`/api/games/matches/${matchId}/`, {
-              method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": csrfToken,
-              },
-              body: JSON.stringify(jsonData),
-            });
-
-            if (!response.ok) {
-              throw new Error(`Failed to update match ${matchId}`);
-            }
-
-            console.log("Match updated successfully.");
-            window.location.reload(); // Reload page after successful edit
-          } catch (error) {
-            console.error("Error updating match:", error);
-            alert("Failed to update the match. Please try again.");
-          }
-        };
-
         matchForm.scrollIntoView({ behavior: "smooth" });
         console.log("Form pre-filled and focused for editing:", matchId);
       }
     });
   });
+
+  // Remove custom JS submit handler so form submits normally
+  matchForm.onsubmit = null;
 });

@@ -7,12 +7,27 @@ from django.core.exceptions import ValidationError
 
 
 
+def update_player_rankings():
+    """
+    Recalculates the ranking position of all players in the database.
+    Ranking is done by wins, then by win rate (only if the player has played a match),
+    and finally by name (case insensitive).
+    """
+    players = list(Player.objects.all())
+    players.sort(
+        key=lambda p: (-p.wins, -p.win_rate if p.matches_played > 0 else 0, p.name.lower())
+    )
+    for idx, player in enumerate(players, start=1):
+        if player.ranking_position != idx:
+            player.ranking_position = idx
+            player.save(update_fields=['ranking_position'])
+            
+
 class Player(models.Model):
-    name = models.CharField(max_length=100, unique=True)  # Unique player name enforced later
-    registered_user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True) # Optional link to a registered user
-    wins = models.IntegerField(default=0)  # Tracks the number of wins
-    matches = models.ManyToManyField('Match', related_name='players', blank=True) # Store matches the player has participated in
-    ranking_position = models.PositiveIntegerField(default=0)  # Ranking position 0 for new players
+    name = models.CharField(max_length=100, unique=True)
+    registered_user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True)
+    matches = models.ManyToManyField('Match', related_name='players', blank=True)
+    ranking_position = models.PositiveIntegerField(default=0)
 
     class Meta:
         """
@@ -33,9 +48,17 @@ class Player(models.Model):
     # ==== Calculated player stats ====
     @property
     def matches_played(self):
-        if not self.id:
-            return 0
-        return self.matches.count()
+        return self.matches.count() if self.id else 0
+
+    @property
+    def wins(self):
+        # Count matches where this player is in the winning team
+        return Match.objects.filter(
+            models.Q(team1_player1=self, winning_team=1) |
+            models.Q(team1_player2=self, winning_team=1) |
+            models.Q(team2_player1=self, winning_team=2) |
+            models.Q(team2_player2=self, winning_team=2)
+        ).count()
 
     @property
     def win_rate(self):
@@ -53,21 +76,16 @@ class Player(models.Model):
 
 
 class Match(models.Model):
-    # For players, using ForeignKey to establish proper relationships with Player model
-    # Team 1 players
-    team1_player1 = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='team1_player1')
-    team1_player2 = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='team1_player2')
-    # Team 2 players
-    team2_player1 = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='team2_player1')
-    team2_player2 = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='team2_player2')
-
+    team1_player1 = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='team1_player1_matches')
+    team1_player2 = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='team1_player2_matches')
+    team2_player1 = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='team2_player1_matches')
+    team2_player2 = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='team2_player2_matches')
     winning_team = models.IntegerField(choices=[(1, "Team 1"), (2, "Team 2")], null=False)
-    date_played = models.DateField()  # Date of the match
+    date_played = models.DateField()
 
     def __str__(self):
         return f"Match on {self.date_played}"
 
-    # ==== Calculated match properties ====
     @property
     def all_players(self):
         return [
@@ -85,9 +103,43 @@ class Match(models.Model):
             return [self.team2_player1, self.team2_player2]
         return []
 
-    @property
-    def losing_players(self):
-        return [p for p in self.all_players if p not in self.winning_players]
+    def apply_match_effects(self):
+        # Add this match to all players' matches
+        for player in self.all_players:
+            player.matches.add(self)
+        update_player_rankings()
+
+    def revert_match_effects(self):
+        # Remove this match from all players' matches
+        for player in self.all_players:
+            player.matches.remove(self)
+        update_player_rankings()
+
+    def save(self, *args, **kwargs):
+        is_new = self._state.adding
+        if not is_new:
+            old = Match.objects.get(pk=self.pk)
+            old.revert_match_effects()
+        super().save(*args, **kwargs)
+        self.apply_match_effects()
+
+    def delete(self, *args, **kwargs):
+        self.revert_match_effects()
+        super().delete(*args, **kwargs)
+
+    def update_match(self, **kwargs):
+        """
+        Usage: match.update_match(team1_player1=..., team1_player2=..., ...)
+        """
+        # 1. Revert old effects (using old field values)
+        self.revert_match_effects()
+        # 2. Update fields
+        for field, value in kwargs.items():
+            setattr(self, field, value)
+        # 3. Save the instance (so new FKs are set)
+        super(Match, self).save()
+        # 4. Apply new effects (using new field values)
+        self.apply_match_effects()
 
 
 

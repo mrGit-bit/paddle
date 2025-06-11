@@ -1,13 +1,11 @@
 # frontend/views.py
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.middleware.csrf import get_token
 from django.utils.safestring import mark_safe
-from django.http import HttpResponseForbidden, JsonResponse
-from django.conf import settings
+from django.http import JsonResponse
 from django.core.paginator import Paginator
 from datetime import date, datetime
 from games.models import Player, Match
@@ -221,8 +219,7 @@ def register_view(request):
         else:
             Player.objects.create(
                 name=user.username,
-                registered_user=user,
-                wins=0
+                registered_user=user
             )
 
         login(request, user)
@@ -292,10 +289,99 @@ def process_matches(matches, current_user, user_icon):
 
 @login_required
 def match_view(request, client=None):
+    """
+    Handles both GET and POST requests for match.html.
+
+    GET: Renders the match page with a form to add new matches and a table of all matches.
+    POST: Creates a new match if the data is valid and not duplicated, or updates an existing match if the match_id is provided.
+
+    :param client: Not used
+    :return: A rendered HTML page if GET, or a JSON response with a success message if POST
+    """
     user_player = Player.objects.filter(registered_user=request.user).first()
     if not user_player:
         messages.error(request, "You are not associated with any player.")
-        return redirect('hall_of_fame')
+        return redirect('hall_of_fame')    
+
+    if request.method == 'POST':
+        match_data = request.POST.copy()
+        match_data['team1_player1'] = request.user.username
+
+        participants = [
+            match_data.get('team1_player1'),
+            match_data.get('team1_player2'),
+            match_data.get('team2_player1'),
+            match_data.get('team2_player2')
+        ]
+        if len(set(participants)) != 4:
+            messages.error(request, "Try again, you have introduced duplicated players!")
+            return redirect('match')
+
+        def get_or_create_player(name):
+            player = Player.objects.filter(name__iexact=name.strip()).first()
+            if not player:
+                player = Player.objects.create(name=name.strip())
+            return player
+
+        team1_player1 = get_or_create_player(match_data['team1_player1'])
+        team1_player2 = get_or_create_player(match_data['team1_player2'])
+        team2_player1 = get_or_create_player(match_data['team2_player1'])
+        team2_player2 = get_or_create_player(match_data['team2_player2'])
+
+        try:
+            date_played = datetime.strptime(match_data.get('date_played'), "%Y-%m-%d").date()
+        except Exception:
+            messages.error(request, "Invalid date format.")
+            return redirect('match')
+
+        if date_played > date.today():
+            messages.error(request, "Date cannot be in the future.")
+            return redirect('match')
+
+        # Check for duplicate match on same date (skip if editing the same match)
+        team1_sorted = sorted([team1_player1.name.lower(), team1_player2.name.lower()])
+        team2_sorted = sorted([team2_player1.name.lower(), team2_player2.name.lower()])
+        existing_matches = Match.objects.filter(date_played=date_played)
+        match_id = match_data.get('match_id')
+        for match in existing_matches:
+            if match_id and str(match.id) == str(match_id):
+                continue  # skip self when editing
+            existing_team1_sorted = sorted([match.team1_player1.name.lower(), match.team1_player2.name.lower()])
+            existing_team2_sorted = sorted([match.team2_player1.name.lower(), match.team2_player2.name.lower()])
+            if (team1_sorted == existing_team1_sorted and team2_sorted == existing_team2_sorted) or \
+               (team1_sorted == existing_team2_sorted and team2_sorted == existing_team1_sorted):
+                messages.error(request, "A match with the same teams and date already exists.")
+                return redirect('match')
+
+        winning_team = match_data.get('winning_team')
+        if winning_team not in ['1', '2']:
+            messages.error(request, "Please select the winning team.")
+            return redirect('match')
+
+        if match_id:
+            # Edit existing match
+            match = Match.objects.get(id=match_id)
+            match.update_match(
+                team1_player1=team1_player1,
+                team1_player2=team1_player2,
+                team2_player1=team2_player1,
+                team2_player2=team2_player2,
+                winning_team=int(winning_team),
+                date_played=date_played
+            )
+            messages.success(request, "Match updated successfully")
+        else:
+            # Create new match
+            Match.objects.create(
+                team1_player1=team1_player1,
+                team1_player2=team1_player2,
+                team2_player1=team2_player1,
+                team2_player2=team2_player2,
+                winning_team=int(winning_team),
+                date_played=date_played
+            )
+            messages.success(request, "Match created successfully")
+        return redirect('match')
 
     # Fetch players for form
     registered_players, non_registered_players = fetch_available_players()
@@ -332,68 +418,6 @@ def match_view(request, client=None):
     user_matches = process_matches(user_matches, request.user.username, user_icon)
 
     today = date.today().isoformat()
-
-    # Handle POST request: create a new match
-    if request.method == 'POST':
-        match_data = request.POST.copy()
-        match_data['team1_player1'] = request.user.username
-
-        participants = [
-            match_data.get('team1_player1'),
-            match_data.get('team1_player2'),
-            match_data.get('team2_player1'),
-            match_data.get('team2_player2')
-        ]
-        if len(set(participants)) != 4:
-            messages.error(request, "Try again, you have introduced duplicated players!")
-            return redirect('match')
-
-        # Create or get players
-        def get_or_create_player(name):
-            return Player.objects.filter(name__iexact=name.strip()).first() or Player.objects.create(name=name.strip())
-
-        team1_player1 = get_or_create_player(match_data['team1_player1'])
-        team1_player2 = get_or_create_player(match_data['team1_player2'])
-        team2_player1 = get_or_create_player(match_data['team2_player1'])
-        team2_player2 = get_or_create_player(match_data['team2_player2'])
-
-        try:
-            date_played = datetime.strptime(match_data.get('date_played'), "%Y-%m-%d").date()
-        except Exception:
-            messages.error(request, "Invalid date format.")
-            return redirect('match')
-
-        if date_played > date.today():
-            messages.error(request, "Date cannot be in the future.")
-            return redirect('match')
-
-        # Check for duplicate match on same date
-        team1_sorted = sorted([team1_player1.name.lower(), team1_player2.name.lower()])
-        team2_sorted = sorted([team2_player1.name.lower(), team2_player2.name.lower()])
-        existing_matches = Match.objects.filter(date_played=date_played)
-        for match in existing_matches:
-            existing_team1_sorted = sorted([match.team1_player1.name.lower(), match.team1_player2.name.lower()])
-            existing_team2_sorted = sorted([match.team2_player1.name.lower(), match.team2_player2.name.lower()])
-            if (team1_sorted == existing_team1_sorted and team2_sorted == existing_team2_sorted) or \
-               (team1_sorted == existing_team2_sorted and team2_sorted == existing_team1_sorted):
-                messages.error(request, "A match with the same teams and date already exists.")
-                return redirect('match')
-
-        winning_team = match_data.get('winning_team')
-        if winning_team not in ['1', '2']:
-            messages.error(request, "Please select the winning team.")
-            return redirect('match')
-
-        match = Match.objects.create(
-            team1_player1=team1_player1,
-            team1_player2=team1_player2,
-            team2_player1=team2_player1,
-            team2_player2=team2_player2,
-            winning_team=int(winning_team),
-            date_played=date_played
-        )
-        messages.success(request, "Match created successfully")
-        return redirect('match')
 
     # Handle DELETE request: delete a specific match
     if request.method == 'DELETE':
