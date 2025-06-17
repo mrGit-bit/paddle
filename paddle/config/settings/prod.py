@@ -15,10 +15,18 @@ ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv())
 
 CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", cast=Csv())
 
+# Mysql database and credentials
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": config("MYSQL_DB_NAME"),
+        "USER": config("MYSQL_DB_USER"),
+        "PASSWORD": config("MYSQL_DB_PASSWORD"),
+        "HOST": config("MYSQL_DB_HOST", default="127.0.0.1"),
+        "PORT": config("MYSQL_DB_PORT", default="3306"),
+        "OPTIONS": {
+            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
 }
 
@@ -38,3 +46,4 @@ SITE_URL = config("SITE_URL", default="https://yourdomain.com")
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+
