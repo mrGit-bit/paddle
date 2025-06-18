@@ -649,10 +649,30 @@ python manage.py collectstatic
 - In your PythonAnywhere Web settings:
   - Set the working directory to `/home/yourusername/paddle`
   - Set the virtualenv path to `/home/yourusername/paddle/venv`
-  - Edit the WSGI file to load:
+  - Edit the WSGI file so it loads the environment from the parent folder
+    where `.env` lives:
 
-```bash
-os.environ['DJANGO_SETTINGS_MODULE'] = 'config.settings'
+```python
+import os
+import sys
+from decouple import AutoConfig
+
+project_root = '/home/yourusername/paddle'           # contains .env
+project_home = os.path.join(project_root, 'paddle')  # contains manage.py
+
+if project_home not in sys.path:
+    sys.path.append(project_home)
+
+config = AutoConfig(search_path=project_root)
+
+os.environ.setdefault(
+    'DJANGO_SETTINGS_MODULE',
+    config('DJANGO_SETTINGS_MODULE', default='config.settings')
+)
+os.environ.setdefault(
+    'DJANGO_ENVIRONMENT',
+    config('DJANGO_ENVIRONMENT', default='prod')
+)
 ```
 
 - Reload your web app from the PythonAnywhere dashboard.
