@@ -18,9 +18,12 @@ coverage[toml]==7.8.0
     # via
     #   -r requirements.in
     #   pytest-cov
+dj-database-url==3.0.1
+    # via -r requirements.in
 django==5.2
     # via
     #   -r requirements.in
+    #   dj-database-url
     #   django-allauth
     #   django-extensions
     #   django-filter
@@ -35,22 +38,25 @@ django-filter==23.5
     # via -r requirements.in
 djangorestframework==3.16.0
     # via -r requirements.in
+gunicorn==23.0.0
+    # via -r requirements.in
 idna==3.10
     # via requests
 iniconfig==2.1.0
     # via pytest
 mock==5.2.0
     # via -r requirements.in
-mysqlclient==2.2.7
-    # via -r requirements.in
 packaging==24.2
     # via
     #   build
+    #   gunicorn
     #   pytest
 pip-tools==7.4.1
     # via -r requirements.in
 pluggy==1.5.0
     # via pytest
+psycopg2-binary==2.9.10
+    # via -r requirements.in
 pyproject-hooks==1.2.0
     # via
     #   build
@@ -73,6 +79,8 @@ urllib3==2.4.0
     # via requests
 wheel==0.45.1
     # via pip-tools
+whitenoise==6.9.0
+    # via -r requirements.in
 
 # The following packages are considered to be unsafe in a requirements file:
 # pip
