@@ -1,2 +1,4 @@
+# runtime.txt
+# Used by Render, Heroku, Railway
 python-3.12.1
 

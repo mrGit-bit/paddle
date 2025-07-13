@@ -1,17 +1,35 @@
 # path: paddle/config/settings/prod.py
-# Production settings for Railway and Supabase PostgreSQL
+# Production settings for Oracle Cloud (Autonomous DB with private VCN access)
 
 from .base import *
 from decouple import config, Csv
-import dj_database_url
 
-# Secret key in production settings
+# For parsing database URL like Supabase
+# import dj_database_url
+
+# --- SECURITY ---
 # cSpell: disable-next-line
 SECRET_KEY = config("SECRET_KEY")
 DEBUG = config("DEBUG", default=False, cast=bool)
 
-ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv(), default="glistening-solace.up.railway.app")
-CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", cast=Csv(), default="https://glistening-solace.up.railway.app")
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv(), default="your-vm-ip")
+CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", cast=Csv(), default="https://your-vm-ip")
+
+
+# --- DATABASE (Oracle Autonomous DB over private VCN) ---
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.oracle",
+        "NAME": config("ORACLE_DB_SERVICE"),
+        "USER": config("ORACLE_DB_USER"),
+        "PASSWORD": config("ORACLE_DB_PASSWORD"),
+        "HOST": config("ORACLE_DB_HOST"),
+        "PORT": config("ORACLE_DB_PORT", default="1521"),
+        "OPTIONS": {
+            "encoding": "UTF-8",
+        },
+    }
+}
 
 # # Mysql database and credentials
 # DATABASES = {
@@ -29,23 +47,23 @@ CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", cast=Csv(), default="https
 # }
 
 # PostgreSQL database and credentials
-DATABASES = {
-    "default": dj_database_url.config(default=config("DATABASE_URL"))
-}
+# import dj_database_url
+# DATABASES = {
+#     "default": dj_database_url.config(default=config("DATABASE_URL"))
+# }
 
-# serve static files from staticfiles directory
-# this is where collectstatic copies the static files
+# --- STATIC & MEDIA FILES ---
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# serve uploaded media files from media directory
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# change "yourdomain.com" to the actual pythonanywhere or railway domain
-BASE_API_URL = config("BASE_API_URL", default="https://your-railway-app.up.railway.app/api/")
-SITE_URL = config("SITE_URL", default="https://your-railway-app.up.railway.app")
+# --- BASE URL CONFIGURATION ---
+BASE_API_URL = config("BASE_API_URL", default="http://your-vm-ip/api/")
+SITE_URL = config("SITE_URL", default="http://your-vm-ip")
 
+# --- SECURITY HEADERS ---
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
