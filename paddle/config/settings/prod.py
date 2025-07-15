@@ -13,7 +13,9 @@ SECRET_KEY = config("SECRET_KEY")
 DEBUG = config("DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv(), default="your-vm-ip")
-CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", cast=Csv(), default="https://your-vm-ip")
+CSRF_TRUSTED_ORIGINS = config(
+    "CSRF_TRUSTED_ORIGINS", cast=Csv(), default="https://your-vm-ip"
+)
 
 
 # --- DATABASE (Oracle Autonomous DB over private VCN) ---
@@ -53,11 +55,11 @@ DATABASES = {
 # }
 
 # --- STATIC & MEDIA FILES ---
-STATIC_URL = '/static/'
+STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # --- BASE URL CONFIGURATION ---
 BASE_API_URL = config("BASE_API_URL", default="http://your-vm-ip/api/")
@@ -67,4 +69,3 @@ SITE_URL = config("SITE_URL", default="http://your-vm-ip")
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-
