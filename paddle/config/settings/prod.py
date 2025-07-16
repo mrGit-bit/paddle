@@ -32,9 +32,6 @@ DATABASES = {
         "NAME": dsn,
         "USER": config("ORACLE_DB_USER"),
         "PASSWORD": config("ORACLE_DB_PASSWORD"),
-        "OPTIONS": {
-            "encoding": "UTF-8",
-        },
     }
 }
 
