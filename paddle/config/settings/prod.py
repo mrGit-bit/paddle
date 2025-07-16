@@ -1,6 +1,6 @@
 # path: paddle/config/settings/prod.py
 # Production settings for Oracle Cloud (Autonomous DB with private VCN access)
-
+import oracledb
 from .base import *
 from decouple import config, Csv
 
@@ -17,16 +17,21 @@ CSRF_TRUSTED_ORIGINS = config(
     "CSRF_TRUSTED_ORIGINS", cast=Csv(), default="https://your-vm-ip"
 )
 
-
 # --- DATABASE (Oracle Autonomous DB over private VCN) ---
+# Build DSN (Database Service Name, where and how to connect to the database)
+dsn = (
+    f"(DESCRIPTION="
+    f"(ADDRESS=(PROTOCOL=tcps)(HOST={config('ORACLE_DB_HOST')})(PORT={config('ORACLE_DB_PORT')}))"
+    f"(CONNECT_DATA=(SERVICE_NAME={config('ORACLE_DB_SERVICE')}))"
+    f"(SECURITY=(ssl_server_dn_match=yes)))"
+)
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.oracle",
-        "NAME": config("ORACLE_DB_SERVICE"),
+        "NAME": dsn,
         "USER": config("ORACLE_DB_USER"),
         "PASSWORD": config("ORACLE_DB_PASSWORD"),
-        "HOST": config("ORACLE_DB_HOST"),
-        "PORT": config("ORACLE_DB_PORT", default="1521"),
         "OPTIONS": {
             "encoding": "UTF-8",
         },
