@@ -10,6 +10,7 @@ from django.core.paginator import Paginator
 from datetime import date, datetime
 from games.models import Player, Match
 import json
+import logging
 
 def get_player_stats(request, player_id=None):
     """
@@ -433,7 +434,8 @@ def match_view(request, client=None):
             match.delete()
             return JsonResponse({"message": "Match deleted successfully"}, status=200)
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
+            logging.exception("Error occurred while deleting match")
+            return JsonResponse({"error": "An error occurred while deleting the match."}, status=400)
 
     # Render the match page in GET requests
     context = {
