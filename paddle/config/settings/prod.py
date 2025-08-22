@@ -85,6 +85,6 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 # In VM prod with HTTPS → set True in .env
 # In Codespaces/HTTP → set False in .env to avoid redirect loops
-SECURE_SSL_REDIRECT = config("SECURE_SSL_REDIRECT", default=True)
-SESSION_COOKIE_SECURE = config("SESSION_COOKIE_SECURE", default=True)
-CSRF_COOKIE_SECURE = config("CSRF_COOKIE_SECURE", default=True)
+SECURE_SSL_REDIRECT = config("SECURE_SSL_REDIRECT", default=True, cast=bool)
+SESSION_COOKIE_SECURE = config("SESSION_COOKIE_SECURE", default=True, cast=bool)
+CSRF_COOKIE_SECURE = config("CSRF_COOKIE_SECURE", default=True, cast=bool)
