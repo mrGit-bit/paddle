@@ -24,9 +24,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware", # For static files on Render
+    "django.middleware.security.SecurityMiddleware",    
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware", # Ensure locale is set
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -80,15 +80,16 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
-
-LANGUAGE_CODE = "en-us"
-
-TIME_ZONE = "UTC"
-
-USE_I18N = True
-
-USE_TZ = True
-
+# Spanish-only for visible texts
+LANGUAGE_CODE = "es"  # Language code for visible texts
+TIME_ZONE = "Europe/Madrid"  # Time zone for date and time calculations
+USE_I18N = True  # Enable internationalization
+USE_TZ = True  # Enable time zone usage
+USE_THOUSAND_SEPARATOR = True  # Enable thousands separator
+THOUSAND_SEPARATOR = "."  # Thousands separator
+DECIMAL_SEPARATOR = ","  # Decimal separator
+LANGUAGES = [("es", "Español")]  # Available languages
+LOCALE_PATHS = [BASE_DIR / "locale"]  # Path to translation files
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

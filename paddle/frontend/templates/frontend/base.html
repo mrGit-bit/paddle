@@ -1,11 +1,11 @@
 <!-- base.html -->
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% block title %}Paddle Tennis Hall of Fame{% endblock %}</title>
+    <title>{% block title %}Ranking de pádel{% endblock %}</title>
     <!-- Bootstrap CSS -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
@@ -28,7 +28,7 @@
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
       <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'hall_of_fame' %}">Paddle HoF</a>
+        <a class="navbar-brand" href="{% url 'hall_of_fame' %}">rankingdepadel.club</a>
         <button
           class="navbar-toggler"
           type="button"
@@ -45,11 +45,11 @@
             <!-- Matches link with bootstrap badge for not seen matches -->            
             <li class="nav-item">                              
               {% if new_matches_number > 0 %}
-                <a class="nav-link d-inline-block position-relative" href="{% url 'match' %}#match-history">Matches
+                <a class="nav-link d-inline-block position-relative" href="{% url 'match' %}#match-history">Partidos
                   <span class="position-absolute top-25 start-100 translate-middle badge rounded-pill bg-danger">{{ new_matches_number }}</span>
                 </a>
               {% else %}
-                <a class="nav-link" href="{% url 'match' %}">Matches</a>  
+                <a class="nav-link" href="{% url 'match' %}">Partidos</a>  
               {% endif %}              
             </li>            
           </ul>
@@ -70,7 +70,7 @@
               <form method="POST" action="{% url 'logout' %}">
                 {% csrf_token %}
                 <button class="btn btn-link nav-link" type="submit" data-bs-toggle="tooltip" title="Logout">
-                  <i class="bi bi-box-arrow-right"></i> Logout</button>
+                  <i class="bi bi-box-arrow-right"></i> Cerrar sesión</button>
               </form>
             </li>
           </ul>
@@ -79,10 +79,10 @@
           {% else %}
           <ul class="navbar-nav ms-auto">
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'register' %}">Register</a>
+              <a class="nav-link" href="{% url 'register' %}">Registro</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'login' %}">Login</a>
+              <a class="nav-link" href="{% url 'login' %}">Inicia sesión</a>
             </li>
           </ul>
           {% endif %}
@@ -101,8 +101,8 @@
     <!-- Footer -->
     <footer class="text-center py-3 mt-5">
       <p class="mb-0">
-        © 2025 🏓 Paddle Tennis Hall of Fame. All Rights Reserved. 🏓
-      </p>
+        🏓 ©2025 rankingdepadel.club v1.0.0 🏓
+      </p>      
     </footer>
 
     <!-- Bootstrap JS -->
