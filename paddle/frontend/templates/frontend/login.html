@@ -1,6 +1,6 @@
 {% extends 'frontend/base.html' %}
 
-{% block title %}Login{% endblock %}
+{% block title %}Inicio de sesión{% endblock %}
 
 {% block content %}
 
@@ -12,21 +12,21 @@
         {% endif %}
         <div class="card shadow-sm">
             <div class="card-header text-center bg-dark text-white">
-                <h4>Login</h4>
+                <h4>Inicio de sesión</h4>
             </div>
             <div class="card-body">
                 <form method="post" action="{% url 'login' %}">
                     {% csrf_token %}
                     <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" id="username" name="username" class="form-control" placeholder="Enter your username" required>
+                        <label for="username" class="form-label">Nombre de usuario</label>
+                        <input type="text" id="username" name="username" class="form-control" placeholder="Nombre de usuario en el ranking" required>
                     </div>
                     <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password" required>
+                        <label for="password" class="form-label">Contraseña</label>
+                        <input type="password" id="password" name="password" class="form-control" placeholder="Contraseña" required>
                     </div>
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Login</button>
+                        <button type="submit" class="btn btn-primary">Acceder</button>
                     </div>
                 </form>
             </div>
