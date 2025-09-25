@@ -197,7 +197,7 @@ def register_view(request):
 
         # Check for duplicate username
         if User.objects.filter(username__iexact=form_data["username"]).exists():
-            messages.error(request, f"Username '{form_data['username']}' is already taken. Please choose another one.")
+            messages.error(request, f"El usuario '{form_data['username']}' ya existe.")
             return redirect('register')
 
         # Create user
@@ -253,7 +253,7 @@ def user_view(request, id):
             request.user.email = update_data["email"]
             request.user.save()
             request.user.refresh_from_db()
-            return JsonResponse({'success': 'User updated successfully.', 'user': {
+            return JsonResponse({'success': 'Datos actualizados', 'user': {
                 "id": request.user.id,
                 "username": request.user.username,
                 "email": request.user.email,
@@ -315,7 +315,7 @@ def match_view(request, client=None):
             match_data.get('team2_player2')
         ]
         if len(set(participants)) != 4:
-            messages.error(request, "Try again, you have introduced duplicated players!")
+            messages.error(request, "Jugadores repetidos! Inténtalo de nuevo.")
             return redirect('match')
 
         def get_or_create_player(name):
@@ -351,12 +351,12 @@ def match_view(request, client=None):
             existing_team2_sorted = sorted([match.team2_player1.name.lower(), match.team2_player2.name.lower()])
             if (team1_sorted == existing_team1_sorted and team2_sorted == existing_team2_sorted) or \
                (team1_sorted == existing_team2_sorted and team2_sorted == existing_team1_sorted):
-                messages.error(request, "A match with the same teams and date already exists.")
+                messages.error(request, "Error: el partido ya se había creado")
                 return redirect('match')
 
         winning_team = match_data.get('winning_team')
         if winning_team not in ['1', '2']:
-            messages.error(request, "Please select the winning team.")
+            messages.error(request, "Por favor selecciona equipo ganador.")
             return redirect('match')
 
         if match_id:
@@ -370,7 +370,7 @@ def match_view(request, client=None):
                 winning_team=int(winning_team),
                 date_played=date_played
             )
-            messages.success(request, "Match updated successfully")
+            messages.success(request, "Partido creado correctamente")
         else:
             # Create new match
             Match.objects.create(
@@ -381,7 +381,7 @@ def match_view(request, client=None):
                 winning_team=int(winning_team),
                 date_played=date_played
             )
-            messages.success(request, "Match created successfully")
+            messages.success(request, "Partido creado correctamente")
         return redirect('match')
 
     # Fetch players for form
@@ -432,7 +432,7 @@ def match_view(request, client=None):
             ]).exists()):
                 return JsonResponse({"error": "You are not authorized to delete this match."}, status=403)
             match.delete()
-            return JsonResponse({"message": "Match deleted successfully"}, status=200)
+            return JsonResponse({"message": "Partido borrado correctamente"}, status=200)
         except Exception as e:
             logging.exception("Error occurred while deleting match")
             return JsonResponse({"error": "An error occurred while deleting the match."}, status=400)
@@ -468,7 +468,7 @@ def login_view(request):
             login(request, user)
             return redirect('hall_of_fame')
         else:
-            return render(request, 'frontend/login.html', {"error": "Invalid credentials."})
+            return render(request, 'frontend/login.html', {"error": "Nombre y/o contraseña no válidos."})
     return render(request, 'frontend/login.html')
 
 @login_required

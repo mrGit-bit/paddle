@@ -20,7 +20,7 @@
           <div class="card shadow-sm flex-fill match-card-team">
             <div class="card-body {% if match.winning_team == 1 %} text-bg-success {% else %} text-bg-light {% endif %}">
               <h5 class="card-title">
-                {% if match.winning_team == 1 %}Winning 🏆{% else %}Losing 🌴{% endif %}
+                {% if match.winning_team == 1 %}Gana 🏆{% else %}Pierde 🌴{% endif %}
               </h5>
               <p class="card-text">
                 {{ match.team1_player1_display|safe }}<br />
@@ -35,7 +35,7 @@
           <div class="card shadow-sm flex-fill match-card-team">
             <div class="card-body {% if match.winning_team == 2 %} text-bg-success {% else %} text-bg-light {% endif %}">
               <h5 class="card-title">
-                {% if match.winning_team == 2 %}Winning 🏆{% else %}Losing 🌴{% endif %}
+                {% if match.winning_team == 2 %}Gana 🏆{% else %}Pierde 🌴{% endif %}
               </h5>
               <p class="card-text">
                 {{ match.team2_player1_display|safe }}<br />
@@ -49,7 +49,7 @@
         <div class="d-flex align-items-center mt-3">
 
           <!-- Played on Date -->
-          <small class="text-muted position-relative">Played on {{ match.date_played|date:"d/m/Y" }}
+          <small class="text-muted position-relative">Jugado el {{ match.date_played|date:"d/m/Y" }}
           
           <!-- "New!" Badge for unseen matches -->
           {% if match.id in new_match_ids %}

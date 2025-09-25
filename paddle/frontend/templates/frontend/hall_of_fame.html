@@ -1,20 +1,20 @@
 <!-- frontend/templates/frontend/hall_of_fame.html -->
-{% extends 'frontend/base.html' %} {% block title %}Hall of Fame{% endblock %}
+{% extends 'frontend/base.html' %} {% block title %}rankingdepadel.club{% endblock %}
 {% load static %}
 
 {% block content %}
 <div class="text-center mb-4">
-  <h1 class="display-4">🏆 Hall of Fame 🏆</h1>
+  <h1 class="display-4">🏆club moraleja🏆</h1>
   {% if user.is_authenticated %}
     {% if new_matches_number > 0 %}
-      <p class="lead">You have {{ new_matches_number }} new match results to <a href="{% url 'match' %}#match-history">check</a>!</p>
+      <p class="lead">Tienes {{ new_matches_number }} <a href="{% url 'match' %}#match-history">nuevos partidos</a>!</p>
     {% else %}
-      <p class="lead">Any <a href="{% url 'match' %}">new match</a> results?</p>
+      <p class="lead">Tienes <a href="{% url 'match' %}">nuevos partidos</a> ?</p>
     {% endif %}
   {% else %}
     <p class="lead">
-      Please <a href="{% url 'login' %}">login</a> or
-      <a href="{% url 'register' %}">register</a> to check & add match results
+      <a href="{% url 'login' %}">Inicia sesión</a> o
+      <a href="{% url 'register' %}">regístrate</a> !
     </p>
   {% endif %}
 </div>
@@ -22,19 +22,19 @@
 <div class="table-responsive">
   <table class="table table-striped table-hover">
     <colgroup>
-      <col style="width: 10%;">
-      <col style="width: 30%;">
-      <col style="width: 20%;">
-      <col style="width: 20%;">
+      <col style="width: 15%;">
+      <col style="width: 35%;">
+      <col style="width: 15%;">
+      <col style="width: 15%;">
       <col style="width: 20%;">
     </colgroup>
     <thead>
       <tr>
-        <th scope="col">Rank</th>
-        <th scope="col">Player</th>
-        <th scope="col">🏅 Wins</th>
-        <th scope="col">🎾 Matches</th>
-        <th scope="col">Rate</th>
+        <th scope="col" class="text-center">Pos.</th>
+        <th scope="col">Jugador</th>
+        <th scope="col" class="text-center">🏆</th>
+        <th scope="col" class="text-center">🏓</th>
+        <th scope="col" class="text-center">🎯</th>
       </tr>
     </thead>
     <tbody>
@@ -43,11 +43,11 @@
       <tr class="{% if player.id == user_player.id %}highlight-zoom{% endif %}">
         <td>
           {% if rank == 1 %}
-          <strong class="rank-1">🏆 1 </strong>
+          <strong class="rank-1">🥇</strong>
           {% elif rank == 2 %}
-          <strong class="rank-2">🥈 2 </strong>
+          <strong class="rank-2">🥈</strong>
           {% elif rank == 3 %}
-          <strong class="rank-3">🥉 3 </strong>
+          <strong class="rank-3">🥉</strong>
           {% else %} {{ rank }} {% endif %}
         </td>
         <td>

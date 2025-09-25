@@ -19,7 +19,7 @@
     id="username"
     name="username"
     autocomplete="off"
-    placeholder="Enter your username"
+    placeholder="Tu nombre de usuario"
     pattern="^[a-zA-Z0-9@.+-_]{3,15}$"
     maxlength="15"
     minlength="3"
@@ -27,9 +27,9 @@
     {% if is_registration %}required{%else%}readonly disabled{% endif %}
     required
     />
-    <label for="username" class="form-label">Username</label>
+    <label for="username" class="form-label">Usuario</label>
     <div class="invalid-feedback">
-      Username must be 3-15 characters long. Allowed: letters, numbers, @/./+/-/_.
+      Nombre de usuario de 3 a 15 caracteres. Solo letras, números y @/./+/-/_.
     </div>
   </div>
 
@@ -40,12 +40,12 @@
     class="form-control"
     id="email"
     name="email"
-    placeholder="Enter your email"
+    placeholder="Introduce tu email"
     value="{{ user.email|default:'' }}"    
     required
     />
-    <label for="email" class="form-label">Email Address</label>
-    <div class="invalid-feedback">Please enter a valid email address.</div>
+    <label for="email" class="form-label">Email</label>
+    <div class="invalid-feedback">Por favor introduce un email válido.</div>
   </div>
 
   <!-- Registration only-->
@@ -58,13 +58,13 @@
       id="password"
       name="password"
       autocomplete="new-password"
-      placeholder="Enter a password"
+      placeholder="Contraseña"
       minlength="8"    
       required
       />
-      <label for="password" class="form-label">Password</label>
+      <label for="password" class="form-label">Contraseña</label>
       <div class="invalid-feedback">
-        Password must contain at least 8 characters.
+        La contraseña debe tener al menos 8 caracteres.
       </div>
     </div>
 
@@ -75,14 +75,14 @@
       class="form-control"
       id="confirm_password"
       name="confirm_password"
-      placeholder="Confirm your password"          
+      placeholder="Confirma tu contraseña"          
       required
       />
       <label for="confirm_password" class="form-label"
-        >Confirm Password</label
+        >Confirma tu contraseña</label
       >
       <div class="invalid-feedback">
-        Passwords must match.
+        Las contraseñas no coinciden.
       </div>
     </div>  
 
@@ -91,19 +91,19 @@
       <select class="form-select"
         id="player_id"
         name="player_id">
-        <option value="">No, I am a new player</option>
+        <option value="">No, soy un nuevo jugador</option>
         {% for player_id, player_name in players %}
         <option value="{{ player_id }}">{{ player_name }}</option>
         {% endfor %}
       </select>
       <label for="player_id">
-        Check if you are one of the existing players
+        Te han anotado resultados? Qué jugador eres?
       </label>
     </div>  
     
     <!-- Registration Submit Button -->  
     <button 
-      type="submit" class="btn btn-primary w-100">Register</button>    
+      type="submit" class="btn btn-primary w-100">Registrarse</button>    
 
   <!-- User profile only-->
   {% else %}
@@ -112,19 +112,19 @@
       <div class="col-sm-4">
         <div class="form-floating">
           <input type="text" class="form-control" id="wins" name="wins" value="{{ wins }}" readonly disabled />
-          <label for="wins">Wins</label>
+          <label for="wins">Victorias</label>
         </div>
       </div>
       <div class="col-sm-4">
         <div class="form-floating">
           <input type="text" class="form-control" id="matches" name="matches" value="{{ matches }}" readonly disabled />
-          <label for="matches">Matches</label>
+          <label for="matches">Partidos</label>
         </div>
       </div>
       <div class="col-sm-4">
         <div class="form-floating">
           <input type="text" class="form-control" id="rate" name="rate" value="{{ win_rate|floatformat:0 }}" readonly disabled />
-          <label for="rate">Win Rate (%)</label>
+          <label for="rate">Efectividad (%)</label>
         </div>
       </div>
     </div>
@@ -132,8 +132,8 @@
     <!-- User profile cancel and save buttons -->  
     
     <div class="d-flex justify-content-between mt-4">
-      <button type="button" id="cancel-btn" class="btn btn-secondary w-50  me-2" disabled>Cancel Changes</button>
-      <button type="submit" id="save-btn" class="btn btn-success w-50" disabled>Save Changes</button>
+      <button type="button" id="cancel-btn" class="btn btn-secondary w-50  me-2" disabled>Cancelar</button>
+      <button type="submit" id="save-btn" class="btn btn-success w-50" disabled>Guardar</button>
     </div>
   
   {% endif %}
