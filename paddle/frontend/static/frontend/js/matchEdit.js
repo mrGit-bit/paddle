@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("date_played").value = matchCard.dataset.datePlayed;
 
         // Change Submit Button to "Edit Match"
-        submitButton.textContent = "Edit Match";
+        submitButton.textContent = "Edit";
 
         // Add or update hidden match_id field
         let matchIdInput = document.getElementById("match_id");

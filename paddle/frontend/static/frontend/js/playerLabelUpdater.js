@@ -5,11 +5,11 @@ function updateLabel(inputElement) {
   const labelElement = inputElement.nextElementSibling;
 
   if (registeredPlayers.has(inputValue)) {
-    labelElement.textContent = "Registered User";
+    labelElement.textContent = "Usuario Registrado✅";
   } else if (existingPlayers.has(inputValue)) {
-    labelElement.textContent = "Existing Player";
+    labelElement.textContent = "Jugador Existente✔️";
   } else {
-    labelElement.textContent = "New Player";
+    labelElement.textContent = "Nuevo Jugador en el ranking❓";
   }
 }
 

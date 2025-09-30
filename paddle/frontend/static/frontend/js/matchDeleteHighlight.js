@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 // Use setTimeout to allow DOM repaint before the confirm dialog
                 
                 setTimeout(() => {
-                    const confirmDelete = confirm('Are you sure you want to delete this match?');
+                    const confirmDelete = confirm('Estas seguro?');
 
                     if (confirmDelete) {
                         console.log("User confirmed deletion for match:", matchId);
@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 console.log("Match deleted successfully:", matchId);
                                 window.location.href = "/matches/";  // Redirect for PRG pattern
                             } else {
-                                alert("Failed to delete match: " + data.error);
+                                alert("Error al eliminar el partido: " + data.error);
                                 matchCard.classList.remove("text-bg-secondary"); // Restore original style
                             }
                         })
