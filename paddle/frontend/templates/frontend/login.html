@@ -11,15 +11,15 @@
         <div class="alert alert-danger" role="alert">{{ error }}</div>
         {% endif %}
         <div class="card shadow-sm">
-            <div class="card-header text-center bg-dark text-white">
+            <div class="card-header text-center text-bg-primary">
                 <h4>Inicio de sesión</h4>
             </div>
             <div class="card-body">
                 <form method="post" action="{% url 'login' %}">
                     {% csrf_token %}
                     <div class="mb-3">
-                        <label for="username" class="form-label">Nombre de usuario</label>
-                        <input type="text" id="username" name="username" class="form-control" placeholder="Nombre de usuario en el ranking" required>
+                        <label for="username" class="form-label">Email / Nombre</label>
+                        <input type="text" id="username" name="username" class="form-control" placeholder="Email o Nombre de usuario" required>
                     </div>
                     <div class="mb-3">
                         <label for="password" class="form-label">Contraseña</label>
