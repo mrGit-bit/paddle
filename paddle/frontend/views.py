@@ -1,16 +1,17 @@
 # frontend/views.py
-from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
-from django.utils.safestring import mark_safe
 from django.http import JsonResponse
+from django.utils.safestring import mark_safe
+from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 from datetime import date, datetime
 from games.models import Player, Match
 import json
 import logging
+
+User = get_user_model()
 
 def get_player_stats(request, player_id=None):
     """
@@ -195,9 +196,13 @@ def register_view(request):
             messages.error(request, form_error)
             return redirect('register')
 
-        # Check for duplicate username
-        if User.objects.filter(username__iexact=form_data["username"]).exists():
-            messages.error(request, f"El usuario '{form_data['username']}' ya existe.")
+        # Check for duplicate username or player name        
+        user_exists = User.objects.filter(username__iexact=form_data["username"]).exists()
+        player_exists = Player.objects.filter(
+            name__iexact=form_data["username"], registered_user__isnull=True
+        ).exclude(id=form_data.get("player_id")).exists()
+        if user_exists or player_exists:
+            messages.error(request, f"Error: Ya existe un usuario o un jugador con el nombre '{form_data['username']}'. Cambia el nombre del usuario o selecciona el jugador existente en el desplegable de jugadores.")
             return redirect('register')
 
         # Create user
@@ -227,7 +232,7 @@ def register_view(request):
         return redirect('match')
 
     registered_players, non_registered_players = fetch_available_players()
-    players = [('', 'New Player')] + [(p['id'], p['name']) for p in non_registered_players]
+    players = [(p['id'], p['name']) for p in non_registered_players]
     return render(request, 'frontend/register.html', {"players": players})
 
 @login_required
@@ -301,18 +306,19 @@ def match_view(request, client=None):
     """
     user_player = Player.objects.filter(registered_user=request.user).first()
     if not user_player:
-        messages.error(request, "You are not associated with any player.")
+        messages.error(request, "Error: el usuario no está asociado a ningún jugador.")
         return redirect('hall_of_fame')    
 
     if request.method == 'POST':
         match_data = request.POST.copy()
         match_data['team1_player1'] = request.user.username
 
+        # Normalize names for case-insensitive duplicate check
         participants = [
-            match_data.get('team1_player1'),
-            match_data.get('team1_player2'),
-            match_data.get('team2_player1'),
-            match_data.get('team2_player2')
+            match_data.get('team1_player1', '').strip().lower(),
+            match_data.get('team1_player2', '').strip().lower(),
+            match_data.get('team2_player1', '').strip().lower(),
+            match_data.get('team2_player2', '').strip().lower()
         ]
         if len(set(participants)) != 4:
             messages.error(request, "Jugadores repetidos! Inténtalo de nuevo.")
@@ -356,7 +362,7 @@ def match_view(request, client=None):
 
         winning_team = match_data.get('winning_team')
         if winning_team not in ['1', '2']:
-            messages.error(request, "Por favor selecciona equipo ganador.")
+            messages.error(request, "Error: Por favor selecciona equipo ganador.")
             return redirect('match')
 
         if match_id:
@@ -461,14 +467,28 @@ def match_view(request, client=None):
 
 def login_view(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
+        raw_identifier = (request.POST.get('username') or '').strip()        
+        password = request.POST.get('password') or ''
+        
+        # Resolve identifier to an actual username (case-insensitive for username & email)
+        user_obj = None
+        if '@' in raw_identifier:
+            # Treat as email
+            user_obj = User.objects.filter(email__iexact=raw_identifier).first()
+        else:
+            # Treat as username
+            user_obj = User.objects.filter(username__iexact=raw_identifier).first()
+
+        resolved_username = user_obj.username if user_obj else raw_identifier  # fallback keeps existing behavior       
+        
+        user = authenticate(request, username=resolved_username, password=password)
+        
         if user:
             login(request, user)
             return redirect('hall_of_fame')
-        else:
-            return render(request, 'frontend/login.html', {"error": "Nombre y/o contraseña no válidos."})
+        # Generic error (don't reveal whether it's username, email or password)    
+        return render(request, 'frontend/login.html', {"error": "Nombre o contraseña no válidos."})
+    
     return render(request, 'frontend/login.html')
 
 @login_required
