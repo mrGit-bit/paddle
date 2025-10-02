@@ -200,7 +200,7 @@ def register_view(request):
         user_exists = User.objects.filter(username__iexact=form_data["username"]).exists()
         player_exists = Player.objects.filter(
             name__iexact=form_data["username"], registered_user__isnull=True
-        ).exists()
+        ).exclude(id=form_data.get("player_id")).exists()
         if user_exists or player_exists:
             messages.error(request, f"Error: Ya existe un usuario o un jugador con el nombre '{form_data['username']}'. Cambia el nombre del usuario o selecciona el jugador existente en el desplegable de jugadores.")
             return redirect('register')
