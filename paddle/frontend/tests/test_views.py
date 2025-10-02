@@ -37,7 +37,7 @@ class TestFrontendViews:
         url = reverse("register")
         response = self.client.get(url)
         assert response.status_code == 200
-        assert b"New Player" in response.content
+        assert b"nuevo jugador" in response.content
 
     def test_register_view_post_new_player(self):
         url = reverse("register")
@@ -149,7 +149,7 @@ class TestFrontendViews:
         url = reverse("match")
         response = self.client.get(url, follow=True)
         messages = list(response.context["messages"])
-        assert any("not associated with any player" in str(m) for m in messages)
+        assert any("no está asociado a ningún jugador" in str(m).lower() for m in messages)
 
     def test_get_player_stats_no_player(self):
         # Covers lines 21-51
