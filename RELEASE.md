@@ -40,8 +40,10 @@ git fetch origin
 git checkout staging
 git pull --ff-only
 source ~/venv/bin/activate
-PYTHONPATH=/home/ubuntu/paddle python paddle/manage.py collectstatic --noinput --settings=paddle.config.settings.prod
-PYTHONPATH=/home/ubuntu/paddle python paddle/manage.py migrate --settings=paddle.config.settings.prod
+PYTHONPATH=/home/ubuntu/paddle DJANGO_SETTINGS_MODULE=paddle.config.settings.prod \
+python -m django collectstatic --noinput
+PYTHONPATH=/home/ubuntu/paddle
+python paddle/manage.py migrate --settings=paddle.config.settings.prod
 sudo systemctl restart paddle
 sudo systemctl reload nginx
 ```
@@ -50,24 +52,14 @@ sudo systemctl reload nginx
 
 - In GitHub Open PR: `staging ➜ main`
 - Title: `Release X.Y.Z — summary`
-- Description: as above
-- Test plan: as above
+- Description and Test plan: as above
 - Merge PR.
 
 ### 5. Deploy to production VM
 
 On production server:
 
-```bash
-git fetch origin
-git checkout main
-git pull --ff-only
-source ~/venv/bin/activate
-PYTHONPATH=/home/ubuntu/paddle python paddle/manage.py collectstatic --noinput --settings=paddle.config.settings.prod
-PYTHONPATH=/home/ubuntu/paddle python paddle/manage.py migrate --settings=paddle.config.settings.prod
-sudo systemctl restart paddle
-sudo systemctl reload nginx
-```
+- as above in the staging server
 
 ### 6. Tag the release
 
