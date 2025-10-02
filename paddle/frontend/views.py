@@ -196,9 +196,13 @@ def register_view(request):
             messages.error(request, form_error)
             return redirect('register')
 
-        # Check for duplicate username
-        if User.objects.filter(username__iexact=form_data["username"]).exists():
-            messages.error(request, f"Error: El usuario '{form_data['username']}' ya existe.")
+        # Check for duplicate username or player name        
+        user_exists = User.objects.filter(username__iexact=form_data["username"]).exists()
+        player_exists = Player.objects.filter(
+            name__iexact=form_data["username"], registered_user__isnull=True
+        ).exists()
+        if user_exists or player_exists:
+            messages.error(request, f"Error: Ya existe un usuario o un jugador con el nombre '{form_data['username']}'. Cambia el nombre del usuario o selecciona el jugador existente en el desplegable de jugadores.")
             return redirect('register')
 
         # Create user
@@ -228,7 +232,7 @@ def register_view(request):
         return redirect('match')
 
     registered_players, non_registered_players = fetch_available_players()
-    players = [('', 'New Player')] + [(p['id'], p['name']) for p in non_registered_players]
+    players = [(p['id'], p['name']) for p in non_registered_players]
     return render(request, 'frontend/register.html', {"players": players})
 
 @login_required
@@ -302,18 +306,19 @@ def match_view(request, client=None):
     """
     user_player = Player.objects.filter(registered_user=request.user).first()
     if not user_player:
-        messages.error(request, "You are not associated with any player.")
+        messages.error(request, "Error: el usuario no está asociado a ningún jugador.")
         return redirect('hall_of_fame')    
 
     if request.method == 'POST':
         match_data = request.POST.copy()
         match_data['team1_player1'] = request.user.username
 
+        # Normalize names for case-insensitive duplicate check
         participants = [
-            match_data.get('team1_player1'),
-            match_data.get('team1_player2'),
-            match_data.get('team2_player1'),
-            match_data.get('team2_player2')
+            match_data.get('team1_player1', '').strip().lower(),
+            match_data.get('team1_player2', '').strip().lower(),
+            match_data.get('team2_player1', '').strip().lower(),
+            match_data.get('team2_player2', '').strip().lower()
         ]
         if len(set(participants)) != 4:
             messages.error(request, "Jugadores repetidos! Inténtalo de nuevo.")
