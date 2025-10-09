@@ -42,7 +42,7 @@ This web application is built using:
 Full-stack web application that includes:
 
 - A **RESTful API** built with Django and Django REST Framework (DRF); independently created from,
-- a **frontend** developed using Django templates, vanilla JavaScript, and Bootstrap 5.
+- a **frontend** app developed using Django templates & views, vanilla JavaScript, and Bootstrap 5.
 - Additional user-friendly features have been introduced which include:
   - **Pagination** for easier navigation;
   - **Match filtering** by own matches and all matches;
@@ -50,14 +50,15 @@ Full-stack web application that includes:
   - **Real-time validation** during user registration; and,
   - **Mini Hall of Fame**: personalized ranking section for users not appearing on the current page
 
-The entire application is fully **mobile responsive**, ensuring a consistent experience across different devices and screen sizes.
+The entire application is fully **mobile responsive**, ensuring a consistent experience across different devices and screen sizes, even in smaller screens,.
 
 #### Hall of Fame Rankings
 
 - Displays a ranked list of paddle tennis players based on their number of wins.
 - Publicly accessible (no authentication required).
 - **Implementation**:
-  - The `PlayerViewSet` in `views.py` retrieves players, ordering them by the `ranking_position` field to create the ranking.
+  - Frontend app: The `HallOfFameView` in `views.py` renders the ranking table.
+  - API: The `PlayerViewSet` in `views.py` retrieves players, ordering them by the `ranking_position` field to create the ranking.
   - The `models.py` calculate `matches_played`, `losses`, and `win_rate` as `@property` decorators for read-only fields.
 
 #### Match Results
@@ -69,9 +70,11 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
 - When a new match is added, new players are created if they don't exist.
 - Users can only add, update, or delete matches in which they are a participant.
 - **Implementation**:
-  - The `MatchSerializer` handles player name input, creates new players if needed, and prevents duplicate player entries.
-  - `perform_create()` in the `MatchViewSet` updates player stats when a match is created.
-  - `perform_update()` resets old match stats before applying new results to maintain data integrity.
+  - API: 
+    - The `MatchSerializer` handles player name input, creates new players if needed, and prevents duplicate player entries.
+    - `perform_create()` in the `MatchViewSet` updates player stats when a match is created.
+    - `perform_update()` resets old match stats before applying new results to maintain data integrity.
+  - Frontend app: The `MatchView` in `views.py` handles match creation, updating, and deletion.
 
 #### User Management
 
@@ -80,37 +83,42 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
 - When linking to an existing player, the user takes over the player's stats, and the player's name is changed to the user's username.
 - Users can only update their own profiles, unless they are an admin, in which case they can update and delete any profile.
 - **Implementation**:
-  - The `UserSerializer` includes a `player_id` field for optional linking to an existing player.
-  - The `UserViewSet` restricts profile modification to the user's own profile or admins.
+  - API: 
+    - The `UserSerializer` includes a `player_id` field for optional linking to an existing player.
+    - The `UserViewSet` restricts profile modification to the user's own profile or admins.
+  - Frontend app: The `UserView` in `views.py` handles user registration, login, and logout.
 
 #### Player Details
 
 - Provides detailed profiles for each player, including their ranking position, match history and stats such as wins, matches played, win rate, and losses.
 - Only admins can update or delete player details.
 - **Implementation**:
-  - The `PlayerSerializer` uses calculated fields: `matches_played`, `losses`, and `win_rate`.
-  - The `PlayerViewSet` restricts player profile modification to admins.
+  - API:
+    - The `PlayerSerializer` uses calculated fields: `matches_played`, `losses`, and `win_rate`.
+    - The `PlayerViewSet` restricts player profile modification to admins.
+  - Frontend app: The `get_player_stats` returns `wins`, `matches`, `win_rate` and `ranking_position`.
 
 #### Authentication & Permissions
 
 - Unauthenticated users can only:
-  - View the Hall of Fame.
+  - View the Hall of Fame & about page.
   - Register.
   - Log in.
 - Authenticated users can:
-  - View the Hall of Fame.
-  - Add match results.
+  - View the same of unthenticated users.
+  - View & add match results.
   - Update or delete their own match results.
   - View and update their editable fields in their own user profile.
   - View own player stats.
-- Admins have full access, including creating, updating, and deleting matches, players, and users.
+- Admins have full access, including creating, updating, and deleting matches, players, and users. Admin users have also links to the staging site and django admin panel.
 - **Implementation**:
-  - DRF's built-in session authentication is used.
-  - The `IsAuthenticatedOrReadOnly` permission allows unauthenticated users to view player rankings.
-  - The `IsAuthenticated` permission restricts match-related actions to authenticated users.
-- Session-based authentication for login and logout.
-- **Implementation:**
+  - API:
+    - DRF's built-in session authentication is used.
+    - The `IsAuthenticatedOrReadOnly` permission allows unauthenticated users to view player rankings.
+    - The `IsAuthenticated` permission restricts match-related actions to authenticated users.
+  - Session-based authentication for login and logout.
   - The `LoginView` and `LogoutView` API endpoints handle user authentication and logout.
+  - Frontend app: The `LoginView` and `LogoutView` in `views.py` handle user authentication and logout. Extensive use of decorators to handle different authentication states. 
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 
@@ -122,10 +130,12 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
   - `ModelViewSets`, `ModelSerializers` with `SerializerMethodField`, and `Routers` for simplified API management.
   - Built-in session authentication from DRF.
 - **Frontend**:
-  - Django Templates.
+  - Django Templates & Views.
   - Vanilla JavaScript.
   - Bootstrap 5.
-- **Database**: SQLite for development and testing.
+- **Database**: 
+  - SQLite for development.
+  - Oracle autonomous database for staging and production.
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 
@@ -221,6 +231,7 @@ paddle/
 │   │   ├── _match_card.html      # Match history card to be included in match.html
 │   │   ├── _pagination.html      # Reusable pagination component
 │   │   ├── _user_form.html       # Reusable user form for register.html and user.html
+│   │   ├── about.html            # Template for About page
 │   │   ├── base.html             # Base template with common navigation bar & footer
 │   │   ├── hall_of_fame.html     # Template for Hall of Fame
 │   │   ├── hof_user_snippet.html # Template for mini table to be included in hall_of_fame.html
@@ -313,8 +324,8 @@ The navigation bar is:
 
 - Collapsible on small screens.
 - Sticky to the top on scroll.
-- Links accessible to unauthenticated users are: Paddle HoF, Register, and Login.
-- Links accessible to authenticated users are: Paddle HoF, Matches, User Profile (displaying the _current_ user's name in the navbar), and Logout.
+- Links accessible to unauthenticated users are: Paddle HoF, Register, Login and About.
+- Links accessible to authenticated users are: Paddle HoF, Matches, User Profile (displaying the _current_ user's name in the navbar), About, and Logout.
 - Matches link should display a badge with the number of _pending_ matches for the current user in that session. By clicking on the badge the user is redirected to the `match.html` page. The badge is only displayed if there are any pending matches.
 
 ### 🔗 URLs & Full Page Templates
@@ -329,7 +340,8 @@ These are the full-page templates directly mapped to URLs:
 | `/logout/`              | User logout                           | N/A - View handled  | Logout link with bootstrap icon. _This action is a redirection._                                                                                 |
 | `/users/<id>/`          | User details and editing              | `user.html`         | User profile stats and editable fields.                                                                                                          |
 | `/matches/`             | Match results and editing             | `match.html`        | Form for adding and editing matches, and match history, filtered only for the user or non filtered for all players. Displays the list of matches using `_match_card.html`. |
-| `/matches/<id>/delete/` | Delete match                          | N/A - View handled  | Trash button with bootstrap icon. _This action is a redirection_.                                                                                |
+| `/matches/<id>/delete/` | Delete match                          | N/A - View handled  | Trash button with bootstrap icon. _This action is a redirection_.    |
+| `/about/` | About | `about.html` | About page. |
 
 ### 📂 Partial & Reusable Templates
 
@@ -407,6 +419,8 @@ The project comes with a suite of tests for the `games`, `users`, and `frontend`
 
 The test files follow the naming conventions:
 
+- `frontend/tests/test_views.py`
+- `frontend/tests/test_login.py`
 - `games/tests/test_permissions.py`
 - `games/tests/test_players.py`
 - `games/tests/test_stats.py`

@@ -13,10 +13,12 @@ This document describes the manual release workflow for the rankingdepadel.club 
 ### 1. Prepare the release
 
 - Ensure all feature/fix branches are merged into **develop**.
+- Run tests and ensure test coverage over 90%: `pytest frontend/tests/ --cov=frontend.views --cov-report=term-missing`.
 - Update `CHANGELOG.md`:
   - Add a new section with today’s date and version.
   - List changes under **Added / Changed / Fixed**.
-- Update version number in `base.html` footer (hardcoded `vX.Y.Z`).
+- Update `README.md` if needed.
+- Update version number in `about.html` (hardcoded `vX.Y.Z`).
 - Add & Commit changes to **develop**.
 - Push changes: `git push`
 
@@ -95,19 +97,3 @@ In Codespaces IDE:
 git checkout develop
 git pull --ff-only origin develop
 ```
-
-- Update staging:
-
-```bash
-git checkout staging
-git pull --ff-only origin staging
-```
-
-- Update main:
-
-```bash
-git checkout main
-git pull --ff-only origin main
-```
-
-- Return to develop for next cycle: `` git checkout develop ``

@@ -10,6 +10,7 @@ from . import views
 # - `/users/<id>/`: Endpoint for editing user details.
 # - `/login/`: Endpoint for user login.
 # - `/logout/`: Endpoint for user logout.
+# - `/about/`: Endpoint for the About page.
 
 urlpatterns = [
     path('', views.hall_of_fame_view, name='hall_of_fame'),    
@@ -17,5 +18,6 @@ urlpatterns = [
     path('matches/', views.match_view, name='match'), # Handles listing, adding, deleting      
     path('users/<int:id>/', views.user_view, name='user'),
     path('login/', views.login_view, name='login'),
-    path('logout/', views.logout_view, name='logout'),    
+    path('logout/', views.logout_view, name='logout'),
+    path('about/', views.about_view, name='about'),    
 ]
