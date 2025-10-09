@@ -498,4 +498,21 @@ def logout_view(request):
         return redirect('hall_of_fame')
     return redirect('login')
 
+def about_view(request):
+    """
+    Renders the About page with stats: number of users, players, matches since 1 Sept 2025.
+    """
+    num_users = User.objects.count()
+    num_players = Player.objects.count()
+    num_matches = Match.objects.filter(date_played__gte=date(2025, 9, 1)).count()
+    contact_email = "rankingdepadel.club@gmail.com"
+
+    context = {
+        "num_users": num_users,
+        "num_players": num_players,
+        "num_matches": num_matches,
+        "contact_email": contact_email,
+    }
+    return render(request, "frontend/about.html", context)
+
 
