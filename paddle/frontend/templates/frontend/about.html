@@ -1,0 +1,48 @@
+<!-- templates/frontend/about.html -->
+
+{% extends "frontend/base.html" %}
+{% block title %}Acerca de...{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+  <h1 class="display-4">Acerca de...👨‍💻</h1>
+</div>
+
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="card shadow mb-4">
+        <div class="card-header bg-success text-white">
+          <h4 class="mb-0">club moraleja</h4>
+        </div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush mb-3">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span class="badge bg-secondary rounded-pill">{{ num_players }}</span>
+              <span><strong>jugadores 🤐</strong></span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span class="badge bg-success rounded-pill">{{ num_users }}</span>
+              <span><strong>usuarios registrados 😏</strong></span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span class="badge bg-danger rounded-pill">{{ num_matches }}</span>
+              <span><strong>partidos jugados 🏓</strong></span>
+            </li>
+          </ul>
+          <div class="mt-3">
+            <i class="bi bi-github"></i>
+            <strong>Versión:</strong>
+            <small class="text-muted">1.0.2</small>
+          </div>
+          <div class="mt-3">
+            <i class="bi bi-envelope-fill"></i>
+            <strong>Contacto:</strong>
+            <a href="mailto:rankingdepadel.club@gmail.com" class="link-success">{{ contact_email }}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

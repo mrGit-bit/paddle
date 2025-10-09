@@ -27,7 +27,7 @@
     {% if is_registration %}required{%else%}readonly disabled{% endif %}
     required
     />
-    <label for="username" class="form-label">Usuario</label>
+    <label for="username" class="form-label">Usuario*</label>
     <div class="invalid-feedback">
       Nombre de usuario de 3 a 15 caracteres. Solo letras, números y @/./+/-/_.
     </div>
@@ -44,7 +44,7 @@
     value="{{ user.email|default:'' }}"    
     required
     />
-    <label for="email" class="form-label">Email</label>
+    <label for="email" class="form-label">Email*</label>
     <div class="invalid-feedback">Por favor introduce un email válido.</div>
   </div>
 
@@ -62,7 +62,7 @@
       minlength="8"    
       required
       />
-      <label for="password" class="form-label">Contraseña</label>
+      <label for="password" class="form-label">Contraseña*</label>
       <div class="invalid-feedback">
         La contraseña debe tener al menos 8 caracteres.
       </div>
@@ -79,7 +79,7 @@
       required
       />
       <label for="confirm_password" class="form-label"
-        >Confirma tu contraseña</label
+        >Confirma tu contraseña*</label
       >
       <div class="invalid-feedback">
         Las contraseñas no coinciden.

@@ -51,7 +51,21 @@
               {% else %}
                 <a class="nav-link" href="{% url 'match' %}">Partidos</a>  
               {% endif %}              
-            </li>            
+            </li>
+            {% if user.is_staff %}
+            <!-- Admin-only links -->
+            <li class="nav-item">
+              <a class="nav-link" href="https://staging.rankingdepadel.club/" target="_blank">
+                <i class="bi bi-box-arrow-up-right"></i> Staging
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="https://rankingdepadel.club/admin/" target="_blank">
+                <i class="bi bi-gear-fill"></i> Admin
+              </a>
+            </li>
+            {% endif %}
+            <!-- End admin-only links -->            
           </ul>
           <ul class="navbar-nav ms-auto">
             <!-- User profile link with bootstrap icon and tooltip-->
@@ -84,8 +98,17 @@
             <li class="nav-item">
               <a class="nav-link" href="{% url 'login' %}">Inicia sesión</a>
             </li>
+            
           </ul>
           {% endif %}
+
+        <! -- Navbar for all, registered or not -->
+        <!-- About page link -->
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'about' %}">Acerca de...</a>
+          </li>
+        </ul>
 
         </div>
       </div>
@@ -101,7 +124,7 @@
     <!-- Footer -->
     <footer class="text-center py-3 mt-5">
       <p class="mb-0">
-        🏓 ©2025 rankingdepadel.club v1.0.1 🏓
+        🏓 ©2025 rankingdepadel.club 🏓
       </p>      
     </footer>
 
