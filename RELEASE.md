@@ -42,13 +42,38 @@ git fetch origin
 git checkout staging
 git pull --ff-only
 source ~/venv/bin/activate
+```
+
+if changes in dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+if changes in static files:
+
+```bash
+cd /home/ubuntu/paddle/paddle
 PYTHONPATH=/home/ubuntu/paddle DJANGO_SETTINGS_MODULE=paddle.config.settings.prod \
 python -m django collectstatic --noinput
-PYTHONPATH=/home/ubuntu/paddle
-python paddle/manage.py migrate --settings=paddle.config.settings.prod
+```
+
+if changes in migrations:
+
+```bash
+cd /home/ubuntu/paddle/paddle
+PYTHONPATH=/home/ubuntu/paddle DJANGO_SETTINGS_MODULE=paddle.config.settings.prod \
+python manage.py migrate
+```
+
+finally, restart services:
+
+```bash
 sudo systemctl restart paddle
 sudo systemctl reload nginx
 ```
+
+- Test the app at the staging URL
 
 ### 4. Promote to production
 
