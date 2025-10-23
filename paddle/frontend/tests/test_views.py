@@ -363,3 +363,13 @@ class TestFrontendViews:
         resp = self.client.delete(url, data="{invalid", content_type="application/json")
         assert resp.status_code == 400
         assert "error" in resp.json()
+        
+    def test_about_view_context(self):
+        url = reverse("about")
+        resp = self.client.get(url)
+        assert resp.status_code == 200
+        # context should include counts
+        ctx = resp.context
+        assert "num_users" in ctx
+        assert "num_players" in ctx
+        assert "num_matches" in ctx

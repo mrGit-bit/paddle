@@ -1,6 +1,6 @@
-# 🚀 Release Process for rankingdepadel.club
+# 🚀 Release Process
 
-This document describes the manual release workflow for the rankingdepadel.club production website.
+This document describes the **manual release workflow** for the production website.
 
 ## Branching model
 
@@ -13,14 +13,25 @@ This document describes the manual release workflow for the rankingdepadel.club 
 ### 1. Prepare the release
 
 - Ensure all feature/fix branches are merged into **develop**.
-- Run tests and ensure test coverage over 90%: `pytest frontend/tests/ --cov=frontend.views --cov-report=term-missing`.
+- Run tests and confirm coverage over 90%, if not develop additional tests:
+
+```bash
+cd paddle
+pytest frontend/tests/ --cov=frontend.views --cov-report=term-missing
+```
+
 - Update `CHANGELOG.md`:
   - Add a new section with today’s date and version.
   - List changes under **Added / Changed / Fixed**.
 - Update `README.md` if needed.
 - Update version number in `about.html` (hardcoded `vX.Y.Z`).
-- Add & Commit changes to **develop**.
-- Push changes: `git push`
+- Commit and push changes:
+
+```bash
+git add .
+git commit -m "docs(release): prepare release vX.Y.Z"
+git push
+```
 
 ### 2. Promote to staging
 
@@ -30,7 +41,7 @@ This document describes the manual release workflow for the rankingdepadel.club 
   - Summary: Key changes
   - Migrations: If any describe / none
   - Risk: Low / medium
-- Test plan
+  - Test plan
 - Merge PR.
 
 ### 3. Deploy to staging VM
@@ -44,13 +55,13 @@ git pull --ff-only
 source ~/venv/bin/activate
 ```
 
-if changes in dependencies:
+if dependencies changed:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-if changes in static files:
+if static files changed:
 
 ```bash
 cd /home/ubuntu/paddle/paddle
@@ -58,7 +69,7 @@ PYTHONPATH=/home/ubuntu/paddle DJANGO_SETTINGS_MODULE=paddle.config.settings.pro
 python -m django collectstatic --noinput
 ```
 
-if changes in migrations:
+if database migrations changed:
 
 ```bash
 cd /home/ubuntu/paddle/paddle
@@ -66,7 +77,7 @@ PYTHONPATH=/home/ubuntu/paddle DJANGO_SETTINGS_MODULE=paddle.config.settings.pro
 python manage.py migrate
 ```
 
-finally, restart services:
+Finally, restart services:
 
 ```bash
 sudo systemctl restart paddle
@@ -79,7 +90,7 @@ sudo systemctl reload nginx
 
 - In GitHub Open PR: `staging ➜ main`
 - Title: `Release X.Y.Z — summary`
-- Description and Test plan: as above
+- Description and test plan: same as above
 - Merge PR.
 
 ### 5. Deploy to production VM
@@ -87,6 +98,12 @@ sudo systemctl reload nginx
 On production server:
 
 - as above in the staging server
+
+Checks:
+
+- `systemctl status paddle --no-pager` → active (running)
+- `sudo nginx -t` → syntax is ok
+- site loads correctly
 
 ### 6. Tag the release
 
@@ -97,6 +114,15 @@ git checkout main
 git pull --ff-only
 git tag -a vX.Y.Z -m "Release vX.Y.Z — summary"
 git push origin vX.Y.Z
+```
+
+If you can’t switch to main (pending changes in develop):
+
+```bash
+git add .
+git commit -m "docs(release): update RELEASE.md and requirements.in"
+git push
+git checkout main
 ```
 
 ### 7. Rollback (if needed)
@@ -120,5 +146,42 @@ In Codespaces IDE:
 
 ```bash
 git checkout develop
-git pull --ff-only origin develop
+git status         # should be clean
+git fetch origin
+
+# Merge main into develop (creates a merge commit if needed)
+git merge origin/main -m "chore(branches): back-merge main into develop after vX.Y.Z release"
+
+# If conflicts appear: fix files -> git add <fixed> -> git commit
+
+# Push updated develop
+git push
 ```
+
+## Quick reference
+
+### Prepare release
+
+`pytest && git add . && git commit -m "docs(release): prepare vX.Y.Z" && git push`
+
+### Merge and deploy
+
+develop → staging → main (via PRs)
+
+On each server:
+
+```bash
+git fetch && git checkout <branch> && git pull --ff-only
+source ~/venv/bin/activate
+python paddle/manage.py collectstatic --noinput --settings=paddle.config.settings.prod
+python paddle/manage.py migrate --settings=paddle.config.settings.prod
+sudo systemctl restart paddle && sudo systemctl reload nginx
+```
+
+### Tag version
+
+`git tag -a vX.Y.Z -m "Release vX.Y.Z" && git push origin vX.Y.Z`
+
+### Update IDE branches
+
+`git checkout develop && git merge origin/main -m "chore: sync develop after vX.Y.Z" && git push`

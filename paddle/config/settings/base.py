@@ -5,6 +5,7 @@
 
 import os
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -136,3 +137,15 @@ LOGGING = {
         "level": "INFO",
     },
 }
+
+# --- Email (Brevo SMTP via env) ---
+PASSWORD_RESET_TIMEOUT = 60 * 60 * 24  # Password reset token lifetime: 1 day in seconds
+EMAIL_BACKEND = config("EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
+EMAIL_HOST = config("EMAIL_HOST", default="smtp-relay.brevo.com")
+EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
+EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
+DEFAULT_FROM_EMAIL = f"{config('FROM_NAME', default='Ranking de Pádel')} <{config('DEFAULT_FROM_EMAIL', default='no-reply@rankingdepadel.club')}>"
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
