@@ -55,6 +55,8 @@ git pull --ff-only
 source ~/venv/bin/activate
 ```
 
+if .env needs to be modified: `nano .env`
+
 if dependencies changed:
 
 ```bash
@@ -84,7 +86,12 @@ sudo systemctl restart paddle
 sudo systemctl reload nginx
 ```
 
-- Test the app at the staging URL
+Checks:
+
+- `systemctl status paddle --no-pager` → active (running)
+- `sudo nginx -t` → syntax is ok
+- Site loads correctly
+- Test the app at the staging URL according to the test staging site plan.
 
 ### 4. Promote to production
 
@@ -99,11 +106,6 @@ On production server:
 
 - as above in the staging server
 
-Checks:
-
-- `systemctl status paddle --no-pager` → active (running)
-- `sudo nginx -t` → syntax is ok
-- site loads correctly
 
 ### 6. Tag the release
 
