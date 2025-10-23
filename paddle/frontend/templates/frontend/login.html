@@ -1,36 +1,75 @@
-{% extends 'frontend/base.html' %}
+    {% extends 'frontend/base.html' %}
 
-{% block title %}Inicio de sesión{% endblock %}
+    {% block title %}Inicio de sesión{% endblock %}
 
-{% block content %}
+    {% block content %}
 
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <!-- Display errors if any -->
-        {% if error %}
-        <div class="alert alert-danger" role="alert">{{ error }}</div>
-        {% endif %}
-        <div class="card shadow-sm">
-            <div class="card-header text-center text-bg-primary">
-                <h4>Inicio de sesión</h4>
-            </div>
-            <div class="card-body">
-                <form method="post" action="{% url 'login' %}">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Email / Nombre</label>
-                        <input type="text" id="username" name="username" class="form-control" placeholder="Email o Nombre de usuario" required>
+    <div class="container py-5">     
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <h2 class="text-center mb-1">Conéctate</h2>
+                <!-- Display errors if any -->
+                {% if error %}
+                <div class="alert alert-danger" role="alert">{{ error }}</div>
+                {% endif %}
+                <!-- Don´t have account? Create one -->
+                <p class="text-center">¿No tienes cuenta? <a href="{% url 'register' %}">Crea una</a></p>
+                
+                        <form method="post" action="{% url 'login' %}">
+                            {% csrf_token %}
+                            <!-- Username field -->
+                            <div class="mb-3 form-floating">
+                                <input 
+                                    type="text" 
+                                    id="username" 
+                                    name="username" 
+                                    class="form-control" 
+                                    placeholder="Email o Nombre de usuario" 
+                                    required 
+                                    autocomplete="username email" 
+                                    autocapitalize="off" 
+                                    autocorrect="off" 
+                                    spellcheck="false"
+                                >
+                                <label for="username" class="form-label">Correo electrónico o Nombre de usuario*</label>
+                                <div class="invalid-feedback">Por favor introduce tu usuario o correo electrónico.</div>
+                            </div>
+                            
+                            <!-- Password field -->
+                            <div class="mb-3 form-floating">
+                                <!--
+                                    Mitigations to reduce plain-text password suggestions / inline suggestions:
+                                    - autocomplete="current-password" tells browsers this is a password field for current login
+                                    - autocapitalize/autocorrect/spellcheck disabled for password inputs                                    
+                                -->
+                                <input
+                                    type="password"
+                                    id="password"
+                                    name="password"
+                                    class="form-control"
+                                    placeholder="Contraseña"
+                                    required
+                                    autocomplete="current-password"
+                                    autocapitalize="off"
+                                    autocorrect="off"
+                                    spellcheck="false"                                    
+                                >
+                                <label for="password" class="form-label">Contraseña*</label>
+                                <div class="invalid-feedback">Por favor introduce tu contraseña.</div>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-success w-100">Acceder</button>
+                            </div>
+                        </form>
+                        
                     </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Contraseña</label>
-                        <input type="password" id="password" name="password" class="form-control" placeholder="Contraseña" required>
-                    </div>
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Acceder</button>
-                    </div>
-                </form>
+                </div>
+                
             </div>
         </div>
+        <div class="text-center">
+            <a href="{% url 'password_reset' %}" class="small">¿Has olvidado tu contraseña?</a>
+        </div>
     </div>
-</div>
-{% endblock %}
+    {% endblock %}

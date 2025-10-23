@@ -1,4 +1,4 @@
-<!-- frontend/templates/frontend/register.html -->
+<!-- absolute path: ~/paddle/frontend/templates/frontend/register.html -->
 {% extends 'frontend/base.html' %}
 {% load static %}
 
@@ -25,7 +25,7 @@
       {% include "frontend/_user_form.html" with form_action=request.path is_registration=True players=players submit_label="Register" %}
 
       <p class="text-center mt-3">
-        Ya tienes cuenta? <a href="{% url 'login' %}">Accede aquí</a>.
+        ¿Ya tienes cuenta? <a href="{% url 'login' %}">Accede aquí</a>
       </p>
 
     </div>
