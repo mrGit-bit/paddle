@@ -69,3 +69,5 @@ def test_logout_view_get_redirects(client):
     resp = client.get(url)
     assert resp.status_code == 302
     assert resp.url == reverse("login")
+    
+

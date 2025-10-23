@@ -1,4 +1,6 @@
-# frontend/views.py
+# Absolute path: ~/paddle/frontend/views.py
+from django import forms
+from django.contrib.auth.forms import PasswordResetForm
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
@@ -12,6 +14,17 @@ import json
 import logging
 
 User = get_user_model()
+
+class EmailExistsPasswordResetForm(PasswordResetForm):
+    """Password reset form requires the email to exist in DB."""
+    def clean_email(self):
+        email = (self.cleaned_data.get("email") or "").strip()
+        User = get_user_model()
+        exists = User._default_manager.filter(email__iexact=email).exists()
+        if not exists:
+            # Spanish, plain and helpful; shown under the field.
+            raise forms.ValidationError("No existe ninguna cuenta con este correo electrónico.")
+        return email
 
 def get_player_stats(request, player_id=None):
     """

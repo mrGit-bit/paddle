@@ -6,7 +6,6 @@
 <form method="POST" 
   id="user-form"
   action="{{ form_action }}" 
-  autocomplete="off" 
   class="needs-validation" 
   novalidate>
   {% csrf_token %}
@@ -18,7 +17,10 @@
     class="form-control"
     id="username"
     name="username"
-    autocomplete="off"
+    autocomplete="username"
+    autocapitalize="off"
+    autocorrect="off"
+    spellcheck="false"
     placeholder="Tu nombre de usuario"
     pattern="^[a-zA-Z0-9@.+-_]{3,15}$"
     maxlength="15"
@@ -37,15 +39,21 @@
   <div class="mb-3 form-floating">
     <input
     type="email"
-    class="form-control"
+    class="form-control{% if form.email.errors %} is-invalid{% endif %}"
     id="email"
     name="email"
-    placeholder="Introduce tu email"
+    autocomplete="email"
+    autocapitalize="off"
+    autocorrect="off"
+    spellcheck="false"
+    placeholder="Correo electrónico"
     value="{{ user.email|default:'' }}"    
     required
     />
-    <label for="email" class="form-label">Email*</label>
-    <div class="invalid-feedback">Por favor introduce un email válido.</div>
+    <label for="email" class="form-label">Correo electrónico*</label>
+    {% if form.email.errors %}
+      <div class="invalid-feedback">{{ form.email.errors.as_text|escape }}</div>
+    {% endif %}
   </div>
 
   <!-- Registration only-->
@@ -53,14 +61,17 @@
     <!-- Password field -->
     <div class="mb-3 form-floating">
       <input
-      type="password"
-      class="form-control"
-      id="password"
-      name="password"
-      autocomplete="new-password"
-      placeholder="Contraseña"
-      minlength="8"    
-      required
+        type="password"
+        class="form-control"
+        id="password"
+        name="password"
+        autocomplete="new-password"
+        autocapitalize="off"
+        autocorrect="off"
+        spellcheck="false"
+        placeholder="Contraseña"
+        minlength="8"    
+        required
       />
       <label for="password" class="form-label">Contraseña*</label>
       <div class="invalid-feedback">
@@ -71,12 +82,16 @@
     <!-- Confirm Password field -->
     <div class="mb-3 form-floating">
       <input
-      type="password"
-      class="form-control"
-      id="confirm_password"
-      name="confirm_password"
-      placeholder="Confirma tu contraseña"          
-      required
+        type="password"
+        class="form-control"
+        id="confirm_password"
+        name="confirm_password"
+        autocomplete="new-password"
+        autocapitalize="off"
+        autocorrect="off"
+        spellcheck="false"
+        placeholder="Confirma tu contraseña"          
+        required
       />
       <label for="confirm_password" class="form-label"
         >Confirma tu contraseña*</label
@@ -103,7 +118,7 @@
     
     <!-- Registration Submit Button -->  
     <button 
-      type="submit" class="btn btn-primary w-100">Registrarse</button>    
+      type="submit" class="btn btn-success w-100">Registrarse</button>    
 
   <!-- User profile only-->
   {% else %}

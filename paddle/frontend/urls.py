@@ -1,16 +1,21 @@
-# urls.py (frontend)
-from django.urls import path
-from django.views.generic import TemplateView
+# absolute path: ~/paddle/frontend/urls.py (frontend)
+from django.urls import path, reverse_lazy
+from django.contrib.auth import views as auth_views
 from . import views
 
-# The frontend provides the following endpoints:
-# - `/`: Endpoint for the Hall of Fame.
-# - `/register/`: Endpoint for user registration.
-# - `/matches/`: Endpoint for listing, adding, and deleting matches.
-# - `/users/<id>/`: Endpoint for editing user details.
-# - `/login/`: Endpoint for user login.
-# - `/logout/`: Endpoint for user logout.
-# - `/about/`: Endpoint for the About page.
+# --- The frontend provides the following endpoints: ---
+# - `/`: Main ranking page
+# - `/register/`: User registration
+# - `/matches/`: Matches list/add/delete
+# - `/users/<id>/`: Edit user details
+# - `/login/`: User login
+# - `/logout/`: User logout
+# - `/about/`: About page
+# --- Password reset endpoints (built-in Django views, Spanish templates) ---
+# - `/password_reset/`: Start password reset (Brevo mail)
+# - `/password_reset/done/`: Confirmation that email was sent
+# - `/reset/<uidb64>/<token>/`: Enter new password
+# - `/reset/done/`: Password successfully changed
 
 urlpatterns = [
     path('', views.hall_of_fame_view, name='hall_of_fame'),    
@@ -19,5 +24,40 @@ urlpatterns = [
     path('users/<int:id>/', views.user_view, name='user'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
-    path('about/', views.about_view, name='about'),    
+    path('about/', views.about_view, name='about'),
+    
+    # --- Password reset flow (built-in Django views, Spanish templates) ---
+    path(
+        "password_reset/",
+        auth_views.PasswordResetView.as_view(
+            form_class=views.EmailExistsPasswordResetForm,
+            template_name="frontend/pass_reset/password_reset_form.html",
+            email_template_name="frontend/pass_reset/password_reset_email.txt",
+            subject_template_name="frontend/pass_reset/password_reset_subject.txt",
+            success_url=reverse_lazy("password_reset_done"),
+        ),
+        name="password_reset",
+    ),
+    path(
+        "password_reset/done/",
+        auth_views.PasswordResetDoneView.as_view(
+            template_name="frontend/pass_reset/password_reset_done.html"
+        ),
+        name="password_reset_done",
+    ),
+    path(
+        "reset/<uidb64>/<token>/",
+        auth_views.PasswordResetConfirmView.as_view(
+            template_name="frontend/pass_reset/password_reset_confirm.html",
+            success_url=reverse_lazy("password_reset_complete"),
+        ),
+        name="password_reset_confirm",
+    ),
+    path(
+        "reset/done/",
+        auth_views.PasswordResetCompleteView.as_view(
+            template_name="frontend/pass_reset/password_reset_complete.html"
+        ),
+        name="password_reset_complete",
+    ),    
 ]

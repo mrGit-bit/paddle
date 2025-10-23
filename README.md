@@ -70,7 +70,7 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
 - When a new match is added, new players are created if they don't exist.
 - Users can only add, update, or delete matches in which they are a participant.
 - **Implementation**:
-  - API: 
+  - API:
     - The `MatchSerializer` handles player name input, creates new players if needed, and prevents duplicate player entries.
     - `perform_create()` in the `MatchViewSet` updates player stats when a match is created.
     - `perform_update()` resets old match stats before applying new results to maintain data integrity.
@@ -83,7 +83,7 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
 - When linking to an existing player, the user takes over the player's stats, and the player's name is changed to the user's username.
 - Users can only update their own profiles, unless they are an admin, in which case they can update and delete any profile.
 - **Implementation**:
-  - API: 
+  - API:
     - The `UserSerializer` includes a `player_id` field for optional linking to an existing player.
     - The `UserViewSet` restricts profile modification to the user's own profile or admins.
   - Frontend app: The `UserView` in `views.py` handles user registration, login, and logout.
@@ -105,7 +105,7 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
   - Register.
   - Log in.
 - Authenticated users can:
-  - View the same of unthenticated users.
+  - View the same of non authenticated users.
   - View & add match results.
   - Update or delete their own match results.
   - View and update their editable fields in their own user profile.
@@ -118,7 +118,7 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
     - The `IsAuthenticated` permission restricts match-related actions to authenticated users.
   - Session-based authentication for login and logout.
   - The `LoginView` and `LogoutView` API endpoints handle user authentication and logout.
-  - Frontend app: The `LoginView` and `LogoutView` in `views.py` handle user authentication and logout. Extensive use of decorators to handle different authentication states. 
+  - Frontend app: The `LoginView` and `LogoutView` in `views.py` handle user authentication and logout. Extensive use of decorators to handle different authentication states.
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 
@@ -133,7 +133,7 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
   - Django Templates & Views.
   - Vanilla JavaScript.
   - Bootstrap 5.
-- **Database**: 
+- **Database**:
   - SQLite for development.
   - Oracle autonomous database for staging and production.
 
