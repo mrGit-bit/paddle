@@ -106,7 +106,6 @@ On production server:
 
 - as above in the staging server
 
-
 ### 6. Tag the release
 
 From Codespaces (on main branch):
