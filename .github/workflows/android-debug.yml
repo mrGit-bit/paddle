@@ -61,11 +61,26 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Install Android API 35 + build-tools
+        env:
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_HOME }}
         run: |
-          yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager \
+          # Show versions to verify paths
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --version
+
+          # Install required packages WITHOUT piping 'yes'
+          ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --install \
             "platforms;android-35" \
             "build-tools;35.0.0" \
             "platform-tools"
+
+      - name: Accept Android SDK licenses
+        env:
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_HOME }}
+        run: |
+          # Accept licenses; ignore broken pipe exit code if it occurs after acceptance
+          yes | ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       # --- Build the debug APK ---
       - name: Gradle assembleDebug
