@@ -60,6 +60,13 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Install Android API 35 + build-tools
+        run: |
+          yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager \
+            "platforms;android-35" \
+            "build-tools;35.0.0" \
+            "platform-tools"
+
       # --- Build the debug APK ---
       - name: Gradle assembleDebug
         working-directory: mobile/android
