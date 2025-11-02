@@ -31,12 +31,23 @@ jobs:
       - name: NPM install (mobile)
         working-directory: mobile
         run: |
-          npm ci
+          # use 'npm ci' only if you have a lockfile; otherwise switch to 'npm install'
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+      - name: Prepare Android assets dir
+        working-directory: mobile
+        run: |
+          mkdir -p android/app/src/main/assets        
 
       - name: Capacitor sync (android)
         working-directory: mobile
         run: |
           npx cap sync android
+
+      - name: Capacitor doctor
+        working-directory: mobile
+        run: |
+          npx cap doctor || true
 
       # --- Java & Android SDK for Gradle build ---
       - name: Setup Java 17
