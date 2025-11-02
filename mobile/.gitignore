@@ -1,0 +1,13 @@
+# Node modules
+node_modules/
+
+# Capacitor build artifacts
+dist/
+android/app/build/
+android/.gradle/
+android/.idea/
+android/local.properties
+
+# OS junk
+.DS_Store
+Thumbs.db

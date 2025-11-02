@@ -1,0 +1,13 @@
+const config = {
+  appId: 'club.rankingdepadel.app',
+  appName: 'Ranking de Pádel',
+  webDir: 'dist',
+  bundledWebRuntime: false,
+  server: {
+    url: 'https://rankingdepadel.club',
+    cleartext: false,
+    allowNavigation: ['rankingdepadel.club', 'www.rankingdepadel.club'],
+  },
+};
+
+export default config;

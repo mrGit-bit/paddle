@@ -1,0 +1,64 @@
+name: Android Debug (Capacitor)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ develop ]
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/android-debug.yml'
+
+jobs:
+  build-debug:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # --- Node for Capacitor sync step ---
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'mobile/package-lock.json'
+
+      - name: NPM install (mobile)
+        working-directory: mobile
+        run: |
+          npm ci
+
+      - name: Capacitor sync (android)
+        working-directory: mobile
+        run: |
+          npx cap sync android
+
+      # --- Java & Android SDK for Gradle build ---
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      # --- Build the debug APK ---
+      - name: Gradle assembleDebug
+        working-directory: mobile/android
+        run: |
+          ./gradlew --no-daemon assembleDebug
+
+      # --- Upload the APK as an artifact ---
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
