@@ -25,24 +25,45 @@ pytest frontend/tests/ --cov=frontend.views --cov-report=term-missing
   - List changes under **Added / Changed / Fixed**.
 - Update `README.md` if needed.
 - Update version number in `about.html` (hardcoded `vX.Y.Z`).
+
+- RebuildMobile app if there are:
+  - Changes to Capacitor configuration `capacitor.config.ts`: new server.url, new plugin, or app name/id, etc.
+  - New native plugins: push notifications, camera, deep links, share intent, etc.
+  - Changes to Android/iOS build settings: minSdkVersion, permissions, icon, splash, etc.
+  - New Android/iOS app version in Play Store to rebuild with a new version code
+  - Replace in `/workspaces/paddle/mobile/capacitor.config.ts` the production build:
+  
+  ```bash
+  server: {
+     url: 'https://rankingdepadel.club',
+     cleartext: false,
+     allowNavigation: ['rankingdepadel.club', 'www.rankingdepadel.club'],
+   },
+  ``` 
+  
+   with the staging build:
+
+    ```bash
+    server: {
+      url: 'https://staging.rankingdepadel.club/mobiletest/',
+      cleartext: false,
+      allowNavigation: ['staging.rankingdepadel.club'],
+    },
+
 - Commit and push changes:
 
 ```bash
-git add .
+git add -all
 git commit -m "docs(release): prepare release vX.Y.Z"
-git push
+git push origin develop
 ```
 
 ### 2. Promote to staging
 
 - In GitHub Open PR: `develop ➜ staging`
 - Title: `Release X.Y.Z — summary`
-- Description:
-  - Summary: Key changes
-  - Migrations: If any describe / none
-  - Risk: Low / medium
-  - Test plan
 - Merge PR.
+
 
 ### 3. Deploy to staging VM
 
