@@ -116,12 +116,8 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-Checks:
+- After app testing, uncomment `auth_basic` and `auth_basic_user_file` in `/etc/nginx/sites-available/paddle`.
 
-- `systemctl status paddle --no-pager` → active (running)
-- `sudo nginx -t` → syntax is ok
-- Site loads correctly
-- Test the app at the staging URL according to the test staging site plan.
 
 ### 4. Promote to production
 
@@ -129,6 +125,9 @@ Checks:
 - Title: `Release X.Y.Z — summary`
 - Description and test plan: same as above
 - Merge PR.
+- If mobile app has been tested:
+  - Replace in /workspaces/paddle/mobile/capacitor.config.ts the staging build and create a new artifact
+  - add, commit and push changes
 
 ### 5. Deploy to production VM
 
