@@ -45,7 +45,7 @@ pytest frontend/tests/ --cov=frontend.views --cov-report=term-missing
 
     ```bash
     server: {
-      url: 'https://staging.rankingdepadel.club/mobiletest/',
+      url: 'https://staging.rankingdepadel.club',
       cleartext: false,
       allowNavigation: ['staging.rankingdepadel.club'],
     },
@@ -100,10 +100,19 @@ PYTHONPATH=/home/ubuntu/paddle DJANGO_SETTINGS_MODULE=paddle.config.settings.pro
 python manage.py migrate
 ```
 
+if mobile app needs to be checked:
+temporarily during mobiletests, comment / uncomment in `/etc/nginx/sites-available/paddle`:
+
+```bash
+# auth_basic           "Restricted Area";
+# auth_basic_user_file /etc/nginx/.htpasswd;
+```
+
 Finally, restart services:
 
 ```bash
 sudo systemctl restart paddle
+sudo nginx -t
 sudo systemctl reload nginx
 ```
 

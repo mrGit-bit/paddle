@@ -13,7 +13,7 @@ const config = {
 
   // === STAGING build ===
   server: {
-    url: 'https://staging.rankingdepadel.club/mobiletest/',
+    url: 'https://staging.rankingdepadel.club',
     cleartext: false,
     allowNavigation: ['staging.rankingdepadel.club'],
 
