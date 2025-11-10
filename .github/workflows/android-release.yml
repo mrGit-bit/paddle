@@ -29,6 +29,11 @@ jobs:
         run: |
           if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
+      - name: Prepare Android assets dir
+        working-directory: mobile
+        run: |
+          mkdir -p android/app/src/main/assets
+
       - name: Capacitor sync (android)
         working-directory: mobile
         run: |
