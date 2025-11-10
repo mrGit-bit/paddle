@@ -27,3 +27,39 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+android {
+    namespace "club.rankingdepadel.app"
+    compileSdkVersion 35
+
+    defaultConfig {
+        applicationId "club.rankingdepadel.app"
+        minSdkVersion 29
+        targetSdkVersion 35
+
+        // Set an initial version; bump versionCode for every Play upload
+        versionCode 1
+        versionName "1.0.4"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file(System.getenv("ANDROID_KEYSTORE_PATH") ?: "upload-keystore.jks")
+            storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+            keyAlias System.getenv("ANDROID_KEY_ALIAS")
+            keyPassword System.getenv("ANDROID_KEY_PASSWORD")
+        }
+    }
+
+    buildTypes {
+        release {
+            // Link the signing config
+            signingConfig signingConfigs.release
+            // Keep it simple for now (no code shrinking/obfuscation)
+            minifyEnabled false
+        }
+        debug {
+            // no change
+        }
+    }
+}
