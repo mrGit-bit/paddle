@@ -1,3 +1,4 @@
+# path: .github/workflows/android-release.yml
 name: Android Release AAB (Capacitor)
 
 on:
