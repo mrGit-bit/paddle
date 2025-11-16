@@ -26,7 +26,7 @@ pytest frontend/tests/ --cov=frontend.views --cov-report=term-missing
 - Update `README.md` if needed.
 - Update version number in `about.html` (hardcoded `vX.Y.Z`).
 
-- RebuildMobile app if there are:
+- Rebuild the Mobile app if there are:
   - Changes to Capacitor configuration `capacitor.config.ts`: new server.url, new plugin, or app name/id, etc.
   - New native plugins: push notifications, camera, deep links, share intent, etc.
   - Changes to Android/iOS build settings: minSdkVersion, permissions, icon, splash, etc.
@@ -41,7 +41,7 @@ pytest frontend/tests/ --cov=frontend.views --cov-report=term-missing
    },
   ``` 
   
-   with the staging build:
+  with the staging build:
 
     ```bash
     server: {
@@ -49,6 +49,14 @@ pytest frontend/tests/ --cov=frontend.views --cov-report=term-missing
       cleartext: false,
       allowNavigation: ['staging.rankingdepadel.club'],
     },
+    ```
+
+  bump version code in `/workspaces/paddle/mobile/android/app/build.gradle`
+
+  download artifacts:
+    load `apk` in 
+    load `aab` in `play.google.com/console` internal testing 
+
 
 - Commit and push changes:
 
