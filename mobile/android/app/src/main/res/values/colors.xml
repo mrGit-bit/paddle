@@ -1,0 +1,4 @@
+<resources>
+    <!-- Background for launcher icon -->
+    <color name="ic_launcher_background">#FFFFFF</color>  <!-- or any color you like -->
+</resources>
