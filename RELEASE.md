@@ -31,7 +31,7 @@ pytest frontend/tests/ --cov=frontend.views --cov-report=term-missing
   - Add a new section with today’s date and version.
   - List changes under **Added / Changed / Fixed**.
 - Update `README.md` if needed.
-- Update version number in `about.html` (hardcoded `vX.Y.Z`).
+- Update hardcoded version number `vX.Y.Z` in `/workspaces/paddle/paddle/frontend/templates/frontend/about.html`.
 
 ### 📱 1.2 Prepare the Mobile release
 
@@ -63,7 +63,6 @@ git push origin develop
 - In GitHub Open PR: `develop ➜ staging`
 - Title: `Release X.Y.Z — summary`
 - Merge PR.
-
 
 ## 🚆 3. Deploy to staging VM
 
@@ -106,7 +105,6 @@ python manage.py migrate
 
 When testing CRUD operations with the mobile app, the staging server and staging database needs to be used instead of the production server and production database. This is only for testing staging API calls. It should never be applied on production.
 
-
 - Replace in `/workspaces/paddle/mobile/capacitor.config.ts` the production build:
   
   ```bash
@@ -115,7 +113,7 @@ When testing CRUD operations with the mobile app, the staging server and staging
      cleartext: false,
      allowNavigation: ['rankingdepadel.club', 'www.rankingdepadel.club'],
    },
-  ``` 
+  ```
   
   with the staging build:
 
@@ -134,7 +132,7 @@ When testing CRUD operations with the mobile app, the staging server and staging
 # auth_basic_user_file /etc/nginx/.htpasswd;
 ```
 
-- Don´t forget uncomment `auth_basic` and `auth_basic_user_file` in `/etc/nginx/sites-available/paddle` after mobile app testing. 
+- Don´t forget uncomment `auth_basic` and `auth_basic_user_file` in `/etc/nginx/sites-available/paddle` after mobile app testing.
 
 ### 👩‍❤️‍💋‍👨 3.3 Common actions
 
@@ -178,7 +176,6 @@ sudo systemctl reload nginx
 - Update: use the direct link: `https://play.google.com/store/apps/details?id=club.rankingdepadel.app`. When the update is ready, the button will show `Update`.
 
 - Verify: On your phone, long-press `app icon` → `App info`. Scroll to the App version and It should show the new version.
-
 
 ## 🏭 5. Promote Web App to production
 
@@ -251,4 +248,3 @@ git merge origin/main -m "chore(branches): back-merge main into develop after vX
 # Push updated develop
 git push
 ```
-

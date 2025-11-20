@@ -28,7 +28,6 @@ Every change should belong to one of the following categories: added, changed, u
 - Upgraded Java version in GitHub Actions from 17 to 21 for Android builds.
 - Updated Android SDK to API 35 in the GitHub pipeline.
 - Added nginx staging bypass for mobile testing
-- Changed .env files in staging and production
 
 ## [1.0.3] – 2025-10-23
 
