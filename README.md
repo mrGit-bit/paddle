@@ -5,14 +5,20 @@
 
 ## 📖 Overview
 
-Paddle Tennis Hall of Fame is a web application designed for groups of friends who play paddle tennis together. It helps them manage their own "Hall of Fame" within their group.
+Paddle Tennis Hall of Fame is a web application designed for groups of friends who play paddle tennis together. It helps them manage their own "Hall of Fame" within their group. It is also available as an Android mobile app that loads the same web experience through a WebView.
 
 Registered users can track matches played, update match results, view player rankings, and access player statistics.
 
-This web application is built using:
+This application is built using:
 
 - Django and Django Rest Framework (DRF) for the RESTful API.
-- Django templates, JavaScript, and Bootstrap for the frontend.
+- Django templates, JavaScript, and Bootstrap for the web frontend.
+- Capacitor + Android (WebView-based shell) for the mobile app distributed via Google Play using Android App Bundles (AAB).
+
+The project is two products in the same repo in GitHub:
+
+- Web app (Django)
+- Android app (Capacitor → Play Store)
 
 <a id="index"></a>
 
@@ -27,6 +33,7 @@ This web application is built using:
 - [🌐 Frontend Endpoints & Templates](#🌐-frontend-endpoints--templates)
 - [🛠️ JavaScript Functionalities](#🛠️-javascript-functionalities)
 - [📑 Pagination](#📑-pagination)
+- [📱 Android Mobile App](#📱-android-mobile-app)
 - [🧪 Testing](#🧪-testing)
 - [🚀 Future Enhancements](#🚀-future-enhancements)
 - [🚀 Installation](#🚀-installation)
@@ -129,13 +136,16 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
 - **Backend**: Django Rest Framework (DRF)
   - `ModelViewSets`, `ModelSerializers` with `SerializerMethodField`, and `Routers` for simplified API management.
   - Built-in session authentication from DRF.
-- **Frontend**:
+- **Frontend Web**:
   - Django Templates & Views.
   - Vanilla JavaScript.
   - Bootstrap 5.
+- **Mobile App**:  
+  - Capacitor (Android), using a WebView shell that loads the live web app.
+  - Android App Bundles (AAB) built via GitHub Actions and distributed through Google Play (internal testing track).
 - **Database**:
   - SQLite for development.
-  - Oracle autonomous database for staging and production.
+  - Oracle autonomous databases (two independent ADBs) for staging and production.
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 
@@ -146,24 +156,30 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
 - Folder structure:
 
 ```bash
-paddle/
-├── config/                 # Project configuration and settings
-│   └── settings/           # Different settings for development and production
-├── db.sqlite3              # SQLite database
-├── fixtures/               # Test data
-├── frontend/               # Frontend logic (in views.py), js, styles and html 
-│   ├── migrations/         # Migrations for the frontend app
-│   ├── static/frontend/    # Static files for the frontend
-│     ├── css/              # CSS styles for the frontend
-│     └── js/               # JavaScript files for the frontend
-│   └── templates/frontend/ # HTML templates for the frontend
-├── games/                  # API app for players & matches
-│   ├── migrations/         # Migrations for the games app
-│   └── tests/              # Tests for games API
-├── staticfiles/            # Collected static files 
-├── users/                  # API app for user management
-│   ├── migrations/         # Migrations for the users app
-│   └── tests/              # Tests for users API
+/workspaces/paddle/
+├── mobile/                   # Capacitor project for the Android mobile app
+│   ├── android/              # Native Android project (Gradle)
+│   ├── resources/            # Source assets (icon, splash) for Capacitor
+│   ├── capacitor.config.ts   # Capacitor configuration (server.url, appId, etc.)
+│   └── package.json          # Node dependencies for the mobile shell
+├── paddle/                   # Django project
+│ ├── config/                 # Project configuration and settings
+│ │   └── settings/           # Different settings for development and production
+│ ├── db.sqlite3              # SQLite database
+│ ├── fixtures/               # Test data
+│ ├── frontend/               # Frontend logic (in views.py), js, styles and html 
+│ │   ├── migrations/         # Migrations for the frontend app
+│ │   ├── static/frontend/    # Static files for the frontend
+│ │   │   ├── css/            # CSS styles for the frontend
+│ │   │   └── js/             # JavaScript files for the frontend
+│ │   └── templates/frontend/ # HTML templates for the frontend
+│ ├── games/                  # API app for players & matches
+│ │   ├── migrations/         # Migrations for the games app
+│ │   └── tests/              # Tests for games API
+│ ├── staticfiles/            # Collected static files 
+│ └── users/                  # API app for user management
+│     ├── migrations/         # Migrations for the users app
+│     └── tests/              # Tests for users API
 ├── .coverage               # Test coverage report
 ├── README.md               # Project documentation
 ├── requirements.in         # pip-tools dependencies
@@ -413,6 +429,26 @@ The frontend leverages Bootstrap 5's pagination component to provide a user-frie
 
 ---
 
+## 📱 Android Mobile App
+
+An Android mobile app is available, built with Capacitor and using a WebView shell that loads the same web application as the desktop/mobile browser version.
+
+### How it works
+
+- The app does not duplicate business logic; it simply wraps the existing web frontend.
+- The WebView points to staging & production urls.
+- Session authentication and cookies are reused exactly as in the browser version.
+
+### Distribution
+
+- The app is built as an **Android App Bundle (AAB)** using a GitHub Actions workflow.
+- Signed AABs are uploaded to **Google Play Console** and distributed via the **Internal Testing** track.
+- Testers gain access through the Google Play testing link and receive updates from the Play Store like any other app.
+
+> Note: The native Android project lives in the `mobile/` folder (Capacitor project) within this repository.
+
+---
+
 ## 🧪 Testing
 
 The project comes with a suite of tests for the `games`, `users`, and `frontend` apps. The tests can be run using the `pytest` command from the project's root directory. These tests cover authentication, authorization and model logic. Frontend template rendering tests are left for future development.
@@ -540,6 +576,9 @@ These enhancements represent major architectural or feature additions that will 
 - pip (Python package manager): comes pre-installed with Python.
 - Git (for cloning the repository)
 - virtualenv (recommended, for creating isolated environments)
+
+> These installation steps refer to the **web application** (Django).  
+> The Android mobile app is built via a separate Capacitor project in the `mobile/` folder and distributed through Google Play (internal testing). Local building of the mobile app requires Android tooling and is not covered in this section.
 
 For testing, development and configuration you may also need:
 

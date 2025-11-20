@@ -1,14 +1,34 @@
+<!-- markdownlint-disable MD024 -->
 # Changelog
 
 All notable changes to this project will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-<!-- markdownlint-disable MD024 -->
 
-## [1.0.4] – 2025-11-16
+Since v1.0.4 the project is two products in one repo in GitHub: a Web app and an Android app. To avoid duplication, the repo is versioned as a whole, so the changelog should reflect changes in:
 
-### Added
+- Web app (Django)
+- Android app (Capacitor → Play Store)
+- API (Django Rest Framework)
+- DevOps: anything that supports running and delivering the web or mobile apps (deployment, infrastructure, automation, CI/CD, server configuration, environment variables and secrets, system dependencies, build pipelines, Android workflow, monitoring/logging, reverse proxies (nginx), runtime configuration or databases configuration.
 
-- Publish Android app to Google Play Store.
+Every change should belong to one of the following categories: added, changed, updated, upgraded, removed or fixed.
+
+## [1.0.4] – 2025-11-20
+
+### Web
+
+### Mobile
+
+- Added Android app in Google Play Store for close testing
+
+### DevOps
+
+- Updated GitHub Actions workflow for AAB signing
+- Added PLAY_STORE_KEYSTORE_* secrets to GitHub Actions
+- Upgraded Java version in GitHub Actions from 17 to 21 for Android builds.
+- Updated Android SDK to API 35 in the GitHub pipeline.
+- Added nginx staging bypass for mobile testing
+- Changed .env files in staging and production
 
 ## [1.0.3] – 2025-10-23
 
