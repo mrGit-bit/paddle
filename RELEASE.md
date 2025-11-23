@@ -189,7 +189,17 @@ sudo systemctl reload nginx
 
 On production server:
 
-- as above in the staging server
+- as above in the staging server:
+
+```bash
+git checkout main
+git fetch origin
+git status
+git pull --ff-only
+sudo systemctl restart paddle
+sudo nginx -t
+sudo systemctl reload nginx
+```
 
 ## 🔖 7. Tag the release
 
@@ -207,7 +217,7 @@ git tag -a vX.Y.Z -m "Release vX.Y.Z — summary"
 git push origin vX.Y.Z
 ```
 
-If you can’t switch to main because of pending changes in develop, on develop branch:
+If you can’t switch to main because of pending changes in develop, on `develop` branch:
 
 ```bash
 git add .
