@@ -210,13 +210,6 @@ sudo systemctl reload nginx
 
 🌳 From IDE Codespaces on main branch:
 
-```bash
-git checkout main
-git pull --ff-only
-git tag -a vX.Y.Z -m "Release vX.Y.Z — summary"
-git push origin vX.Y.Z
-```
-
 If you can’t switch to main because of pending changes in develop, on `develop` branch:
 
 ```bash
@@ -224,6 +217,22 @@ git add .
 git commit -m "docs(release): update RELEASE.md and requirements.in"
 git push
 git checkout main
+```
+
+Then update the `main` branch and tag the release:
+
+```bash
+git checkout main
+git pull --ff-only
+git tag -a vX.Y.Z -m "Release vX.Y.Z — summary"
+git push origin vX.Y.Z
+```
+
+To chek current history of commits and tags:
+
+```bash
+git fetch --tags
+git log --oneline --decorate --all
 ```
 
 ## 🔙 8. Rollback if needed (Web App only)
