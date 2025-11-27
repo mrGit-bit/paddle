@@ -14,6 +14,10 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
+        // ⛔ Disable forced edge-to-edge on Android 15 (API 35)
+        // This prevents the navbar from overlapping your web content.
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
+
         // Normalize text zoom to ignore Android system font scale
         getBridge().getWebView().post(() -> {
             WebSettings settings = getBridge().getWebView().getSettings();
