@@ -5,6 +5,7 @@ package club.rankingdepadel.app;
 import androidx.core.view.WindowCompat;
 import android.os.Bundle;
 import android.webkit.WebSettings;
+import android.view.WindowManager;
 
 import com.getcapacitor.BridgeActivity;
 
@@ -13,8 +14,12 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Deactivate edge-to-edge by default on Android 15
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
+         // Disable edge-to-edge display on Android 15
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        getWindow().setFlags(
+            WindowManager.LayoutParams.FLAG_FULLSCREEN,
+            WindowManager.LayoutParams.FLAG_FULLSCREEN
+        );
         
         // Normalize text zoom to ignore Android system font scale
         getBridge().getWebView().post(() -> {
