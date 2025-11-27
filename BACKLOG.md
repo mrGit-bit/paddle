@@ -36,7 +36,6 @@ Rules:
 | All user profile fields should be editable (not only email). Include the ability to delete a user and unlink from a player (player remains valid) | 2 | 1 | 2 |
 | Add a “verify results” option to matches: Verified (True/False), Verified by (User), Verified on (Date) | 2 | 1 | 2 |
 | Advanced stats page for additional rankings: more matches played, best win rate (min. 10 matches), hot players (ranking increase), new players | 2 | 1 | 2 |
-| Mobile: solve “display end-to-end” default behavior in Android 15 | 1 | 1 | 1 |
 | Rolling news bar at the top of home page with latest ranking movements (top 10) and/or last matches added | 1 | 1 | 1 |
 | New registered players with zero matches should not appear in the ranking; they should be listed separately at the bottom | 1 | 1 | 1 |
 | Add a gender field to players | 1 | 1 | 1 |

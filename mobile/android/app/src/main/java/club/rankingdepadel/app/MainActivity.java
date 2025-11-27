@@ -1,5 +1,8 @@
+// path: mobile/android/app/src/main/java/club/rankingdepadel/app/MainActivity.java
+
 package club.rankingdepadel.app;
 
+import androidx.core.view.WindowCompat;
 import android.os.Bundle;
 import android.webkit.WebSettings;
 
@@ -10,15 +13,14 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Deactivate edge-to-edge by default on Android 15
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
+        
         // Normalize text zoom to ignore Android system font scale
         getBridge().getWebView().post(() -> {
             WebSettings settings = getBridge().getWebView().getSettings();
-            // Option 1: lock to 100% (identical to Chrome default)
+            // Lock to 100% (identical to Chrome default)
             settings.setTextZoom(100);
-
-            // Option 2 (optional): compensate dynamically if you ever re-enable scaling
-            // float scale = getResources().getConfiguration().fontScale;
-            // settings.setTextZoom(Math.round(100f / scale));
         });
     }
 }

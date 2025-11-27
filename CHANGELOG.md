@@ -25,7 +25,7 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ### Mobile
 
-- Fixed issue with edge-to-edge by default in Android 15 by downgrading the `targetSdkVersion` to 34 (Android 14). `compileSdkVersion` is left at 35 (Android 15) to allow for future updates.
+- Fixed overlapping issue deactivating the edge-to-edge by default of Android 15.
 
 ### DevOps
 
