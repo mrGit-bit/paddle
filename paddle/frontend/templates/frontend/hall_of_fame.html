@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="text-center mb-4">
-  <h1 class="display-4">🏆club moraleja🏆</h1>
+  <h1 class="display-5">🏆club moraleja🏆</h1>
   {% if user.is_authenticated %}
     {% if new_matches_number > 0 %}
       <p class="lead">Tienes {{ new_matches_number }} <a href="{% url 'match' %}#match-history">nuevos partidos</a>!</p>

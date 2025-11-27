@@ -20,13 +20,14 @@ Both release flows are independent and can be executed separately.
 ### 🖥️ 1.1 Prepare the Web App release
 
 - Ensure all feature/fix branches are merged into **develop**.
-- Run tests and confirm coverage over 90%, if not develop additional tests:
+- Run tests and confirm coverage over 90%, if under that rate develop additional tests.
 
 ```bash
 cd paddle
 pytest frontend/tests/ --cov=frontend.views --cov-report=term-missing
 ```
 
+- Remove new features from `BACKLOG.md`.
 - Update `CHANGELOG.md`:
   - Add a new section with today’s date and version.
   - List changes under **Added / Changed / Fixed**.

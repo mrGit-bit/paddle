@@ -25,7 +25,6 @@ Rules:
 
 | Requirement | IMP. | SIMP. | PRI. |
 |------------|------|-------|------|
-| Clicking anywhere in the footer should link to the home page without changing the appearance. Rearrange the nav bar for desktop and add a home link in the nav bar. Add an icon to the brand. | 2 | 3 | 6 |
 | To avoid duplicate players and users, replace contextual options in the match form with a dropdown list of player names that also includes a “new player” option | 2 | 2 | 4 |
 | Dark mode | 1 | 3 | 3 |
 | The “forgot password” link in user details incorrectly points to the login page | 1 | 3 | 3 |
