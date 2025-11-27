@@ -9,9 +9,25 @@ Since v1.0.4 the project is two products in one repo in GitHub: a Web app and an
 - Web app (Django)
 - Android app (Capacitor → Play Store)
 - API (Django Rest Framework)
-- DevOps: anything that supports running and delivering the web or mobile apps (deployment, infrastructure, automation, CI/CD, server configuration, environment variables and secrets, system dependencies, build pipelines, Android workflow, monitoring/logging, reverse proxies (nginx), runtime configuration or databases configuration.
+- DevOps: anything that supports running and delivering the web or mobile apps.
 
-Every change should belong to one of the following categories: added, changed, updated, upgraded, removed or fixed.
+Every change should belong to one of the following categories: `added`, `changed`, `updated`, `upgraded`, `improved`, `removed` or `fixed`.
+
+## [1.0.5] – 2025-11-25
+
+### Web
+
+- Improved base.html:
+  - Added the logo image to the navbar, resizing the log and the text for screens less than 360px (iPhone 4/5/SE and Galaxy S9+).
+  - Fixed size of the group name in the hall of fame view to avoid truncation in above mentioned devices.
+  - Fixed several inconsistencies in the navbar links distribution leading to incorrect right alignment in the desktop view.
+  - Added a link for the footer: Clicking anywhere in the footer redirects to the home page. No underlined text or color change for this link.
+
+### Mobile
+
+- Fixed overlapping issue deactivating the edge-to-edge by default of Android 15.
+
+### DevOps
 
 ## [1.0.4] – 2025-11-20
 

@@ -20,13 +20,14 @@ Both release flows are independent and can be executed separately.
 ### 🖥️ 1.1 Prepare the Web App release
 
 - Ensure all feature/fix branches are merged into **develop**.
-- Run tests and confirm coverage over 90%, if not develop additional tests:
+- Run tests and confirm coverage over 90%, if under that rate develop additional tests.
 
 ```bash
 cd paddle
 pytest frontend/tests/ --cov=frontend.views --cov-report=term-missing
 ```
 
+- Remove new features from `BACKLOG.md`.
 - Update `CHANGELOG.md`:
   - Add a new section with today’s date and version.
   - List changes under **Added / Changed / Fixed**.
@@ -189,7 +190,17 @@ sudo systemctl reload nginx
 
 On production server:
 
-- as above in the staging server
+- as above in the staging server:
+
+```bash
+git checkout main
+git fetch origin
+git status
+git pull --ff-only
+sudo systemctl restart paddle
+sudo nginx -t
+sudo systemctl reload nginx
+```
 
 ## 🔖 7. Tag the release
 
@@ -200,6 +211,17 @@ On production server:
 
 🌳 From IDE Codespaces on main branch:
 
+If you can’t switch to main because of pending changes in develop, on `develop` branch:
+
+```bash
+git add .
+git commit -m "docs(release): update RELEASE.md and requirements.in"
+git push
+git checkout main
+```
+
+Then update the `main` branch and tag the release:
+
 ```bash
 git checkout main
 git pull --ff-only
@@ -207,13 +229,11 @@ git tag -a vX.Y.Z -m "Release vX.Y.Z — summary"
 git push origin vX.Y.Z
 ```
 
-If you can’t switch to main because of pending changes in develop, on develop branch:
+To chek current history of commits and tags:
 
 ```bash
-git add .
-git commit -m "docs(release): update RELEASE.md and requirements.in"
-git push
-git checkout main
+git fetch --tags
+git log --oneline --decorate --all
 ```
 
 ## 🔙 8. Rollback if needed (Web App only)
