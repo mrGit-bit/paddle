@@ -15,6 +15,8 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ## [1.0.5] – 2025-11-30
 
+Added logo in base.html, fixed overlapping in android 15 and improved static files with versioned files.
+
 ### Web
 
 - Improved base.html:
