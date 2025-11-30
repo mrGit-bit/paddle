@@ -94,6 +94,12 @@ PYTHONPATH=/home/ubuntu/paddle DJANGO_SETTINGS_MODULE=paddle.config.settings.pro
 python -m django collectstatic --noinput
 ```
 
+or try
+
+```bash
+(venv) ubuntu@staging:~/paddle$ python manage.py collectstatic
+```
+
 - if database migrations have changed:
 
 ```bash

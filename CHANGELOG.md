@@ -13,7 +13,7 @@ Since v1.0.4 the project is two products in one repo in GitHub: a Web app and an
 
 Every change should belong to one of the following categories: `added`, `changed`, `updated`, `upgraded`, `improved`, `removed` or `fixed`.
 
-## [1.0.5] – 2025-11-25
+## [1.0.5] – 2025-11-30
 
 ### Web
 
@@ -28,6 +28,8 @@ Every change should belong to one of the following categories: `added`, `changed
 - Fixed overlapping issue deactivating the edge-to-edge by default of Android 15.
 
 ### DevOps
+
+- Added versioned collected static files (with hashed filenames) for serving with NGINX to avoid cache issues with these files and fetch always the latest version.
 
 ## [1.0.4] – 2025-11-20
 
