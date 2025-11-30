@@ -76,8 +76,12 @@ SITE_URL = config("SITE_URL", default="http://127.0.0.1:8000")
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+# Hashed names for rotating static files served with NGINX
+STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
+
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
 
 #######################################
 # SECURITY HEADERS
