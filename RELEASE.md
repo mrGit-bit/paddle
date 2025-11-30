@@ -89,15 +89,7 @@ pip install -r requirements.txt
 - if static files have changed:
 
 ```bash
-cd /home/ubuntu/paddle/paddle
-PYTHONPATH=/home/ubuntu/paddle DJANGO_SETTINGS_MODULE=paddle.config.settings.prod \
-python -m django collectstatic --noinput
-```
-
-or try
-
-```bash
-(venv) ubuntu@staging:~/paddle$ python manage.py collectstatic
+(venv) ubuntu@staging:~/paddle/paddle$ python manage.py collectstatic
 ```
 
 - if database migrations have changed:
