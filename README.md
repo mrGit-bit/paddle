@@ -35,7 +35,6 @@ The project is two products in the same repo in GitHub:
 - [📑 Pagination](#📑-pagination)
 - [📱 Android Mobile App](#📱-android-mobile-app)
 - [🧪 Testing](#🧪-testing)
-- [🚀 Future Enhancements](#🚀-future-enhancements)
 - [🚀 Installation](#🚀-installation)
 - [🤝 Contributing](#🤝-contributing)
 - [📄 License](#📄-license)
@@ -468,106 +467,6 @@ The test files follow the naming conventions:
 
 ---
 
-## 🚀 Future Enhancements
-
-This section details the planned improvements for the Paddle Tennis Hall of Fame application, organized by priority and complexity into short-term, medium-term, and long-term goals.
-
-### Short-Term Enhancements (High Priority & Simple)
-
-These are relatively easy to implement and will quickly improve the application's value.
-
-1. **Americano tournament application:**
-    - **Description:** Add a feature to allow users to apply to an Americano tournament, arrange matches, add and view match results and at the end of the tournament when all matches are played, displays the final results.
-    - **Benefit:** Engage new players in every Americano tournament.
-    - **Implementation Details:**
-        - Add a new "Americano" menu item to the navigation bar.
-        - Create a new API endpoint for the "Americano" tournament.
-        - Create a new frontend view for the "Americano" tournament application.
-        - Create a new frontend template for the "Americano" tournament application.
-        - Add "Americanos played" and "Americanos positions" fields to the `Player` model.
-        - Add "Americano stats" in the player details.
-
-2. **Match Confirmation System:**
-    - **Description:** Introduce a system for users to confirm their participation in matches.  A "pending confirmation" badge will replace the current "not seen" badge on unconfirmed matches. Users can confirm matches via a new "Confirm" button or by using the existing "Edit" or "Delete" buttons. Each user can only confirm a match once. The navigation bar will display the total number of matches using a badge with that number awaiting confirmation by the current user. The user who created the match is automatically considered to have confirmed it.
-    - **Benefit:** Enhances data accuracy and user engagement by requiring verification of match results from all participants.
-    - **Implementation Details:**
-        - Add a `created_by` field (User ID and name) to the `Match` model to track the match creator.
-        - Add a `confirmed_by` field (User IDs and names) to the `Match` model to track confirmations.
-        - Automatically add the `created_by` user's ID and user name to the `confirmed_by` list upon match creation.
-        - Add the user's ID to the `confirmed_by` list when they edit a match or click the _Confirm_ button.
-        - Update the navigation bar badge to show the number of matches pending confirmation for the current user.
-        - Use the current _New!_ badge to highlight matches awaiting confirmation of the current user, and display "Confirm," "Edit," and "Delete" buttons in the `_match_card.html` template only in those matches.
-
-3. **User Password Management:**
-    - **Description:** Allow users to change or reset their passwords.
-    - **Benefit:** Enhances user account security and usability.
-    - **Implementation Notes:** Leverage Django's built-in authentication and password reset views, potentially integrating an email service for reset links. The email field in `models.py` should not be left blank, as the reset link will not work if it is.
-
-### Medium-Term Enhancements (Important & Moderately Complex)
-
-These enhancements are more involved but will significantly improve the application's functionality and user experience.
-
-1. **Hall of Fame Background Video:**
-    - **Description:** Add a short video or animated loop in the landing page background.
-    - **Benefit:** Enhance visual appeal and user engagement.
-    - **Implementation Note:** Use a lightweight video format to prevent slowing down page loading. Consider lazy loading or conditional playback for mobile devices.
-
-2. **User Profile Avatars:**
-    - **Description:** Integrate randomized avatar images for player profiles.
-    - **Benefit:** Adds visual appeal and personalization to user profiles.
-    - **Implementation Note:** Utilize an avatar generation API (e.g., `https://avatars.dicebear.com`) or a set of default local images.
-
-3. **Multiple Groups of Friends:**
-    - **Description:**  Enhance the application to support multiple, independent groups of friends, each with its own isolated data. Each group will have its own unique Hall of Fame, players, matches, and users, completely separate from other groups. A new landing page will allow visitors to enter a group code to access a specific group's data. Visitors can explore the group's public information only if they know the group code, and later register to become a full user within that group.
-    - **Benefit:**  Significantly expands the application's utility by enabling multiple, unrelated groups of friends to use the platform independently. This increases the potential user base and fosters a sense of community within each group. Also enhances security and privacy by isolating data and access controls within each group.
-    - **Implementation Details:**
-        - **Group Model:**
-            - Introduce in the `users` app a new `Group` model to represent each group of friends.
-            - `name`: A user-friendly name for the group.
-            - `code`: A unique, admin generated code for group access. This code will be used by visitors to access the group's landing page.
-        - **Group Association:**
-            - Add a `group` foreign key field to the `User`, `Player`, and `Match` models to link them to a specific group.
-            - Users, players, and matches will belong to one and only one group.
-            - When a new user registers they will be automatically associated with the group where they was visiting.
-            - Visitors who know the group code can access the group's landing page to view public information (e.g., the Hall of Fame) without registering.
-            - Only authenticated users of that group can create new matches.
-            - When a new match is created, it will be automatically associated with the group of the user who created it.
-        - **Data Isolation:**
-            - Modify API endpoints and database queries to filter data based on the user's associated group.
-            - Ensure that users can only access and manipulate data (players, matches, etc.) that belongs to their group.
-        - **Landing Page:**
-            - Create a new landing page with a form to enter a group code.
-            - If the code is valid:
-                - Redirect the visitor to the Hall of Fame page for that group.
-                - Display in the Navbar indication of the group's name.
-                - Provide options for visitors to log in or register to become a user of that group.
-                - No need to enter the code again in the same session of that user or visitor for future group access, as it is stored in the session and the landing page will be the HoF for that group.
-            - If the code is invalid, display a error message and implement security measures to prevent brute-force attempts to guess group codes.
-        - **Group Management:**
-            - Only admin users can create, update, delete or change code groups.
-        - **Navigation:**
-            - Update the navigation bar to display the name of the current group the visitor or user is viewing.            -
-        - **Considerations:**
-            - **Permissions:** Visitors of that group (not logged in users) shall have the same permissions as current non-authenticated users.
-
-### Long-Term Enhancements (Complex & Strategic)
-
-These enhancements represent major architectural or feature additions that will require significant effort but will transform the application.
-
-1. **Social Authentication:**
-    - **Description:** Allow users to sign up and log in using social accounts (Google, Facebook, etc.).
-    - **Benefit:** Streamlines the registration process and enhances user convenience.
-    - **Implementation Note:** Integrate `django-allauth` to add social authentication options.
-
-2. **Frontend Migration to SPA:**
-    - **Description:** Transition the frontend from a Multi-Page Application (MPA) to a Single-Page Application (SPA) using React.
-    - **Benefit:** Provides a more dynamic and responsive user experience, improved navigation, and a more modern UI.
-    - **Implementation Note:** Use Django REST Framework (DRF) for the backend API and React for the frontend, ensuring a clear separation of concerns.
-
-<div style="text-align: right"><a href="#index">Back to Index</a></div>
-
----
-
 ## 🚀 Installation
 
 ### 📋 Prerequisites
@@ -673,74 +572,6 @@ python manage.py runserver
 
 - Access the app at: `http://localhost:8000/`
 
-#### 🚀 PythonAnywhere Deployment
-
-- Clone your repo on PythonAnywhere:
-
-```bash
-git clone https://github.com/mrGit-bit/paddle.git
-cd paddle
-```
-
-- Create and activate a virtual environment:
-
-```bash
-python3.10 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
-- Create a .env file with your production settings (see above).
-
-- Apply migrations and collect static files:
-
-```bash
-python manage.py migrate
-python manage.py collectstatic
-```
-
-- In your PythonAnywhere Web settings:
-  - Set the working directory to `/home/yourusername/paddle`
-  - Set the virtualenv path to `/home/yourusername/paddle/venv`
-  - Edit the WSGI file so it loads the environment from the parent folder
-    where `.env` lives:
-
-```python
-import os
-import sys
-from decouple import AutoConfig
-
-project_root = '/home/yourusername/paddle'           # contains .env
-project_home = os.path.join(project_root, 'paddle')  # contains manage.py
-
-if project_home not in sys.path:
-    sys.path.append(project_home)
-
-config = AutoConfig(search_path=project_root)
-
-os.environ.setdefault(
-    'DJANGO_SETTINGS_MODULE',
-    config('DJANGO_SETTINGS_MODULE', default='config.settings')
-)
-os.environ.setdefault(
-    'DJANGO_ENVIRONMENT',
-    config('DJANGO_ENVIRONMENT', default='prod')
-)
-```
-
-- Reload your web app from the PythonAnywhere dashboard.
-
-- Access the app at `https://yourusername.pythonanywhere.com/`
-
-#### Switching Between Environments
-
-The settings module is chosen automatically based on the `.env` variable:
-
-| Mode        | `DJANGO_ENVIRONMENT` | Settings File           |
-|-------------|--------------------|-------------------------|
-| Development | `dev`                | `config/settings/dev.py`  |
-| Production  | `prod`               | `config/settings/prod.py` |
-
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 
 ---
@@ -751,9 +582,11 @@ Contributions are welcome! Please follow these steps:
 
 1. Fork the repository.
 2. Create a feature branch: `git checkout -b feature-name`.
-3. Commit your changes: `git commit -m 'Add feature'`.
-4. Push to the branch: `git push origin feature-name`.
-5. Open a pull request.
+3. Make your changes.
+4. Commit your changes: `git commit -m 'Add feature'`.
+5. Run tests ensuring coverage over 90%.
+6. Push to the branch: `git push origin feature-name`.
+7. Open a pull request from the branch `feature-name` to `develop`.
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 

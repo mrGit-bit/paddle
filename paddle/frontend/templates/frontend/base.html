@@ -1,7 +1,9 @@
 <!-- base.html -->
+
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
+
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -24,11 +26,21 @@
       href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Open+Sans:wght@400;600&family=Poppins:wght@400;700&family=Roboto:wght@400;700&display=swap"
     />
   </head>
+
   <body class="d-flex flex-column min-vh-100">
+
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
       <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'hall_of_fame' %}">rankingdepadel.club</a>
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'hall_of_fame' %}">
+          <img 
+            src="{% static 'frontend/img/logo.png' %}" 
+            alt="rankingdepadel.club logo"
+            class="me-2 rounded navbar-logo"
+            style="width: 35px; height: 35px; object-fit: cover;"                
+            onerror="this.style.display='none'">
+          <span class="navbar-brand-text">rankingdepadel.club</span>
+        </a>
         <button
           class="navbar-toggler"
           type="button"
@@ -37,12 +49,14 @@
         >
           <span class="navbar-toggler-icon"></span>
         </button>
+
         <div class="collapse navbar-collapse" id="navbarNav">
           
-          <!-- Navbar for registered users -->
+          <!-- Left side of the navbar for registered users -->
           {% if user.is_authenticated %}
           <ul class="navbar-nav me-auto">
             <!-- Matches link with bootstrap badge for not seen matches -->            
+            
             <li class="nav-item">                              
               {% if new_matches_number > 0 %}
                 <a class="nav-link d-inline-block position-relative" href="{% url 'match' %}#match-history">Partidos
@@ -52,6 +66,7 @@
                 <a class="nav-link" href="{% url 'match' %}">Partidos</a>  
               {% endif %}              
             </li>
+
             {% if user.is_staff %}
             <!-- Admin-only links -->
             <li class="nav-item">
@@ -65,9 +80,18 @@
               </a>
             </li>
             {% endif %}
-            <!-- End admin-only links -->            
+            <!-- End admin-only links -->
+
           </ul>
+          <!-- End left side of the navbar for registered users -->
+          {% endif %}
+
+          <!-- Right side of the navbar for registered and non-registered users -->
           <ul class="navbar-nav ms-auto">
+
+            <!-- Navbar for registered users -->
+            {% if user.is_authenticated %}
+            
             <!-- User profile link with bootstrap icon and tooltip-->
             <li class="nav-item">
               <a class="nav-link" data-bs-toggle="tooltip" title="User Profile" 
@@ -87,28 +111,27 @@
                   <i class="bi bi-box-arrow-right"></i> Cerrar sesión</button>
               </form>
             </li>
-          </ul>
           
-          <!-- Navbar for non-registered users -->
-          {% else %}
-          <ul class="navbar-nav ms-auto">
+          
+            <!-- Navbar for non-registered users -->
+            {% else %}
+          
             <li class="nav-item">
               <a class="nav-link" href="{% url 'register' %}">Registro</a>
             </li>
+
             <li class="nav-item">
               <a class="nav-link" href="{% url 'login' %}">Inicia sesión</a>
             </li>
             
-          </ul>
-          {% endif %}
+            {% endif %}
+        
+            <! -- Navbar for all, registered or not: about page link -->
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'about' %}">Acerca de...</a>
+            </li>
 
-        <! -- Navbar for all, registered or not -->
-        <!-- About page link -->
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'about' %}">Acerca de...</a>
-          </li>
-        </ul>
+          </ul>
 
         </div>
       </div>
@@ -123,15 +146,19 @@
 
     <!-- Footer -->
     <footer class="text-center py-3 mt-5">
-      <p class="mb-0">
-        🏓 ©2025 rankingdepadel.club 🏓
-      </p>      
+      <a href="{% url 'hall_of_fame' %}" class="footer-link d-block">
+        <p class="mb-0">
+          🏓©2025 www.rankingdepadel.club🏓
+        </p>
+      </a>
     </footer>
+
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Block for additional scripts -->
     {% block scripts %}{% endblock %}
+
   </body>
 </html>

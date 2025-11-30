@@ -35,6 +35,25 @@ h1, h2, h3 {
   color: #FFD700 !important; /* Gold for hover */
 }
 
+/* Default size of the logo image in the navbar */
+.navbar-logo {
+  height: 35px;
+  width: 35px;
+  object-fit: cover;
+}
+
+/* In tiny phones: shrink logo + text a bit */
+@media (max-width: 359.98px) {
+  .navbar-logo {
+    height: 28px;
+    width: 28px;
+  }
+  .navbar-brand-text {
+    font-size: 0.95rem; /* adjust to taste, e.g. 0.85rem */
+  }
+}
+
+
 /* HoF table */
 
 /* In small screens, ensures that overflowing content is hidden 
@@ -168,4 +187,16 @@ footer {
   padding: 20px;
   text-align: center;
 }
+
+/* Footer clickable link without changing style */
+.footer-link {
+  color: inherit;           /* Keep same text color */
+  text-decoration: none;    /* Remove underline */
+}
+
+.footer-link:hover {
+  color: inherit;           /* Prevent color change on hover */
+  text-decoration: none;    /* Prevent underline on hover */
+}
+
 
