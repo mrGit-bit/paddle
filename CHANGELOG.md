@@ -20,6 +20,7 @@ Every change should belong to one of the following categories: `added`, `changed
 ### Web
 
 - Fixed loading of logo image in the navbar that was blocking the app because it was too big. It is done by resizing and changing the old 1024x1045 to a 96x96 WebP format with a fallback to png format.
+- Changed the "forgot password” in user details (incorrectly pointing to the login page) to "change password” (now points to the password reset page `password_reset_form.html`).
 
 ### Mobile
 
