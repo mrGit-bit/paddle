@@ -23,7 +23,7 @@
       {% include "frontend/_user_form.html" with form_action=request.path is_registration=False wins=user_player.wins matches=user_player.matches_played win_rate=user_player.win_rate %}            
 
       <p class="text-center mt-3">
-        Contraseña olvidada? <a href="{% url 'login' %}"> Pulsa aquí</a>.
+        <a href="{% url 'password_reset' %}" class="small">¿Quieres cambiar tu contraseña?</a>
       </p>
 
     </div>

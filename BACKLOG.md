@@ -25,18 +25,17 @@ Rules:
 
 | Requirement | IMP. | SIMP. | PRI. |
 |------------|------|-------|------|
-| To avoid duplicate players and users, replace contextual options in the match form with a dropdown list of player names that also includes a “new player” option | 2 | 2 | 4 |
-| Dark mode | 1 | 3 | 3 |
-| The “forgot password” link in user details incorrectly points to the login page | 1 | 3 | 3 |
 | Make the mobile app installable on the Apple Store | 3 | 1 | 3 |
-| “Players” navigation option linked from the ranking table and menu. Searching or linking to a player should show player stats and matches played | 3 | 1 | 3 |
+| Add a new item in the navbar for showing stats for a selected player from a dropdown list of players and their matches played with a choice for searching or linked from the ranking table | 3 | 1 | 3 |
+| To avoid duplicate players and users, replace contextual options in the match form with a dropdown list of player names that also includes a “new player” option | 1 | 2 | 2 |
+| Dark mode | 1 | 2 | 2 |
 | Email field in the registration form should be duplicated to avoid mistakes; reuse password dynamic check to ensure both emails match | 1 | 2 | 2 |
 | DevOps: establish rotation criteria for log files | 1 | 2 | 2 |
 | Registration should be limited to real emails using a confirmation link | 1 | 2 | 2 |
 | All user profile fields should be editable (not only email). Include the ability to delete a user and unlink from a player (player remains valid) | 2 | 1 | 2 |
 | Add a “verify results” option to matches: Verified (True/False), Verified by (User), Verified on (Date) | 2 | 1 | 2 |
 | Advanced stats page for additional rankings: more matches played, best win rate (min. 10 matches), hot players (ranking increase), new players | 2 | 1 | 2 |
-| Rolling news bar at the top of home page with latest ranking movements (top 10) and/or last matches added | 1 | 1 | 1 |
+| Rolling news bar at the top of home page with latest ranking movements (top 10) and/or last matches added | 2 | 1 | 2 |
 | New registered players with zero matches should not appear in the ranking; they should be listed separately at the bottom | 1 | 1 | 1 |
 | Add a gender field to players | 1 | 1 | 1 |
 | Add gender filters to the ranking (all, men, women, mixed). Requires marking match gender and a new gender input in match form | 1 | 1 | 1 |
