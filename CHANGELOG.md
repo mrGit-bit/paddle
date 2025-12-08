@@ -13,9 +13,9 @@ Since v1.0.4 the project is two products in one repo in GitHub: a Web app and an
 
 Every change should belong to one of the following categories: `added`, `changed`, `updated`, `upgraded`, `improved`, `removed` or `fixed`.
 
-## [1.0.6] – 2025-12-XX
+## [1.0.6] – 2025-12-08
 
-
+Fixed problem of lenghty time loading of the logo image in the navbar.
 
 ### Web
 
@@ -25,7 +25,6 @@ Every change should belong to one of the following categories: `added`, `changed
 ### Mobile
 
 ### DevOps
-
 
 ## [1.0.5] – 2025-11-30
 
