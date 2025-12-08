@@ -83,7 +83,7 @@ requests==2.32.4
     # via -r requirements.in
 sqlparse==0.5.3
     # via django
-urllib3==2.5.0
+urllib3==2.6.0
     # via requests
 wheel==0.45.1
     # via pip-tools
