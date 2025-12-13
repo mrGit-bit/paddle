@@ -89,20 +89,22 @@ pip install -r requirements.txt
 - if static files have changed:
 
 ```bash
-(venv) ubuntu@staging:~/paddle/paddle$ python manage.py collectstatic
+(venv) ubuntu@staging:~/paddle/paddle$ python manage.py collectstatic --noinput
 ```
+
+Note: use the `--clear` option to remove old static files.
 
 - if database migrations have changed:
 
 ```bash
-cd /home/ubuntu/paddle/paddle
-PYTHONPATH=/home/ubuntu/paddle DJANGO_SETTINGS_MODULE=paddle.config.settings.prod \
-python manage.py migrate
+(venv) ubuntu@staging:~/paddle/paddle$ python manage.pypython manage.py migrate --noinput
 ```
 
 ### 📱 3.2 “Test the Mobile App on Staging Backend
 
-When testing CRUD operations with the mobile app, the staging server and staging database needs to be used instead of the production server and production database. This is only for testing staging API calls. It should never be applied on production.
+To test the mobile app layout only, the production server and production database can be used.
+
+But, when testing CRUD operations with the mobile app, the staging server and staging database needs to be used instead of the production server and production database. This is only for testing staging API calls. It should never be applied on production.
 
 - Replace in `/workspaces/paddle/mobile/capacitor.config.ts` the production build:
   
@@ -176,7 +178,7 @@ sudo systemctl reload nginx
 
 - Verify: On your phone, long-press `app icon` → `App info`. Scroll to the App version and It should show the new version.
 
-## 🏭 5. Promote Web App to production
+## 🏭 5. Promote Web App to production in GitHub repository
 
 - In GitHub Open PR: `staging ➜ main`
 - Title: `Release X.Y.Z — summary`
@@ -194,11 +196,13 @@ On production server:
 git checkout main
 git fetch origin
 git status
-git pull --ff-only
+git pull --ff-only # if needed use `git reset --hard origin/main`
 sudo systemctl restart paddle
 sudo nginx -t
 sudo systemctl reload nginx
 ```
+
+if you find an error requesting to stash or merge conflicts, use `git reset --hard origin/main`.
 
 ## 🔖 7. Tag the release
 

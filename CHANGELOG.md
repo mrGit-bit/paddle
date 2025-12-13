@@ -13,7 +13,22 @@ Since v1.0.4 the project is two products in one repo in GitHub: a Web app and an
 
 Every change should belong to one of the following categories: `added`, `changed`, `updated`, `upgraded`, `improved`, `removed` or `fixed`.
 
+## [1.0.6] – 2025-12-08
+
+Fixed problem of lenghty time loading of the logo image in the navbar.
+
+### Web
+
+- Fixed loading of logo image in the navbar that was blocking the app because it was too big. It is done by resizing and changing the old 1024x1045 to a 96x96 WebP format with a fallback to png format.
+- Changed the "forgot password” in user details (incorrectly pointing to the login page) to "change password” (now points to the password reset page `password_reset_form.html`).
+
+### Mobile
+
+### DevOps
+
 ## [1.0.5] – 2025-11-30
+
+Added logo in base.html, fixed overlapping in android 15 and improved static files with versioned files.
 
 ### Web
 
