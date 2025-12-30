@@ -15,7 +15,7 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ## [1.1.0] – 2025-12-30
 
-Added americano tournament functionality.
+Tournament management new functionality added.
 
 ### Web
 
