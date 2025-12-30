@@ -53,6 +53,40 @@ h1, h2, h3 {
   }
 }
 
+/* Americano menu */
+/* Americano dropdown - match offcanvas/nav palette */
+.americano-dropdown {
+  background-color: #144D29;  /* same green as HoF header */
+  border: 0;
+}
+
+.americano-dropdown .dropdown-item,
+.americano-dropdown .dropdown-item-text,
+.americano-dropdown .dropdown-header {
+  color: yellow;              /* match your menu text */
+}
+
+.americano-dropdown .dropdown-item:hover,
+.americano-dropdown .dropdown-item:focus {
+  background-color: rgba(255, 255, 255, 0.10);
+  color: yellow;
+}
+
+.americano-dropdown .dropdown-divider {
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+/* Disabled "Abrir torneo (pendiente)" should look disabled but still on theme */
+.americano-dropdown .dropdown-item.disabled,
+.americano-dropdown .dropdown-item:disabled {
+  color: rgba(255, 255, 0, 0.45);
+}
+
+/* In small screens, ensures that overflowing content is hidden 
+and replaced by an ellipsis (…) */
+.americano-dropdown .dropdown-item .text-truncate {
+  max-width: 180px;
+}
 
 /* HoF table */
 
@@ -133,8 +167,6 @@ and replaced by an ellipsis (…) */
   z-index: 2;
 }
 
-
-
 /* Form validation styles */
 
 /* Default state for all fields */
@@ -198,5 +230,71 @@ footer {
   color: inherit;           /* Prevent color change on hover */
   text-decoration: none;    /* Prevent underline on hover */
 }
+
+/* Americano styles */
+
+/* Remove bullet points from Django form error lists */
+ul.errorlist {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 0.25rem;
+}
+
+ul.errorlist li {
+  list-style: none;
+}
+
+/* Americano header: one-line title + ellipsis */
+.americano-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: nowrap;           /* keep on one line */
+}
+
+.americano-title {
+  flex: 1 1 auto;
+  min-width: 0;                /* required for ellipsis in flex */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.americano-details {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Americano table round header-style buttons */
+.btn-americano-header {
+  background-color: #144D29; /* same as table header */
+  color: whitesmoke;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.btn-americano-header:hover,
+.btn-americano-header:focus {
+  background-color: #144D29;
+  color: whitesmoke;
+}
+
+/* Make the "Guardar" button tall (fills two lines under court selector) */
+.americano-save-tall {
+  min-height: 68px;   /* visually ~2 lines on mobile */
+  padding: 6px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Americano: light green separator between matches in the same round*/
+.americano-match-divider td {
+  padding: 0 !important;
+  height: 3px; 
+  background: transparent;
+  border-top: 2px solid rgba(25, 135, 84, 0.5); 
+}
+
 
 

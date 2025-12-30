@@ -1,0 +1,72 @@
+{% extends "frontend/base.html" %}
+{% load static %}
+{% block title %}Abrir torneo{% endblock %}
+
+{% block content %}
+<div class="container py-0">
+  <h1 class="mb-3">Crear torneo</h1>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <div class="mb-3">
+      {{ form.name.label_tag }}
+      {{ form.name }}
+      <div class="text-danger small">{{ form.name.errors }}</div>
+    </div>
+
+    <!-- Date and number of players in the same row -->
+    <div class="row g-3 mb-3">
+      <div class="col-6">
+        {{ form.play_date.label_tag }}
+        {{ form.play_date }}
+        <div class="text-danger small">{{ form.play_date.errors }}</div>
+      </div>
+
+      <div class="col-6">
+        {{ form.num_players.label_tag }}
+        {{ form.num_players }}
+        <div class="text-danger small">{{ form.num_players.errors }}</div>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      {{ form.players.label_tag }}
+      {{ form.players }}
+      <div class="form-text">
+        Selecciona jugadores existentes.
+      </div>
+      <div class="text-danger small">{{ form.players.errors }}</div>
+    </div>
+
+    <div class="mb-3">
+      {{ form.new_players.label_tag }}
+      {{ form.new_players }}
+      <div class="form-text">
+        La jugadores seleccionados (registrados y no registrados) deben de ser igual al número de jugadores.
+      </div>
+      <div class="text-danger small">{{ form.new_players.errors }}</div>
+    </div>
+
+    <div class="mt-2">
+      <div id="players-remaining" class="small text-muted">
+        Jugadores restantes: —
+      </div>
+    </div>
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger mt-3">
+        {{ form.non_field_errors.0 }}
+      </div>
+    {% endif %}
+
+
+
+    <button type="submit" class="btn btn-primary">Empezar</button>
+    <a href="{% url 'americano_list' %}" class="btn btn-outline-secondary">Cancelar</a>
+  </form>
+</div>
+
+<script src="{% static 'frontend/js/americano_new_players_remaining.js' %}"></script>
+
+{% endblock %}
