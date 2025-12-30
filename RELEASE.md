@@ -25,6 +25,7 @@ Both release flows are independent and can be executed separately.
 ```bash
 cd paddle
 pytest frontend/tests/ --cov=frontend.views --cov-report=term-missing
+pytest /workspaces/paddle/paddle/americano/tests/test_americano_views.py --cov=americano.views --cov-report=term-missing
 ```
 
 - Remove new features from `BACKLOG.md`.

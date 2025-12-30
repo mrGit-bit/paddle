@@ -1,0 +1,34 @@
+{% extends "frontend/base.html" %}
+{% block title %}Torneos Americanos{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="mb-4">Torneos Americanos</h1>
+
+  <h2 class="h5">En curso</h2>
+  <div class="list-group mb-4">
+    {% for t in ongoing %}
+      <a  class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+          href="{% url 'americano_detail' t.pk %}">
+          <span>{{ t.name }}</span>
+          <small class="text-muted">{{ t.play_date }}</small>
+      </a>
+    {% empty %}
+      <div class="list-group-item text-muted">No hay torneos en curso.</div>
+    {% endfor %}
+  </div>
+
+  <h2 class="h5">Finalizados</h2>
+  <div class="list-group">
+    {% for t in finished %}
+      <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+         href="{% url 'americano_detail' t.pk %}">
+        <span>{{ t.name }}</span>
+        <small class="text-muted">{{ t.play_date }}</small>
+      </a>
+    {% empty %}
+      <div class="list-group-item text-muted">No hay torneos finalizados.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

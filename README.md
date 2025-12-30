@@ -9,6 +9,8 @@ Paddle Tennis Hall of Fame is a web application designed for groups of friends w
 
 Registered users can track matches played, update match results, view player rankings, and access player statistics.
 
+In addition, the web app includes a tournament management module to create and manage round-based friendly competitions, with live standings and per-round match entry.
+
 This application is built using:
 
 - Django and Django Rest Framework (DRF) for the RESTful API.
@@ -82,6 +84,33 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
     - `perform_update()` resets old match stats before applying new results to maintain data integrity.
   - Frontend app: The `MatchView` in `views.py` handles match creation, updating, and deletion.
 
+#### Tournaments Management
+
+- **Permissions**:
+  - Public access: Any user (authenticated or anonymous) can view tournaments and results.
+  - Creation and editing: Only authenticated users can create a new tournament.
+  - Only tournament participants, staff, and the creator can edit rounds and match assignments while the tournament is open (until and including the tournament day).
+  - Only the tournament creator or staff can delete the tournament.
+- Tournament **creation**: Users can select registered/existing players and also add new players (one per line). New players are automatically created in the database if they do not exist (case-insensitive uniqueness enforced).
+- **Rounds**:  
+  - Any number of rounds can be created (no limit based on courts).
+  - Matches store court number and team scores.
+  - Results can be saved partially: a round can include matches without completed scores.
+- **Standings**:
+  - Wins: +1 per win.
+  -Points accounting: points_for, points_against, and derived points_diff = points_for - points_against.
+  - Standings are recomputed from scratch after edits, ensuring no double-counting.
+  - Rankings support ties (“1224” style), and tied rows are visually grouped.
+- **Implementation** of App `americano`:
+  - **Views**:
+    - `americano_new`: create tournament (including new player creation) and auto-create Round 1.
+    - `americano_detail`: render standings + rounds table; edit capabilities depend on can_edit.
+    - `americano_assign_round`: persist court, team assignments, and optional scores; triggers standings recomputation.
+    - `americano_new_round`: creates new empty rounds.
+    - `americano_delete_round`: deletes a round (with renumbering). `americano_delete_tournament`: deletes the tournament (creator or staff only).
+  - **Data model**: `AmericanoTournament`, `AmericanoRound`, `AmericanoMatch` and `AmericanoPlayerStats`.
+  - **UI**: Integrated into the global navbar under Americanos with ongoing and finished tournaments.
+
 #### User Management
 
 - Users can register, log in, and manage their profiles.
@@ -117,6 +146,12 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
   - View and update their editable fields in their own user profile.
   - View own player stats.
 - Admins have full access, including creating, updating, and deleting matches, players, and users. Admin users have also links to the staging site and django admin panel.
+- **Americano tournaments**:
+  - Everyone can view tournaments and standings.
+  - Only authenticated users can create tournaments.
+  - Only tournament participants can edit rounds while open.
+  - Only creator or staff can delete the tournament.
+
 - **Implementation**:
   - API:
     - DRF's built-in session authentication is used.
@@ -162,6 +197,9 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
 │   ├── capacitor.config.ts   # Capacitor configuration (server.url, appId, etc.)
 │   └── package.json          # Node dependencies for the mobile shell
 ├── paddle/                   # Django project
+│ ├── americano/              # Americano tournaments (frontend views + models)
+│ │   ├── migrations/         # Migrations for americano app
+│ │   └── tests/              # Tests for americano views and standings
 │ ├── config/                 # Project configuration and settings
 │ │   └── settings/           # Different settings for development and production
 │ ├── db.sqlite3              # SQLite database
@@ -356,7 +394,14 @@ These are the full-page templates directly mapped to URLs:
 | `/users/<id>/`          | User details and editing              | `user.html`         | User profile stats and editable fields.                                                                                                          |
 | `/matches/`             | Match results and editing             | `match.html`        | Form for adding and editing matches, and match history, filtered only for the user or non filtered for all players. Displays the list of matches using `_match_card.html`. |
 | `/matches/<id>/delete/` | Delete match                          | N/A - View handled  | Trash button with bootstrap icon. _This action is a redirection_.    |
-| `/about/` | About | `about.html` | About page. |
+| `/about/`               | About                                 | `about.html`        | About page. |
+| `/americano/`                         | Americano tournaments list      | `americano_list.html`   | Shows ongoing and finished tournaments. Public.                                                                |
+| `/americano/nuevo/`                   | Create new Americano tournament | `americano_new.html`    | Only authenticated users can create. Supports selecting existing players + adding new players (created in DB). |
+| `/americano/<id>/`                    | Americano tournament detail     | `americano_detail.html` | Standings + rounds. Public read access; participants can edit while tournament is open.                        |
+| `/americano/<id>/nueva-ronda/`        | Create new round                | N/A - View handled      | Adds an empty round. Only participants while open.                                                             |
+| `/americano/round/<round_id>/assign/` | Save round assignment/results   | N/A - View handled      | Saves court, players and optional scores; recomputes standings. Only participants while open.                  |
+| `/americano/round/<round_id>/delete/` | Delete round                    | N/A - View handled      | Deletes a round and renumbers remaining rounds. Only participants while open.                                  |
+| `/americano/delete/<id>/`             | Delete tournament               | N/A - View handled      | Only creator or staff. Deletes tournament, rounds, and stats.                                                  |
 
 ### 📂 Partial & Reusable Templates
 
@@ -391,6 +436,7 @@ These partial templates are reusable components designed to be included in other
   - Showing the correct pagination on initial load based on the active tab;
   - Hiding the inactive tab’s pagination;
   - Resetting pagination to page 1 when switching between tabs.
+- `americano_new_players_remaining.js`: Used in `americano_new.html` template. Updates the “Jugadores restantes” indicator in real time during tournament creation based on selected registered players and manually entered new players.
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 
@@ -462,6 +508,7 @@ The test files follow the naming conventions:
 - `users/tests/test_authentication.py`
 - `users/tests/test_permissions.py`
 - `users/tests/test_register.py`
+- `americano/tests/test_americano_views.py`
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 
