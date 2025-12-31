@@ -70,6 +70,8 @@ git push origin develop
 
 ### 🖥️ 3.1 Deploy the Web App to Staging
 
+If the staging database has been stopped due to inactivity do not forget torestart it in the console panel.
+
 On staging server:
 
 ```bash
@@ -210,7 +212,7 @@ if you find an error requesting to stash or merge conflicts, use `git reset --ha
 - Repo tags represent the overall codebase release.
 - They do not have to match Play Store version.
 - Tag version refers to the repository state (web + mobile), not the mobile versionCode.
-- The repository tag version is shown in the `about` page of the web app.
+- The repository tag version is shown in the `about` page of the web app (don´t forget to update the template `frontend/templates/frontend/about.html`!).
 
 🌳 From IDE Codespaces on main branch:
 
