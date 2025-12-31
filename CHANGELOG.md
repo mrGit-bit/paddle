@@ -13,6 +13,40 @@ Since v1.0.4 the project is two products in one repo in GitHub: a Web app and an
 
 Every change should belong to one of the following categories: `added`, `changed`, `updated`, `upgraded`, `improved`, `removed` or `fixed`.
 
+## [1.1.0] – 2025-12-30
+
+Tournament management new functionality added.
+
+### Web
+
+- Added a tournament management new functionality:
+  - Create tournaments with configurable number of players.
+  - Support for registered and non-registered players (auto-creation on submit).  
+  - Unlimited number of rounds, created on demand.
+  - Per-round match management:
+    - Player assignment per team and per match using dropdowns.
+    - Editable court number per match (purely cosmetic).
+    - Match score input per team.
+  - Americano standings table:
+    - Wins, points for, points against, and computed point difference.
+    - Automatic recomputation after every save (new or edit match edits) or round deletion.
+    - Rankings support ties (“1224” style), and tied rows are visually grouped.
+  - Permissions model:
+    - Tournament visible to everyone.
+    - Only logged-in participants, staff and creator can edit rounds and results.
+    - Only creators or staff can delete tournaments.
+    - Round and tournament deletion with confirmation always.  
+  - New Americano navigation menu in navbar:
+    - Ongoing tournaments marked with a badge.
+    - Finished tournaments listed chronologically.
+    - Single entry point to create a new tournament marked with a badge.
+
+- Changed the menu layout to allow anyone to see the matches menu. Anonymous users will be redirected to the login page.
+
+### Mobile
+
+### DevOps
+
 ## [1.0.6] – 2025-12-08
 
 Fixed problem of lenghty time loading of the logo image in the navbar.
@@ -25,6 +59,8 @@ Fixed problem of lenghty time loading of the logo image in the navbar.
 ### Mobile
 
 ### DevOps
+
+- Added `deploy_update.sh` script to automate deployment updates of the staging and production servers.
 
 ## [1.0.5] – 2025-11-30
 

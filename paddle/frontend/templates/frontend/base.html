@@ -57,23 +57,70 @@
 
         <div class="collapse navbar-collapse" id="navbarNav">
           
-          <!-- Left side of the navbar for registered users -->
-          {% if user.is_authenticated %}
+          <!-- Left side of the navbar for all users -->
+          
           <ul class="navbar-nav me-auto">
-            <!-- Matches link with bootstrap badge for not seen matches -->            
             
+            <!-- Matches link and for users with bootstrap badge for not seen matches -->           
             <li class="nav-item">                              
               {% if new_matches_number > 0 %}
                 <a class="nav-link d-inline-block position-relative" href="{% url 'match' %}#match-history">Partidos
                   <span class="position-absolute top-25 start-100 translate-middle badge rounded-pill bg-danger">{{ new_matches_number }}</span>
                 </a>
               {% else %}
-                <a class="nav-link" href="{% url 'match' %}">Partidos</a>  
+                <a class="nav-link" href="{% if user.is_authenticated %}{% url 'match' %}{% else %}{% url 'login' %}{% endif %}">Partidos</a>  
               {% endif %}              
             </li>
 
-            {% if user.is_staff %}
+            <!-- Americanos dropdown menu -->
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="americanoDropdown" role="button"
+                data-bs-toggle="dropdown" aria-expanded="false">
+                Torneos
+              </a>
+
+              <ul class="dropdown-menu americano-dropdown" aria-labelledby="americanoDropdown">
+
+                {# Ongoing tournaments #}
+                {% for t in americano_ongoing_tournaments %}
+                  <li>
+                    <a class="dropdown-item d-flex justify-content-between align-items-center"
+                      href="{% url 'americano_detail' t.pk %}">
+                      <span class="text-truncate">{{ t.name }}</span>
+                      <span class="badge bg-success ms-2">En curso</span>
+                    </a>
+                  </li>
+                {% endfor %}
+
+                {# Finished tournaments #}
+                {% for t in americano_finished_tournaments %}
+                  <li>
+                    <a class="dropdown-item text-truncate"
+                      href="{% url 'americano_detail' t.pk %}">
+                      {{ t.name }}
+                    </a>
+                  </li>
+                {% endfor %}
+
+                {# Divider before create #}
+                <li><hr class="dropdown-divider"></li>
+
+                {# Create tournament (auth → new, anon → login) #}
+                <li>
+                  <a class="dropdown-item d-flex justify-content-between align-items-center"
+                    href="{% url 'americano_new' %}">
+                    <span><i class="bi bi-plus-lg"></i> Crear nuevo torneo</span>
+                    <span class="badge bg-danger ms-2">Empezar</span>
+                  </a>
+                </li>
+
+              </ul>
+            </li>
+            <!-- End americanos dropdown menu -->
+
+            
             <!-- Admin-only links -->
+            {% if user.is_staff %}
             <li class="nav-item">
               <a class="nav-link" href="https://staging.rankingdepadel.club/" target="_blank">
                 <i class="bi bi-box-arrow-up-right"></i> Staging
@@ -89,7 +136,7 @@
 
           </ul>
           <!-- End left side of the navbar for registered users -->
-          {% endif %}
+          
 
           <!-- Right side of the navbar for registered and non-registered users -->
           <ul class="navbar-nav ms-auto">
@@ -120,21 +167,26 @@
           
             <!-- Navbar for non-registered users -->
             {% else %}
+            
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'login' %}">Inicia sesión</a>
+            </li>
           
             <li class="nav-item">
               <a class="nav-link" href="{% url 'register' %}">Registro</a>
             </li>
-
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'login' %}">Inicia sesión</a>
-            </li>
             
             {% endif %}
+            
         
-            <! -- Navbar for all, registered or not: about page link -->
+            <!-- Navbar for all, registered or not: americanos and about page link -->
+            
+
+            <!-- About page link -->
             <li class="nav-item">
               <a class="nav-link" href="{% url 'about' %}">Acerca de...</a>
             </li>
+            <!-- End about page link -->
 
           </ul>
 
