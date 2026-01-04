@@ -11,6 +11,20 @@ from .forms import AmericanoTournamentForm
 from .models import AmericanoTournament, AmericanoRound, AmericanoMatch, AmericanoPlayerStats
 from games.models import Player
 
+def americano_create_next_round(tournament: AmericanoTournament) -> AmericanoRound:
+    """
+    Creates the next round (number = count+1) and the empty matches (players/4).
+    Players/court/scores remain NULL.
+    """
+    round_number = tournament.rounds.count() + 1
+    new_round = AmericanoRound.objects.create(tournament=tournament, number=round_number)
+
+    matches_count = tournament.players.count() // 4
+    for _ in range(matches_count):
+        AmericanoMatch.objects.create(round=new_round)
+
+    return new_round
+
 def americano_can_edit(request, tournament: AmericanoTournament) -> bool:
     """
     Edit capabilities if:
@@ -36,47 +50,65 @@ def americano_can_edit(request, tournament: AmericanoTournament) -> bool:
 
 def recompute_americano_standings(tournament: AmericanoTournament) -> None:
     """
-    Recompute Americano standings from scratch based on current saved matches.
-    Robust to edits: no double counting.
+    Recompute tournament standings from scratch based on current saved and complete matches.
+    Robust to edits: no double counting (idempotent standings).
     Rules:
-    - Each player in winning team: +1 win
-    - points_for/against accumulated from team points
-    - ignore matches missing players or scores
+    - Each player in winning team: +1 win, 
+    - Each player in losing team: +1 loss, 
+    - Every player in a completed match: +1 played,
+    - points_for/against accumulated from team points, and
+    - ignore computing matches with missing players or scores.
     """
-    # Ensure stats rows exist
+    # Ensure stats rows exist: every tournament player has a stats object.
     for p in tournament.players.all():
         AmericanoPlayerStats.objects.get_or_create(tournament=tournament, player=p)
 
-    # Reset stats
+    # Reset stats: this is the key to idempotency; 
+    # previous runs or edits do not matter because the function always starts from zero.
     AmericanoPlayerStats.objects.filter(tournament=tournament).update(
         wins=0,
+        losses=0,
+        matches_played=0,
         points_for=0,
         points_against=0,        
     )
 
+    # Loads all stats rows for the tournament into Python and indexes them by player_id.
     stats = {
         s.player_id: s
         for s in AmericanoPlayerStats.objects.filter(tournament=tournament)
     }
 
+    # Filters matches to those whose round belongs to the given tournament,
+    # and preloads the four player foreign keys in the same query.
     matches = (
         AmericanoMatch.objects
         .filter(round__tournament=tournament)
         .select_related("team1_player1", "team1_player2", "team2_player1", "team2_player2")
     )
 
+    # Iterate over all matches, skip incomplete ones and update stats
     for m in matches:
+        # skip matches where any of the four players is missing
         if not all([m.team1_player1_id, m.team1_player2_id, m.team2_player1_id, m.team2_player2_id]):
             continue
+        # skip matches where one or both scores are None
         if m.team1_points is None or m.team2_points is None:
             continue
-
+        
+        # Extract scores (numeric) and teams (list of player ids)
         s1 = int(m.team1_points)
         s2 = int(m.team2_points)
-
         t1 = [m.team1_player1_id, m.team1_player2_id]
         t2 = [m.team2_player1_id, m.team2_player2_id]
-
+        
+        # Accumulate played matches for all 4 players
+        for pid in (t1 + t2):
+            st = stats.get(pid)
+            if st:
+                st.matches_played += 1
+        
+        # Accumulate points for/against
         for pid in t1:
             st = stats.get(pid)
             if st:
@@ -89,22 +121,36 @@ def recompute_americano_standings(tournament: AmericanoTournament) -> None:
                 st.points_for += s2
                 st.points_against += s1
 
+        # Accumulate wins/losses; if tie (s1 == s2): no wins/losses added
         if s1 > s2:
+            # Team 1 wins, Team 2 loses
             for pid in t1:
                 st = stats.get(pid)
                 if st:
                     st.wins += 1
+            for pid in t2:
+                st = stats.get(pid)
+                if st:
+                    st.losses += 1
+
         elif s2 > s1:
+            # Team 2 wins, Team 1 loses
             for pid in t2:
                 st = stats.get(pid)
                 if st:
                     st.wins += 1
+            for pid in t1:
+                st = stats.get(pid)
+                if st:
+                    st.losses += 1
+        
 
+    # Writes all in‑memory changes back to the database in a single bulk operation,
+    # is more efficient for many players than repeated .save() calls inside the loop.
     AmericanoPlayerStats.objects.bulk_update(
         stats.values(),
-        ["wins", "points_for", "points_against"],
+        ["wins", "losses", "matches_played", "points_for", "points_against"],
     )
-
 
 @login_required
 def americano_new(request):
@@ -251,23 +297,12 @@ def americano_new_round(request, pk):
 
     # Edit capabilities: participants/staff/creator and only until tournament day (inclusive)
     can_edit = americano_can_edit(request, tournament)
-
     
     if not can_edit:
         return redirect("americano_detail", pk=tournament.pk)
 
     # Create next round
-    round_number = tournament.rounds.count() + 1
-    new_round = AmericanoRound.objects.create(tournament=tournament, number=round_number)
-
-    # Create empty matches for the round: num_players/4
-    matches_count = tournament.players.count() // 4
-
-    for i in range(matches_count):
-        AmericanoMatch.objects.create(
-            round=new_round,
-            # players and court number are left empty by default (NULL)
-        )
+    americano_create_next_round(tournament)
 
     return redirect("americano_detail", pk=tournament.pk)
 
@@ -387,6 +422,11 @@ def americano_assign_round(request, round_id):
     recompute_americano_standings(tournament)
 
     request.session.pop("americano_round_error", None)
+    
+    # If user clicked "Nueva ronda": save current round (already done) and create next one
+    if request.POST.get("action") == "new_round":
+        americano_create_next_round(tournament)
+
     return redirect("americano_detail", pk=tournament.pk)
 
 @require_POST

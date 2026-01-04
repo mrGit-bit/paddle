@@ -3,13 +3,13 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
-from games.models import Player  # adjust if your Player model lives elsewhere
+from games.models import Player  
 
 
 class AmericanoTournament(models.Model):
     name = models.CharField(max_length=100)
     play_date = models.DateField(default=timezone.localdate)
-    num_players = models.PositiveIntegerField()   
+    num_players = models.PositiveIntegerField()
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -41,30 +41,6 @@ class AmericanoTournament(models.Model):
         today = timezone.localdate()
         return self.play_date < today
 
-    def get_standings(self):
-        """
-        Ordered by wins desc, then points_diff desc.
-        Returns list of dict rows ready for template.
-        """
-        standings = []
-        for stats in self.player_stats.select_related("player").all():
-            points_diff = stats.points_for - stats.points_against
-            standings.append(
-                {
-                    "player": stats.player,
-                    "wins": stats.wins,
-                    "points_for": stats.points_for,
-                    "points_against": stats.points_against,
-                    "points_diff": points_diff,
-                }
-            )
-
-        return sorted(
-            standings,
-            key=lambda s: (s["wins"], s["points_diff"]),
-            reverse=True,
-        )
-
 
 class AmericanoPlayerStats(models.Model):
     tournament = models.ForeignKey(
@@ -80,6 +56,7 @@ class AmericanoPlayerStats(models.Model):
 
     wins = models.PositiveIntegerField(default=0)
     losses = models.PositiveIntegerField(default=0)
+    matches_played = models.PositiveIntegerField(default=0)
     points_for = models.PositiveIntegerField(default=0)
     points_against = models.PositiveIntegerField(default=0)
 
@@ -97,7 +74,6 @@ class AmericanoRound(models.Model):
         related_name="rounds",
     )
     number = models.PositiveIntegerField()
-
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -138,44 +114,9 @@ class AmericanoMatch(models.Model):
         blank=True,
     )
 
-    class Meta:
-        ordering = ["court_number"]
-
     def __str__(self):
-        return f"{self.round.tournament.name} - R{self.round.number} - Court {self.court_number}"
+        court = self.court_number if self.court_number is not None else "—"
+        return f"{self.round.tournament.name} - R{self.round.number} - Court {court}"
 
-    def update_player_stats(self):
-        """
-        Adds match points + win/loss to AmericanoPlayerStats.
-        Note: for now this is additive and assumes results are entered once.
-        We'll harden it later (idempotent updates) once UI is stable.
-        """
-        if self.winner_team is None:
-            return
-        if self.team1_points is None or self.team2_points is None:
-            return
-
-        tournament = self.round.tournament
-
-        team1_players = [self.team1_player1, self.team1_player2]
-        team2_players = [self.team2_player1, self.team2_player2]
-
-        for player in team1_players:
-            stats, _ = AmericanoPlayerStats.objects.get_or_create(tournament=tournament, player=player)
-            stats.points_for += self.team1_points
-            stats.points_against += self.team2_points
-            if self.winner_team == 1:
-                stats.wins += 1
-            else:
-                stats.losses += 1
-            stats.save()
-
-        for player in team2_players:
-            stats, _ = AmericanoPlayerStats.objects.get_or_create(tournament=tournament, player=player)
-            stats.points_for += self.team2_points
-            stats.points_against += self.team1_points
-            if self.winner_team == 2:
-                stats.wins += 1
-            else:
-                stats.losses += 1
-            stats.save()
+    # Stats are recomputed from saved matches in views.py to remain idempotent.
+    # Idempotent means that updating or re‑saving a match does not double‑count its stats.

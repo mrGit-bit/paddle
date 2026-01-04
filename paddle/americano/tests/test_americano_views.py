@@ -561,14 +561,13 @@ def test_delete_round_renumbers_remaining_rounds_edge_case(client, user, player_
     """
     client.login(username="u1", password="pass1234")
 
-    t = AmericanoTournament.objects.create(
+    t = _create_tournament(
+        creator=user,
         name="Renumber edge case",
-        play_date=timezone.localdate(),
+        players=players_pool[:7] + [player_user],
         num_players=8,
-        created_by=user,
-        is_active=True,
     )
-    t.players.set(players_pool[:7] + [player_user])
+
 
     # Non-contiguous by construction (simulating admin/DB edits)
     r1 = AmericanoRound.objects.create(tournament=t, number=1)
@@ -589,20 +588,13 @@ def test_assign_round_blocks_duplicate_player_across_fully_assigned_matches(clie
     """
     client.login(username="u1", password="pass1234")
 
-    t = AmericanoTournament.objects.create(
-        name="Dup across matches test",
-        play_date=timezone.localdate(),
-        num_players=8,
-        created_by=user,
-        is_active=True,
-    )
     players = players_pool[:7] + [player_user]
-    t.players.set(players)
+    t = _create_tournament(creator=user, name="Dup across matches test", players=players, num_players=8)
 
-    # Round with 2 matches
     r = AmericanoRound.objects.create(tournament=t, number=1)
     m1 = AmericanoMatch.objects.create(round=r)
     m2 = AmericanoMatch.objects.create(round=r)
+
 
     # Use p0..p3 in match1, then reuse p0 in match2 (fully assigned)
     p0, p1, p2, p3, p4, p5, p6, p7 = players
@@ -633,15 +625,8 @@ def test_assign_round_parse_score_value_error_results_in_none(client, user, play
     """
     client.login(username="u1", password="pass1234")
 
-    t = AmericanoTournament.objects.create(
-        name="Score valueerror test",
-        play_date=timezone.localdate(),
-        num_players=4,
-        created_by=user,
-        is_active=True,
-    )
     players = players_pool[:3] + [player_user]
-    t.players.set(players)
+    t = _create_tournament(creator=user, name="Score valueerror test", players=players, num_players=4)
 
     r = AmericanoRound.objects.create(tournament=t, number=1)
     m = AmericanoMatch.objects.create(round=r)
@@ -663,4 +648,75 @@ def test_assign_round_parse_score_value_error_results_in_none(client, user, play
     m.refresh_from_db()
     assert m.team1_points is None
     assert m.team2_points == 10
+    
+def test_assign_round_action_new_round_saves_and_creates_next_round(client, user, player_user, players_pool):
+    """
+    Posting to americano_assign_round with action=new_round should:
+    - save the current round data (same as Guardar)
+    - recompute standings
+    - create the next round with empty matches
+    """
+    client.login(username="u1", password="pass1234")
+
+    # 8 players => each round should have 2 matches (8/4)
+    t_players = players_pool[:7] + [player_user]
+    t = _create_tournament(creator=user, players=t_players, num_players=8)
+
+    r1 = AmericanoRound.objects.create(tournament=t, number=1)
+    m1 = AmericanoMatch.objects.create(round=r1)
+    m2 = AmericanoMatch.objects.create(round=r1)
+
+    p0, p1, p2, p3, p4, p5, p6, p7 = t_players
+
+    payload = {
+        "action": "new_round",
+
+        # Match 1 (fully assigned + scored)
+        f"match_{m1.id}_court": "1",
+        f"match_{m1.id}_t1p1": str(p0.id),
+        f"match_{m1.id}_t1p2": str(p1.id),
+        f"match_{m1.id}_t2p1": str(p2.id),
+        f"match_{m1.id}_t2p2": str(p3.id),
+        f"match_{m1.id}_score1": "15",
+        f"match_{m1.id}_score2": "10",
+
+        # Match 2 (fully assigned, no score)
+        f"match_{m2.id}_court": "",
+        f"match_{m2.id}_t1p1": str(p4.id),
+        f"match_{m2.id}_t1p2": str(p5.id),
+        f"match_{m2.id}_t2p1": str(p6.id),
+        f"match_{m2.id}_t2p2": str(p7.id),
+        f"match_{m2.id}_score1": "",
+        f"match_{m2.id}_score2": "",
+    }
+
+    res = client.post(reverse("americano_assign_round", args=[r1.id]), data=payload)
+    assert res.status_code == 302
+
+    # Current match saved
+    m1.refresh_from_db()
+    assert m1.court_number == 1
+    assert m1.team1_points == 15
+    assert m1.team2_points == 10
+
+    # Second match allowed with null court and no score
+    m2.refresh_from_db()
+    assert m2.court_number is None
+    assert m2.team1_points is None
+    assert m2.team2_points is None
+
+    # Standings updated from the one completed match
+    s0 = AmericanoPlayerStats.objects.get(tournament=t, player=p0)
+    s1 = AmericanoPlayerStats.objects.get(tournament=t, player=p1)
+    assert s0.wins == 1
+    assert s1.wins == 1
+
+    # New round created
+    t.refresh_from_db()
+    assert t.rounds.count() == 2
+    r2 = t.rounds.order_by("number").last()
+    assert r2.number == 2
+    assert r2.matches.count() == 8 // 4  # 2 empty matches
+    assert r2.matches.filter(team1_player1__isnull=False).count() == 0
+
 

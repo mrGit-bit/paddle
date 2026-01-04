@@ -238,7 +238,9 @@ To chek current history of commits and tags:
 
 ```bash
 git fetch --tags
-git log --oneline --decorate --all
+git log --decorate --simplify-by-decoration --oneline
+git log --oneline --graph -n 5
+git show --stat
 ```
 
 ## 🔙 8. Rollback if needed (Web App only)

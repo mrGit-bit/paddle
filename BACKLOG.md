@@ -25,10 +25,11 @@ Rules:
 
 | Requirement | IMP. | SIMP. | PRI. |
 | ------------ | ------ | ------- | ------ |
+| Add a new button for the creator of the tournament and for the admin to close the tournament and move it to state "finalizado" even in the same day of the tournament day. Creator/admin could also reopen the tournament for editing during the same day of the tournament. | 3 | 2 | 6 |
 | Compute ranking positions with ties: Players with exactly the same metrics share the same position (“1224” style, not ordinal ranking “1234”).Display the rank number only on the first row of every tie group. | 2 | 3 | 6 |
 | New registered players with zero matches should not appear in the ranking; they should be listed separately at the bottom | 2 | 2 | 4 |
-| Add User → Player inline in Django Admin to allow viewing and editing the linked Player profile directly from the User admin page (OneToOne relation). Improves traceability and fixes linking issues without navigating between admin sections. | 1 | 3 | 3 |
-| Add Player → Matches inline (read-only) in Django Admin to display matches in which a player has participated (teams and scores), for inspection and debugging purposes without allowing direct modification. | 1 | 3 | 3 |
+| Add User → Player inline in **Django Admin** to allow viewing and editing the linked Player profile directly from the User admin page (OneToOne relation). Improves traceability and fixes linking issues without navigating between admin sections. | 1 | 3 | 3 |
+| Add Player → Matches inline (read-only) in **Django Admin** to display matches in which a player has participated (teams and scores), for inspection and debugging purposes without allowing direct modification. | 1 | 3 | 3 |
 | Make the mobile app installable on the Apple Store | 3 | 1 | 3 |
 | Add a new item in the navbar for showing stats for a selected player from a dropdown list of players and their matches played with a choice for searching or linked from the ranking table | 3 | 1 | 3 |
 | To avoid duplicate players and users, replace contextual options in the match form with a dropdown list of player names that also includes a “new player” option | 1 | 2 | 2 |
