@@ -13,6 +13,19 @@ Since v1.0.4 the project is two products in one repo in GitHub: a Web app and an
 
 Every change should belong to one of the following categories: `added`, `changed`, `updated`, `upgraded`, `improved`, `removed` or `fixed`.
 
+## [1.1.1] - 2026-01-01
+
+Fixes and UI/UX improvements in the tournament management module for small devices (Galaxy S5/S8, iPhone 4/5/SE).
+
+### Web
+
+- Fixed standings table truncation on small screens (e.g., negative values in the points difference column) on the tournament detail page.
+- Changed standings columns: replaced `points_for` and `points_against` with a new `matches_played` column (counting completed matches with valid results) to reduce horizontal space and improve readability.
+- Fixed rounds table truncation on small screens (e.g., "Guardar" button and court selector "nº") by adjusting column width proportions.
+- Improved rounds table result layout so both team scores are visually grouped in the center of the row for better alignment and readability.
+- Improved round workflow UX: the **“Nueva ronda”** action now also saves the current round results (same effect as “Guardar”), allowing users to naturally continue to the next round after completing match results.
+- Unified visual emphasis of save actions by styling all match-saving buttons as primary actions, improving clarity of the expected user interaction.
+
 ## [1.1.0] – 2025-12-30
 
 Tournament management new functionality added.
