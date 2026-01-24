@@ -1,6 +1,7 @@
-<!-- frontend/templates/frontend/_user_form.html -->
+<!-- absolute path: /workspaces/paddle/paddle/frontend/templates/frontend/_user_form.html -->
 <!-- reusable user form included in register.html and user.html -->
 <!-- passed context variables: form_action, is_registration, players, submit_label -->
+
 {% load static %}
 
 <form method="POST" 
@@ -38,17 +39,17 @@
   <!-- Email field -->
   <div class="mb-3 form-floating">
     <input
-    type="email"
-    class="form-control{% if form.email.errors %} is-invalid{% endif %}"
-    id="email"
-    name="email"
-    autocomplete="email"
-    autocapitalize="off"
-    autocorrect="off"
-    spellcheck="false"
-    placeholder="Correo electrónico"
-    value="{{ user.email|default:'' }}"    
-    required
+      type="email"
+      class="form-control{% if form.email.errors %} is-invalid{% endif %}"
+      id="email"
+      name="email"
+      autocomplete="email"
+      autocapitalize="off"
+      autocorrect="off"
+      spellcheck="false"
+      placeholder="Correo electrónico"
+      value="{{ user.email|default:'' }}"    
+      required
     />
     <label for="email" class="form-label">Correo electrónico*</label>
     {% if form.email.errors %}
@@ -58,7 +59,8 @@
 
   <!-- Registration only-->
   {% if is_registration %}
-    <!-- Password field -->
+    
+    <!-- Password field -->    
     <div class="mb-3 form-floating">
       <input
         type="password"
@@ -93,13 +95,24 @@
         placeholder="Confirma tu contraseña"          
         required
       />
-      <label for="confirm_password" class="form-label"
-        >Confirma tu contraseña*</label
-      >
+      <label for="confirm_password" class="form-label">Confirma tu contraseña*</label>
       <div class="invalid-feedback">
         Las contraseñas no coinciden.
       </div>
     </div>  
+      
+    <!-- Gender (required) -->
+    <div class="mb-3 form-floating">
+      <select class="form-select" id="gender" name="gender" required>
+        <option value="" selected>Selecciona género</option>
+        <option value="M">Hombre</option>
+        <option value="F">Mujer</option>
+      </select>
+      <label for="gender">Género*</label>
+      <div class="invalid-feedback">
+        Por favor, selecciona tu género.
+      </div>
+    </div>
 
     <!-- Link a Player Dropdown  -->  
     <div class="mb-3 form-floating">

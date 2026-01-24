@@ -1,5 +1,6 @@
 <!-- markdownlint-disable MD051 -->
 <!-- markdownlint-disable MD033 -->
+<!-- markdownlint-disable MD060 -->
 
 # 🏆 Paddle Tennis Hall of Fame
 
@@ -57,32 +58,40 @@ Full-stack web application that includes:
   - A **badge indicator** for the number of new matches not reviewed in the current session;
   - **Real-time validation** during user registration; and,
   - **Mini Hall of Fame**: personalized ranking section for users not appearing on the current page
+  - Player gender is stored in `Player.gender` and match scope is stored in `Match.match_gender_type` (derived automatically via `compute_gender_type()`).
+  - The last selected ranking scope is persisted (session-based) and used after match creation redirects.
 
 The entire application is fully **mobile responsive**, ensuring a consistent experience across different devices and screen sizes, even in smaller screens,.
 
 #### Hall of Fame Rankings
 
-- Displays a ranked list of paddle tennis players based on their number of wins.
+- Displays a ranked list of paddle tennis players.
 - Publicly accessible (no authentication required).
+- Supports:
+  - scoped rankings: **Todos**, **Masculinos**, **Femeninos**, **Mixtos**
+  - competition ranking with ties (“1224” style), showing the rank number only for the first row in each tie group
+  - an “unranked” table (players with 0 matches in the selected scope) shown only on the last page
+
 - **Implementation**:
-  - Frontend app: The `HallOfFameView` in `views.py` renders the ranking table.
-  - API: The `PlayerViewSet` in `views.py` retrieves players, ordering them by the `ranking_position` field to create the ranking.
-  - The `models.py` calculate `matches_played`, `losses`, and `win_rate` as `@property` decorators for read-only fields.
+  - Frontend app: a single `ranking_view()` renders all ranking scopes (including `"all"`), with `hall_of_fame_view()` acting as a thin wrapper to preserve URL names.
+  - Ranking computation is centralized in `frontend/services/ranking.py` (`compute_ranking(scope)`).
+  - Templates (`hall_of_fame.html`, `hof_user_snippet.html`) always render `display_*` fields for consistency across scopes and ties.
+  - Navigation between scopes is done via Bootstrap 5 nav-tabs (links, no JS state).
 
 #### Match Results
 
-- Authenticated users can add and update match results.
 - Each match consists of two teams, each with two players.
-- Team players could be one of three categories: registered, existing non-registered players, and new players.
-- Those categories are automatically populated when adding the player´s names.
-- When a new match is added, new players are created if they don't exist.
-- Users can only add, update, or delete matches in which they are a participant.
+- Authenticated users can add and delete match results in which they are a participant.
+- Matches are **not editable**. Disputes are handled by **delete + re-create**.
+- Player selection uses a dropdown:
+  - existing registered players
+  - existing unregistered players
+  - new player creation directly from the match form (“Nuevo jugador / Nueva jugadora”), including gender
+
 - **Implementation**:
-  - API:
-    - The `MatchSerializer` handles player name input, creates new players if needed, and prevents duplicate player entries.
-    - `perform_create()` in the `MatchViewSet` updates player stats when a match is created.
-    - `perform_update()` resets old match stats before applying new results to maintain data integrity.
-  - Frontend app: The `MatchView` in `views.py` handles match creation, updating, and deletion.
+  - Frontend app: `match_view()` in `frontend/views.py` handles match creation and deletion using PRG (Post-Redirect-Get) and Django messages.
+  - On creation, new players are created if they don’t exist (case-insensitive).
+  - Deletion is handled via normal POST form submission (`action=delete`) to preserve consistent messaging and navigation.
 
 #### Tournaments Management
 
@@ -115,6 +124,8 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
 
 - Users can register, log in, and manage their profiles.
 - During registration, users can link their account to an existing player or create a new one.
+- During registration, users must select a gender (M/F).
+- When linking to an existing unregistered player, the user can set/update that player's gender during registration (admin remains the authoritative channel for later changes).
 - When linking to an existing player, the user takes over the player's stats, and the player's name is changed to the user's username.
 - Users can only update their own profiles, unless they are an admin, in which case they can update and delete any profile.
 - **Implementation**:
@@ -275,7 +286,6 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
 │   │   ├── js/                   # JavaScript files
 │   │   │   ├── editUserProfile.js      # Send a PATCH request to the API for updating user details
 │   │   │   ├── matchDeleteHighlight.js # On deletion update match card background dynamically
-│   │   │   ├── matchEdit.js            # Update match card and form for editing
 │   │   │   ├── passwordValidation.js   # Confirm password match
 │   │   │   ├── playerLabelUpdater.js   # Update player labels dynamically on match form
 │   │   │   ├── tabPaginationReset.js   # Update pagination dynamically on tab change
@@ -387,13 +397,15 @@ These are the full-page templates directly mapped to URLs:
 
 | URL                     | Purpose                               | Template Loaded     | Specs                                                                                                                                            |
 | ----------------------- | ------------------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `/`                     | Hall of Fame – ranked list of players | `hall_of_fame.html` | Table with wins, matches played, and rates for each player.                                                                                      |
+| `/` | Hall of Fame – ranking (Todos los partidos) | `hall_of_fame.html` | Ranking table + scoped nav-tabs + ties (“1224” style) + unranked players table on last page. |
+| `/ranking/male/`   | Ranking – Partidos masculinos | `hall_of_fame.html` | Scoped ranking (male matches only). |
+| `/ranking/female/` | Ranking – Partidos femeninos  | `hall_of_fame.html` | Scoped ranking (female matches only). |
+| `/ranking/mixed/`  | Ranking – Partidos mixtos     | `hall_of_fame.html` | Scoped ranking (mixed matches only). |
 | `/register/`            | User registration                     | `register.html`     | Dynamic checking of restrictions and load available players to choose from.                                                                      |
 | `/login/`               | User login                            | `login.html`        | User & password fields and login button.                                                                                                         |
 | `/logout/`              | User logout                           | N/A - View handled  | Logout link with bootstrap icon. _This action is a redirection._                                                                                 |
 | `/users/<id>/`          | User details and editing              | `user.html`         | User profile stats and editable fields.                                                                                                          |
-| `/matches/`             | Match results and editing             | `match.html`        | Form for adding and editing matches, and match history, filtered only for the user or non filtered for all players. Displays the list of matches using `_match_card.html`. |
-| `/matches/<id>/delete/` | Delete match                          | N/A - View handled  | Trash button with bootstrap icon. _This action is a redirection_.    |
+| `/matches/` | Match results | `match.html` | Add match + match history (My Matches / All). Note: To edit: delete + re-create. |
 | `/about/`               | About                                 | `about.html`        | About page. |
 | `/americano/`                         | Americano tournaments list      | `americano_list.html`   | Shows ongoing and finished tournaments. Public.                                                                |
 | `/americano/nuevo/`                   | Create new Americano tournament | `americano_new.html`    | Only authenticated users can create. Supports selecting existing players + adding new players (created in DB). |
@@ -420,15 +432,9 @@ These partial templates are reusable components designed to be included in other
 ## 🛠️ JavaScript Functionalities
 
 - `passwordValidation.js`: Checks if the password and confirm password fields match, and dynamically displays an error message if they don't. Is used in `register.html`.
-- `playerLabelUpdater.js`: The label of the player input field updates dynamically as the user types, based on the input value to distinguish between registered players, existing (but not registered) players, and new players in the form fields of `match.html`.
+- `playerLabelUpdater.js`: Provides real-time hints when typing a “new player” name in the match form (registered/existing/new), to prevent duplicates and confusion.
 - `winningTeamHighlight.js`: Dynamically updates the background of the "Team 1" and "Team 2" cards in the form fields of `match.html` based on the selection of the "winning_team" radio button with green background for the winning team.
-- `matchDeleteHighlight.js`: Dynamically updates the background of the match card in the form fields of `match.html` to indicate deletion _before sending the DELETE request_.
-- `matchEdit.js`: Allows editing of match details in `match.html`. The Edit button is only visible in matches of the match history section where the current user is a participant. By clicking on the edit button in a match card, the following happens:
-  - The selected match card to be edited is highlighted.
-  - The form in `match.html` is pre-filled with the data of the selected match.
-  - The html is focused on the form.
-  - The "Add Match" button is changed to "Edit Match". When the user clicks "Edit Match", the endpoint of the API is called by PUT (the API will delete the match and create a new one) .
-  - A "Cancel Edit" button is added to the form, which allows canceling the edit and reloads the default `match.html`.
+- `matchDeleteHighlight.js`: Highlights the match card before showing a confirm dialog and submitting the delete POST form (PRG + Django messages).
 - `editUserProfile.js`: Allows editing of allowed user details in `user.html`. _Only the email field has been flagged as editable so far._ By changing the value on the email field in the user profile, "Cancel Changes" and "Save Changes" buttons are enabled:
   - When the user clicks "Save Changes", the endpoint of the API is called by PATCH.
   - When the user clicks "Cancel Changes", the form is reset to the original values.

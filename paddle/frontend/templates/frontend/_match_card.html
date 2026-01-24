@@ -1,4 +1,4 @@
-<!-- path: frontend/templates/frontend/match_card.html -->
+<!-- absolute path: /workspaces/paddle/paddle/frontend/templates/frontend/_match_card.html -->
 <!-- Tab Content to be included in Match History --> 
 <!-- Included in two tabs: All Matches and My Matches --> 
 
@@ -64,18 +64,20 @@
           <!-- Buttons for user matches -->
           {% if match in user_matches %}          
           <div class="ms-auto">
-              <!-- Delete Button -->
-              <button id="delete-button-{{ match.id }}" 
-              data-match-id="{{ match.id }}"
-                class="btn btn-secondary btn-sm delete-button">                  
-                <i class="bi bi-trash"></i>
-              </button>
-              <!-- Edit Button -->
-              <button id="edit-button-{{ match.id }}" 
-                data-match-id="{{ match.id }}"
-                class="btn btn-success btn-sm">
-                Edit
-              </button>
+              
+            <!-- Delete Button -->
+              <form method="post" action="{% url 'match' %}" class="d-inline delete-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="match_id" value="{{ match.id }}">
+                <button
+                  type="submit"
+                  data-match-id="{{ match.id }}"
+                  class="btn btn-secondary btn-sm delete-button">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+
             </div>
           {% endif %}
         </div>       
