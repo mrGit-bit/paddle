@@ -90,6 +90,23 @@ and replaced by an ellipsis (…) */
 
 /* HoF table */
 
+/* Smooth fade-in on ranking page load */
+.fade-in {
+  animation: fadeIn 180ms ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
 /* In small screens, ensures that overflowing content is hidden 
 and replaced by an ellipsis (…) */
 .table-responsive {
@@ -167,7 +184,7 @@ and replaced by an ellipsis (…) */
   z-index: 2;
 }
 
-/* Form validation styles */
+/* Form validation styles and error messages */
 
 /* Default state for all fields */
 input:required, select:required {
@@ -191,9 +208,13 @@ input:invalid:focus, select:invalid:focus {
   display: none;
 }
 
-/* Show the error message for invalid fields that are not empty */
-input:invalid:not(:placeholder-shown) ~ .invalid-feedback,
-select:invalid ~ .invalid-feedback {
+/* Show error for inputs after user typed something (not placeholder-shown) */
+input:invalid:not(:placeholder-shown) ~ .invalid-feedback {
+  display: block;
+}
+
+/* Show error for selects only after the user has interacted (focused) */
+select:invalid:focus ~ .invalid-feedback {
   display: block;
 }
 

@@ -1,72 +1,152 @@
-<!-- frontend/templates/frontend/hall_of_fame.html -->
-{% extends 'frontend/base.html' %} {% block title %}rankingdepadel.club{% endblock %}
+<!-- absolute path: /workspaces/paddle/paddle/frontend/templates/frontend/hall_of_fame.html -->
+{% extends 'frontend/base.html' %} 
+{% block title %}{{ page_title|default:"rankingdepadel.club" }}{% endblock %}
 {% load static %}
-
 {% block content %}
+
+<!-- Title and information section -->
 <div class="text-center mb-4">
   <h1 class="display-5">🏆club moraleja🏆</h1>
+
   {% if user.is_authenticated %}
     {% if new_matches_number > 0 %}
       <p class="lead">Tienes {{ new_matches_number }} <a href="{% url 'match' %}#match-history">nuevos partidos</a>!</p>
     {% else %}
-      <p class="lead">Tienes <a href="{% url 'match' %}">nuevos partidos</a> ?</p>
+    <p class="lead">Tienes <a href="{% url 'match' %}">nuevos partidos</a> ?</p>
     {% endif %}
-  {% else %}
+    {% else %}
     <p class="lead">
       <a href="{% url 'login' %}">Inicia sesión</a> o
       <a href="{% url 'register' %}">regístrate</a> !
     </p>
-  {% endif %}
-</div>
+    {% endif %} 
+    
+  </div>
 
-<div class="table-responsive">
-  <table class="table table-striped table-hover">
-    <colgroup>
-      <col style="width: 15%;">
-      <col style="width: 35%;">
-      <col style="width: 15%;">
-      <col style="width: 15%;">
-      <col style="width: 20%;">
-    </colgroup>
-    <thead>
-      <tr>
-        <th scope="col" class="text-center">Pos.</th>
-        <th scope="col">Jugador</th>
-        <th scope="col" class="text-center">🏆</th>
-        <th scope="col" class="text-center">🏓</th>
-        <th scope="col" class="text-center">🎯</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for player in players %}
-      {% with rank=player.ranking_position %}
-      <tr class="{% if player.id == user_player.id %}highlight-zoom{% endif %}">
-        <td>
-          {% if rank == 1 %}
-          <strong class="rank-1">🥇</strong>
-          {% elif rank == 2 %}
-          <strong class="rank-2">🥈</strong>
-          {% elif rank == 3 %}
-          <strong class="rank-3">🥉</strong>
-          {% else %} {{ rank }} {% endif %}
-        </td>
-        <td>
-          {% if rank == 1 %}
-          <strong style="font-size: 1.5em">{{ player.name }}</strong>
-          {% elif rank == 2 %}
-          <strong style="font-size: 1.3em">{{ player.name }}</strong>
-          {% elif rank == 3 %}
-          <strong style="font-size: 1.2em">{{ player.name }}</strong>
-          {% else %} {{ player.name }} {% endif %}
-        </td>
-        <td>{{ player.wins }}</td>
-        <td>{{ player.matches_played }}</td>
-        <td>{{ player.win_rate|floatformat:0 }}%</td>
-      </tr>
-      {% endwith %}
+<!-- Display success or error messages -->
+{% if messages %}
+<div class="row justify-content-center mt-3">
+    <div class="col-lg-10">
+      {% for message in messages %}
+        <div class="alert 
+          {% if message.tags == 'success' %}alert-success
+          {% elif message.tags == 'error' %}alert-danger
+          {% else %}alert-info{% endif %}"
+          role="alert">
+          {{ message }}
+        </div>
       {% endfor %}
-    </tbody>
-  </table>
+    </div>
+  </div>
+  {% endif %}
+  
+  <!-- Ranking scope navigation tabs -->
+  <ul class="nav nav-tabs justify-content-center mb-2">
+    <li class="nav-item">
+      <a class="nav-link {% if ranking_scope == 'all' %}active{% endif %}"
+      href="{% url 'hall_of_fame' %}">
+      Todos
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if ranking_scope == 'male' %}active{% endif %}"
+    href="{% url 'ranking_male' %}">
+    👬♂️
+  </a>
+</li>
+<li class="nav-item">
+  <a class="nav-link {% if ranking_scope == 'female' %}active{% endif %}"
+  href="{% url 'ranking_female' %}">
+  👭♀️
+</a>
+</li>
+<li class="nav-item">
+  <a class="nav-link {% if ranking_scope == 'mixed' %}active{% endif %}"
+  href="{% url 'ranking_mixed' %}">
+  ♂️♀️
+</a>
+</li>
+</ul>
+
+<div class="ranking-content fade-in">
+  <!-- Ranking scope information for selected tab -->
+  {% if ranking_scope %}
+    <p class="text-muted text-center mb-1 mt-0">
+      {% if ranking_scope == "male" %}
+        Ranking de <b>partidos masculinos</b>
+      {% elif ranking_scope == "female" %}
+        Ranking de <b>partidos femeninos</b>
+      {% elif ranking_scope == "mixed" %}
+        Ranking de <b>partidos mixtos</b>
+      {% endif %}
+    </p>
+  {% endif %}
+
+  <!-- Rankings uses: 'display_position', 'display_wins', 'display_matches', 'display_win_rate' -->
+  <!-- Table with ranking -->
+  <div class="table-responsive">
+    <table class="table table-striped table-hover">
+      <colgroup>
+        <col style="width: 15%;">
+        <col style="width: 35%;">
+        <col style="width: 15%;">
+        <col style="width: 15%;">
+        <col style="width: 20%;">
+      </colgroup>
+      <thead>
+        <tr>
+          <th scope="col" class="text-center">Pos.</th>
+          <th scope="col">Jugador</th>
+          <th scope="col" class="text-center">🏆</th>
+          <th scope="col" class="text-center">🏓</th>
+          <th scope="col" class="text-center">🎯</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for player in players %}
+
+        <!-- player data row -->
+        {% with rank=player.display_position %}
+        <!-- highlight the row of the current user -->
+        <tr class="{% if user_player and player.id == user_player.id %}highlight-zoom{% endif %}">
+          <!-- ranking position -->
+          <td class="text-center">
+            {% if player.show_position %}
+              {% if rank == 1 %}
+                <strong class="rank-1">🥇</strong>
+              {% elif rank == 2 %}
+                <strong class="rank-2">🥈</strong>
+              {% elif rank == 3 %}
+                <strong class="rank-3">🥉</strong>
+              {% else %}
+                {{ rank }}
+              {% endif %}
+            {% else %}
+              &nbsp;
+            {% endif %}
+          </td>
+          <!-- player name with zoom effect on player name for first 3 players -->
+          <td>
+            {% if rank == 1 %}
+            <strong style="font-size: 1.5em">{{ player.name }}</strong>
+            {% elif rank == 2 %}
+            <strong style="font-size: 1.3em">{{ player.name }}</strong>
+            {% elif rank == 3 %}
+            <strong style="font-size: 1.2em">{{ player.name }}</strong>
+            {% else %} {{ player.name }} {% endif %}
+          </td>
+          <!-- wins -->
+          <td>{{ player.display_wins }}</td>
+          <!-- matches played -->
+          <td>{{ player.display_matches }}</td>
+          <!-- win rate -->
+          <td>{{ player.display_win_rate|floatformat:0 }}%</td>        
+        </tr>
+        {% endwith %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <!-- mini table to be included in "frontend/hall_of_fame.html" -->
@@ -74,6 +154,49 @@
 {% if user.is_authenticated and not user_page == pagination.current_page and previous_player %}
   {% include "frontend/hof_user_snippet.html" with user_page=user_page user_player=user_player previous_player=previous_player following_player=following_player %}
 {% endif %}
+
+<!-- Last page only: show unranked players for this scope(players with 0 matches)-->
+{% if unranked_players and pagination.current_page == pagination.total_pages %}
+  <div class="mt-4">
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead class="table-dark">
+          <tr>
+            <th colspan="2">
+              Sin partidos
+              {% if ranking_scope == "male" %}
+                masculinos
+              {% elif ranking_scope == "female" %}
+                femeninos
+              {% elif ranking_scope == "mixed" %}
+                mixtos              
+              {% endif %}
+              :
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in unranked_players %}
+            {% if forloop.counter0|divisibleby:2 %}
+              <tr>
+            {% endif %}
+
+            <td class="text-center">{{ p.name }}</td>
+
+            {% if forloop.counter0|divisibleby:2 == False or forloop.last %}
+              {% if forloop.last and forloop.counter0|divisibleby:2 %}
+                <td class="text-center"></td> {# fill empty cell if odd number #}
+              {% endif %}
+              </tr>
+            {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+{% endif %}
+
 
 <!-- Pagination block -->
 {% include "frontend/_pagination.html" with pagination=pagination %}

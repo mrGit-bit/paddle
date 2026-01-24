@@ -1,6 +1,7 @@
-<!-- frontend/templates/frontend/hof_user_snippet.html -->
+<!-- absolute path: /workspaces/paddle/paddle/frontend/templates/frontend/hof_user_snippet.html -->
 <!-- mini table to be included in "frontend/hall_of_fame.html" -->
 <!-- only if user is not on the current page  -->
+
 {% load static %}
 
 <p class="text-muted small text-center">
@@ -9,43 +10,50 @@
 <div class="table-responsive">
   <table class="table table-striped table-hover">
     <colgroup>
-      <col style="width: 10%;">
-      <col style="width: 30%;">
-      <col style="width: 20%;">
-      <col style="width: 20%;">
+      <col style="width: 15%;">
+      <col style="width: 35%;">
+      <col style="width: 15%;">
+      <col style="width: 15%;">
       <col style="width: 20%;">
     </colgroup>
     <thead>
       <tr>
-        <th scope="col">Rank</th>
-        <th scope="col">Player</th>
-        <th scope="col">🏅 Wins</th>
-        <th scope="col">🎾 Matches</th>
-        <th scope="col">Rate</th>
+        <th scope="col" class="text-center">Pos.</th>
+        <th scope="col">Jugador</th>
+        <th scope="col" class="text-center">🏆</th>
+        <th scope="col" class="text-center">🏓</th>
+        <th scope="col" class="text-center">🎯</th>
       </tr>
     </thead> 
     <tbody>      
+      
+      <!-- previous player row-->
       <tr>
-        <td>{{ previous_player.ranking_position }}</td>
+        <td>{{ previous_player.display_position }}</td>
         <td>{{ previous_player.name }}</td>
-        <td>{{ previous_player.wins }}</td>
-        <td>{{ previous_player.matches_played }}</td>
-        <td>{{ previous_player.win_rate|floatformat:0 }}%</td>
+        <td>{{ previous_player.display_wins }}</td>
+        <td>{{ previous_player.display_matches }}</td>
+        <td>{{ previous_player.display_win_rate|floatformat:0 }}</td>
       </tr>
+      
+      <!-- user player row -->
       <tr class="highlight-zoom">
-        <td>{{ user_player.ranking_position }}</td>
+        <td>{{ user_player.display_position }}</td>
         <td>{{ user_player.name }}</td>
-        <td>{{ user_player.wins }}</td>
-        <td>{{ user_player.matches_played }}</td>
-        <td>{{ user_player.win_rate|floatformat:0 }}%</td>
+        <td>{{ user_player.display_wins }}</td>
+        <td>{{ user_player.display_matches }}</td>
+        <td>{{ user_player.display_win_rate|floatformat:0 }}</td>
       </tr>
+
+      <!-- following player row -->
       <tr>
-        <td>{{ following_player.ranking_position }}</td>
+        <td>{{ following_player.display_position }}</td>
         <td>{{ following_player.name }}</td>
-        <td>{{ following_player.wins }}</td>
-        <td>{{ following_player.matches_played }}</td>
-        <td>{{ following_player.win_rate|floatformat:0 }}%</td>
+        <td>{{ following_player.display_wins }}</td>
+        <td>{{ following_player.display_matches }}</td>
+        <td>{{ following_player.display_win_rate|floatformat:0 }}</td>
       </tr>
+
     </tbody>
   </table>
 </div>

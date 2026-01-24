@@ -1,4 +1,4 @@
-<!-- frontend/templates/frontend/match.html --> 
+<!-- absolute path: /workspaces/paddle/paddle/frontend/templates/frontend/match.html --> 
 
 {% extends 'frontend/base.html' %}
 {% load static %}
@@ -56,17 +56,34 @@
                 </div>
                 
                 <!-- Team 1 Player 2 options from the player list or new one-->
-                <div class="mb-3 form-floating">
-                  <input
-                  list = "players"
-                  type="text"
-                  class="form-control"
-                  id="team1_player2"
-                  name="team1_player2"
-                  placeholder="Enter Player 2"                  
-                  required
-                  />
-                  <label for="team1_player2" class="form-label">Jugador</label>
+                <div class="mb-3">
+                  <div class="form-floating">
+                    <select class="form-select player-select"
+                      id="team1_player2_choice"
+                      name="team1_player2_choice"
+                      required>
+                      <option value="" selected>Selecciona jugador</option>
+                      {% for player in all_players %}
+                        <option value="{{ player.id }}">{{ player.name }}</option>
+                      {% endfor %}
+                      <option value="NEW_M">➕ Nuevo jugador (Hombre)</option>
+                      <option value="NEW_F">➕ Nueva jugadora (Mujer)</option>
+                    </select>
+                    <label for="team1_player2_choice" class="form-label">Jugador*</label>
+                  </div>
+
+                  <div class="form-floating mt-2 d-none new-player-wrapper" id="team1_player2_new_wrapper">
+                    <input
+                      type="text"
+                      class="form-control new-player-name"
+                      id="team1_player2_new_name"
+                      name="team1_player2_new_name"
+                      placeholder="Nombre del nuevo jugador"
+                      autocomplete="off"
+                    />
+                    <label for="team1_player2_new_name">Nombre (nuevo jugador)*</label>
+                    <div class="form-text" id="team1_player2_new_hint"></div>
+                  </div>
                 </div>
                 
                 <!-- Winner Team 1 Radio Button -->
@@ -90,31 +107,67 @@
               <div class="card-body">
                 <h5 class="card-title">Pareja 2️⃣</h5>
                 <!-- Team 2 Player 1 choose from the player list or new one-->
-                <div class="mb-3 form-floating">
-                  <input
-                  list = "players"
-                  type="text"
-                  class="form-control"
-                  id="team2_player1"
-                  name="team2_player1"
-                  placeholder="Enter Player 1"
-                  required
-                  />
-                  <label for="team2_player1" class="form-label">Jugador</label>
+                <div class="mb-3">
+                  <div class="form-floating">
+                    <select class="form-select player-select"
+                      id="team2_player1_choice"
+                      name="team2_player1_choice"
+                      required>
+                      <option value="" selected>Selecciona jugador</option>
+                      {% for player in all_players %}
+                        <option value="{{ player.id }}">{{ player.name }}</option>
+                      {% endfor %}
+                      <option value="NEW_M">➕ Nuevo jugador (Hombre)</option>
+                      <option value="NEW_F">➕ Nueva jugadora (Mujer)</option>
+                    </select>
+                    <label for="team2_player1_choice" class="form-label">Jugador*</label>
+                  </div>
+
+                  <div class="form-floating mt-2 d-none new-player-wrapper" id="team2_player1_new_wrapper">
+                    <input
+                      type="text"
+                      class="form-control new-player-name"
+                      id="team2_player1_new_name"
+                      name="team2_player1_new_name"
+                      placeholder="Nombre del nuevo jugador"
+                      autocomplete="off"
+                    />
+                    <label for="team2_player1_new_name">Nombre (nuevo jugador)*</label>
+                    <div class="form-text" id="team2_player1_new_hint"></div>
+                  </div>
                 </div>
+
                 <!-- Team 2 Player 2 choose from the player list or new one-->
-                <div class="mb-3 form-floating">
-                  <input
-                  list = "players"
-                  type="text"
-                  class="form-control"
-                  id="team2_player2"
-                  name="team2_player2"
-                  placeholder="Enter Player 2"
-                  required
-                  />
-                  <label for="team2_player2" class="form-label">Jugador</label>
+                <div class="mb-3">
+                  <div class="form-floating">
+                    <select class="form-select player-select"
+                      id="team2_player2_choice"
+                      name="team2_player2_choice"
+                      required>
+                      <option value="" selected>Selecciona jugador</option>
+                      {% for player in all_players %}
+                        <option value="{{ player.id }}">{{ player.name }}</option>
+                      {% endfor %}
+                      <option value="NEW_M">➕ Nuevo jugador (Hombre)</option>
+                      <option value="NEW_F">➕ Nueva jugadora (Mujer)</option>
+                    </select>
+                    <label for="team2_player2_choice" class="form-label">Jugador*</label>
+                  </div>
+
+                  <div class="form-floating mt-2 d-none new-player-wrapper" id="team2_player2_new_wrapper">
+                    <input
+                      type="text"
+                      class="form-control new-player-name"
+                      id="team2_player2_new_name"
+                      name="team2_player2_new_name"
+                      placeholder="Nombre del nuevo jugador"
+                      autocomplete="off"
+                    />
+                    <label for="team2_player2_new_name">Nombre (nuevo jugador)*</label>
+                    <div class="form-text" id="team2_player2_new_hint"></div>
+                  </div>
                 </div>
+
                 <!-- Winner Radio Button -->
                 <div class="form-check">
                   <input
@@ -131,12 +184,12 @@
           </div>
         </div>
         
-        <!-- Datalist options for Players input fields-->
+        {% comment %} <!-- Datalist options for Players input fields-->
         <datalist id="players">
           {% for player in all_players %}
           <option value="{{ player.name }}">{{ player.name }}</option>
           {% endfor %}
-        </datalist>
+        </datalist> {% endcomment %}
         
         <!-- Date and Submit Button -->
         <div class="d-flex justify-content-between mt-3">
@@ -217,22 +270,54 @@
 
 <!-- Block for additional scripts -->
 {% block scripts %}
+  <!-- Toggle New Name -->
+  <script>
+    (function () {
+      function toggleNewName(selectEl) {
+        const baseId = selectEl.id.replace("_choice", "");
+        const wrapper = document.getElementById(baseId + "_new_wrapper");
+        const input = document.getElementById(baseId + "_new_name");
+
+        if (!wrapper || !input) return;
+
+        const isNew = (selectEl.value === "NEW_M" || selectEl.value === "NEW_F");
+        wrapper.classList.toggle("d-none", !isNew);
+
+        if (isNew) {
+          input.setAttribute("required", "required");
+        } else {
+          input.removeAttribute("required");
+          input.value = "";
+          // leave hint clearing to the updater script (Step 3C), but keep it clean:
+          const hint = document.getElementById(baseId + "_new_hint");
+          if (hint) hint.textContent = "";
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll("select.player-select").forEach(function (sel) {
+          sel.addEventListener("change", function () { toggleNewName(sel); });
+          toggleNewName(sel); // initial
+        });
+      });
+    })();
+  </script>
 
   <!-- Generate data for the Javascript playerLabelUpdater.js -->
   <script>
     // Dynamically generate player sets from Django
-    const registeredPlayers = new Set([
+    // Exposed to window for external JS)
+    window.registeredPlayers = new Set([
       {% for player in registered_players %}
         "{{ player.name }}",
       {% endfor %}
     ]);
-    const existingPlayers = new Set([
+    window.existingPlayers = new Set([
       {% for player in existing_players %}
         "{{ player.name }}",
       {% endfor %}
     ]);
   </script>
-
   <!-- Load JavaScript to update players input labels -->
   <script src="{% static 'frontend/js/playerLabelUpdater.js' %}"></script>
 
@@ -240,10 +325,7 @@
   <script src="{% static 'frontend/js/winningTeamHighlight.js' %}"></script>
 
   <!-- Load JavaScript to highlight match card when pressed delete button --> 
-  <script src="{% static 'frontend/js/matchDeleteHighlight.js' %}"></script>
-
-  <!-- Load JavaScript to perform actions when pressed edit button -->
-  <script src="{% static 'frontend/js/matchEdit.js' %}"></script>
+  <script src="{% static 'frontend/js/matchDeleteHighlight.js' %}"></script>  
 
   <!-- Load JavaScript to show only active tab pagination -->
   <script src="{% static 'frontend/js/tabPaginationReset.js' %}"></script>

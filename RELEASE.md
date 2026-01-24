@@ -28,11 +28,7 @@ pytest frontend/tests/ --cov=frontend.views --cov-report=term-missing
 pytest /workspaces/paddle/paddle/americano/tests/test_americano_views.py --cov=americano.views --cov-report=term-missing
 ```
 
-- Remove new features from `BACKLOG.md`.
-- Update `CHANGELOG.md`:
-  - Add a new section with today’s date and version.
-  - List changes under **Added / Changed / Fixed**.
-- Update `README.md` if needed.
+- Update: `BACKLOG.md`,`CHANGELOG.md`,and `README.md` if needed.
 - Update hardcoded version number `vX.Y.Z` in `/workspaces/paddle/paddle/frontend/templates/frontend/about.html`.
 
 ### 📱 1.2 Prepare the Mobile release
@@ -47,7 +43,7 @@ pytest /workspaces/paddle/paddle/americano/tests/test_americano_views.py --cov=a
 
 - Generate and download artifacts:
 
-  - build `apk`: is generated for debugging/testing (Appetize.io or sideloading).
+  - build `apk`: is generated for debugging/testing (Appetize.io or side loading).
   - build `aab`: is the file uploaded to Play Console.
 
 ### 👩‍❤️‍💋‍👨 1.3 Common steps
@@ -70,7 +66,7 @@ git push origin develop
 
 ### 🖥️ 3.1 Deploy the Web App to Staging
 
-If the staging database has been stopped due to inactivity do not forget torestart it in the console panel.
+If the staging database has been stopped due to inactivity do not forget to restart it in the console panel.
 
 On staging server:
 
@@ -100,7 +96,7 @@ Note: use the `--clear` option to remove old static files.
 - if database migrations have changed:
 
 ```bash
-(venv) ubuntu@staging:~/paddle/paddle$ python manage.pypython manage.py migrate --noinput
+(venv) ubuntu@staging:~/paddle/paddle$ python manage.py migrate --noinput
 ```
 
 ### 📱 3.2 “Test the Mobile App on Staging Backend
@@ -234,7 +230,7 @@ git tag -a vX.Y.Z -m "Release vX.Y.Z — summary"
 git push origin vX.Y.Z
 ```
 
-To chek current history of commits and tags:
+To check current history of commits and tags:
 
 ```bash
 git fetch --tags

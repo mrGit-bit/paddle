@@ -25,24 +25,16 @@ Rules:
 
 | Requirement | IMP. | SIMP. | PRI. |
 | ------------ | ------ | ------- | ------ |
-| Add a new button for the creator of the tournament and for the admin to close the tournament and move it to state "finalizado" even in the same day of the tournament day. Creator/admin could also reopen the tournament for editing during the same day of the tournament. | 3 | 2 | 6 |
-| Compute ranking positions with ties: Players with exactly the same metrics share the same position (“1224” style, not ordinal ranking “1234”).Display the rank number only on the first row of every tie group. | 2 | 3 | 6 |
-| New registered players with zero matches should not appear in the ranking; they should be listed separately at the bottom | 2 | 2 | 4 |
-| Add User → Player inline in **Django Admin** to allow viewing and editing the linked Player profile directly from the User admin page (OneToOne relation). Improves traceability and fixes linking issues without navigating between admin sections. | 1 | 3 | 3 |
-| Add Player → Matches inline (read-only) in **Django Admin** to display matches in which a player has participated (teams and scores), for inspection and debugging purposes without allowing direct modification. | 1 | 3 | 3 |
+| Add a “verify results” option to matches: Verified (True/False), Verified by (User), Verified on (Date). After a reasonable expiry time (2 weeks for instance) the results are automatically approved and the match could be no longer deleted | 2 | 3 | 6 |
 | Make the mobile app installable on the Apple Store | 3 | 1 | 3 |
-| Add a new item in the navbar for showing stats for a selected player from a dropdown list of players and their matches played with a choice for searching or linked from the ranking table | 3 | 1 | 3 |
-| To avoid duplicate players and users, replace contextual options in the match form with a dropdown list of player names that also includes a “new player” option | 1 | 2 | 2 |
+| Make player names clickable → profile page | 3 | 1 | 3 |
+| Add a new button for the creator of the tournament and for the admin to close the tournament and move it to state "finalizado" even in the same day of the tournament day. Creator/admin could also reopen the tournament for editing during the same day of the tournament. | 1 | 2 | 2 |
 | Dark mode | 1 | 2 | 2 |
 | Email field in the registration form should be duplicated to avoid mistakes; reuse password dynamic check to ensure both emails match | 1 | 2 | 2 |
 | DevOps: establish rotation criteria for log files | 1 | 2 | 2 |
-| Registration should be limited to real emails using a confirmation link | 1 | 2 | 2 |
 | All user profile fields should be editable (not only email). Include the ability to delete a user and unlink from a player (player remains valid) | 2 | 1 | 2 |
-| Add a “verify results” option to matches: Verified (True/False), Verified by (User), Verified on (Date) | 2 | 1 | 2 |
 | Advanced stats page for additional rankings: more matches played, best win rate (min. 10 matches), hot players (ranking increase), new players | 2 | 1 | 2 |
 | Rolling news bar at the top of home page with latest ranking movements (top 10) and/or last matches added | 2 | 1 | 2 |
-| Add a gender field to players | 1 | 1 | 1 |
-| Add gender filters to the ranking (all, men, women, mixed). Requires marking match gender and a new gender input in match form | 1 | 1 | 1 |
 | Add throttling control to prevent brute force attacks on login and registration | 1 | 1 | 1 |
 
 ---
