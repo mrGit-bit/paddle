@@ -11,7 +11,46 @@ Since v1.0.4 the project is two products in one repo in GitHub: a Web app and an
 - API (Django Rest Framework)
 - DevOps: anything that supports running and delivering the web or mobile apps.
 
-Every change should belong to one of the following categories: `added`, `changed`, `updated`, `upgraded`, `improved`, `removed` or `fixed`.
+Every change should belong to one of the following categories: `added`, `changed`, `replaced`, `updated`, `upgraded`, `improved`, `removed` or `fixed`.
+
+## [1.2.0] - 2026-01-24
+
+- Added scoped gender-based rankings.
+- Improved UX/UI across multiple views and features.
+
+### Web
+
+- Added:
+  - scoped rankings: `all` ("Todos los partidos"), `male` ("Partidos masculinos"), `female` ("Partidos femeninos") and `mixed` ("Partidos mixtos").
+  - schema fields: `Player.gender` and `Match.match_gender_type` (both temporary nullables).
+  - gender field to registration form: gender required; linking existing unregistered player sets/updates gender.
+  - `compute_gender_type()` function to automatically set `match_gender_type`.
+  - Bootstrap 5 nav-tabs on the ranking page header, visible to all; for navigation between every type of ranking.
+  - unranked players table (players with zero matches) at the bottom of the ranking tables in the last page. Scoped by gender and labeled accordingly.
+  
+- Improved:
+  - Admin experience: enhanced Player/Match admin lists, filters, and bulk actions.
+
+- General UX/UI consistency:  
+  - Unified message positioning and tone.
+  - Added persistence for the last selected ranking scope.
+  - Enhanced `playerLabelUpdater.js` with real-time hints when creating a new player from the match form.
+  
+- Changed:
+  - match entry form: replaced datalist with a dropdown select for player selection and creation of players with gender.
+  
+- Updated:
+  - legacy players gender in the database (manually set) .
+  
+- Removed
+  - the edit option from matches played (disputes are handled by delete + re-create)
+  - the edit button from the UI, the edit JS and any edit-mode logic.
+  -`matchEdit.js` as it is no longer used.
+  - Persist last selected ranking scope.
+
+- Improved:
+  - Keep only one real ranking view function `ranking_view` while keeping `hall_of_fame_view` as a thin wrapper just to preserve URL names across templates and tests.
+  - Moved ranking calculation to an external service file (`services/ranking.py`).
 
 ## [1.1.1] - 2026-01-01
 
@@ -62,7 +101,7 @@ Tournament management new functionality added.
 
 ## [1.0.6] – 2025-12-08
 
-Fixed problem of lenghty time loading of the logo image in the navbar.
+Fixed problem of lengthy time loading of the logo image in the navbar.
 
 ### Web
 
@@ -124,8 +163,8 @@ Added logo in base.html, fixed overlapping in android 15 and improved static fil
 
 ### Fixed
 
-- Autocomplete attribute fixed in login and register input templates forms to adapt autofilling.
-- Autocapitalize, autocorrect and spellcheck attributes fixed in login and register input templates forms to avoid autocorrections in mobile browsers.
+- Autocomplete attribute fixed in login and register input templates forms to adapt auto filling.
+- Autocapitalize, autocorrect and spellcheck attributes fixed in login and register input templates forms to avoid auto corrections in mobile browsers.
 
 ---
 
@@ -134,7 +173,7 @@ Added logo in base.html, fixed overlapping in android 15 and improved static fil
 ### Added
 
 - Admin users now see two additional navigation links in the navbar: one to the staging site and one to the Django admin site.
-- New template for the about page, including app stadistics, version number and contact email.
+- New template for the about page, including app statistics, version number and contact email.
 - In the registration form, the required fields are now marked with an asterisk.
 
 ### Changed

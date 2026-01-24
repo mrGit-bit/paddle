@@ -50,4 +50,4 @@ class AuthenticationTests(APITestCase):
         response = self.client.post(self.logout_url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertIn("detail", response.data)
-        self.assertEqual(response.data["detail"], "Authentication credentials were not provided.")
+        

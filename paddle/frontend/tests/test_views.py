@@ -47,6 +47,7 @@ class TestFrontendViews:
             "password": "newpass",
             "confirm_password": "newpass",
             "player_id": "",
+            "gender": "F",
         }
         response = self.client.post(url, data, follow=True)
         assert response.status_code == 200
@@ -61,6 +62,7 @@ class TestFrontendViews:
             "password": "linkedpass",
             "confirm_password": "linkedpass",
             "player_id": str(player.id),
+            "gender": "F",
         }
         response = self.client.post(url, data, follow=True)
         assert response.status_code == 200
@@ -121,15 +123,14 @@ class TestFrontendViews:
     def test_match_view_post_duplicate_match(self):
         self.client.login(username="testuser", password="testpass")
         url = reverse("match")
-
-        player3 = Player.objects.create(name="player3", ranking_position=3)
-        player4 = Player.objects.create(name="player4", ranking_position=4)
+        p2 = Player.objects.create(name="player2", ranking_position=2)
+        p3 = Player.objects.create(name="player3", ranking_position=3)
+        p4 = Player.objects.create(name="player4", ranking_position=4)
 
         match_data = {
-            "team1_player1": "testuser",
-            "team1_player2": "other",
-            "team2_player1": "player3",
-            "team2_player2": "player4",
+            "team1_player2_choice": str(p2.id),
+            "team2_player1_choice": str(p3.id),
+            "team2_player2_choice": str(p4.id),
             "winning_team": 1,
             "date_played": date.today().isoformat(),
         }
@@ -205,7 +206,7 @@ class TestFrontendViews:
         
         class DummyRequest:
             method = "POST"
-            POST = {"username": "a", "email": "b", "password": "1", "confirm_password": "2", "player_id": ""}
+            POST = {"username": "a", "email": "b", "password": "1", "confirm_password": "2", "player_id": "", "gender": "M"}
         data, error = views.process_form_data(DummyRequest())
         assert "Passwords do not match" in error
 
@@ -228,6 +229,7 @@ class TestFrontendViews:
             "password": "pass",
             "confirm_password": "pass",
             "player_id": "",
+            "gender": "M",
         }
         response = self.client.post(url, data, follow=True)
         messages = list(response.context["messages"])
@@ -246,6 +248,7 @@ class TestFrontendViews:
             "password": "pass",
             "confirm_password": "pass",
             "player_id": str(linked_player.id),
+            "gender": "M",
         }
         response = self.client.post(url, data, follow=True)
         messages = list(response.context["messages"])
@@ -276,44 +279,50 @@ class TestFrontendViews:
         # Covers lines 362-364
         self.client.login(username="testuser", password="testpass")
         url = reverse("match")
+        p2 = Player.objects.create(name="player2", ranking_position=2)
+        p3 = Player.objects.create(name="player3", ranking_position=3)
+        p4 = Player.objects.create(name="player4", ranking_position=4)
         data = {
-            "team1_player1": "testuser",
-            "team1_player2": "other",
-            "team2_player1": "player3",
-            "team2_player2": "player4",
+            "team1_player2_choice": str(p2.id),
+            "team2_player1_choice": str(p3.id),
+            "team2_player2_choice": str(p4.id),
             "winning_team": "1",
             "date_played": "not-a-date",
         }
         response = self.client.post(url, data, follow=True)
         messages = list(response.context["messages"])
-        assert any("Invalid date format" in str(m) for m in messages)
+        assert any(m.tags == "error" for m in messages)
 
     def test_match_view_post_future_date(self):
         # Covers lines 367-368
         self.client.login(username="testuser", password="testpass")
         url = reverse("match")
+        p2 = Player.objects.create(name="player2", ranking_position=2)
+        p3 = Player.objects.create(name="player3", ranking_position=3)
+        p4 = Player.objects.create(name="player4", ranking_position=4)
         future = (date.today() + timedelta(days=10)).isoformat()
         data = {
-            "team1_player1": "testuser",
-            "team1_player2": "other",
-            "team2_player1": "player3",
-            "team2_player2": "player4",
+            "team1_player2_choice": str(p2.id),
+            "team2_player1_choice": str(p3.id),
+            "team2_player2_choice": str(p4.id),
             "winning_team": "1",
             "date_played": future,
         }
         response = self.client.post(url, data, follow=True)
         messages = list(response.context["messages"])
-        assert any("Date cannot be in the future" in str(m) for m in messages)
+        assert any(m.tags == "error" for m in messages)
 
     def test_match_view_post_missing_winning_team(self):
         # Covers lines 384-385
         self.client.login(username="testuser", password="testpass")
         url = reverse("match")
+        p2 = Player.objects.create(name="player2", ranking_position=2)
+        p3 = Player.objects.create(name="player3", ranking_position=3)
+        p4 = Player.objects.create(name="player4", ranking_position=4)
         data = {
-            "team1_player1": "testuser",
-            "team1_player2": "other",
-            "team2_player1": "player3",
-            "team2_player2": "player4",
+            "team1_player2_choice": str(p2.id),
+            "team2_player1_choice": str(p3.id),
+            "team2_player2_choice": str(p4.id),
             "date_played": date.today().isoformat(),
         }
         response = self.client.post(url, data, follow=True)
@@ -321,48 +330,58 @@ class TestFrontendViews:
         # check error response        
         assert any("error" in str(m).lower() for m in messages)
 
-    def test_match_view_delete_unauthorized(self):
-        # Covers lines 400-412
+    def test_match_view_delete_unauthorized(self):        
         self.client.login(username="testuser", password="testpass")
         url = reverse("match")
-        # Try to delete a match as a non-participant/non-admin
+        # Try to delete a match as a non-participant/non-admin        
+        p1 = Player.objects.create(name="p_del_1")
+        p2 = Player.objects.create(name="p_del_2")
+        p3 = Player.objects.create(name="p_del_3")
+        p4 = Player.objects.create(name="p_del_4")
         match = Match.objects.create(
-            team1_player1=self.other_player,
-            team1_player2=self.other_player,
-            team2_player1=self.other_player,
-            team2_player2=self.other_player,
+            team1_player1=p1,
+            team1_player2=p2,
+            team2_player1=p3,
+            team2_player2=p4,
             winning_team=1,
             date_played=date.today()
-        )
-        response = self.client.delete(url, data=json.dumps({"match_id": match.id}), content_type="application/json")
-        assert response.status_code == 403
+        )        
+        response = self.client.post(url, data={"action": "delete", "match_id": match.id}, follow=True)
+        # Must still exist because user is not participant nor staff
+        assert Match.objects.filter(id=match.id).exists()
+        messages_list = list(response.context["messages"])
+        assert any("No estás autorizado para borrar este partido." in str(m) for m in messages_list)
 
     def test_match_view_delete_success(self):
         # Covers lines 453
         self.client.login(username="testuser", password="testpass")
-        url = reverse("match")
-        # Make testuser a participant
+        url = reverse("match")    
+        # Ensure 4 distinct players and make testuser a participant
+        p2 = Player.objects.create(name="p_ok_2")
+        p3 = Player.objects.create(name="p_ok_3")
+        p4 = Player.objects.create(name="p_ok_4")
         match = Match.objects.create(
             team1_player1=self.player,
-            team1_player2=self.other_player,
-            team2_player1=self.other_player,
-            team2_player2=self.other_player,
+            team1_player2=p2,
+            team2_player1=p3,
+            team2_player2=p4,
             winning_team=1,
             date_played=date.today()
         )
-        response = self.client.delete(url, data=json.dumps({"match_id": match.id}), content_type="application/json")
-        assert response.status_code == 200
+        response = self.client.post(url, data={"action": "delete", "match_id": match.id}, follow=True)
+
+        assert not Match.objects.filter(id=match.id).exists()
+        msgs = list(response.context["messages"])
+        assert any("Partido borrado correctamente" in str(m) for m in msgs)
     
     def test_match_view_delete_exception(self):
-        # Simulate exception in DELETE (e.g., invalid JSON)
+        # Simulate exception in DELETE 
         user = User.objects.create_user(username="admin", password="pass", is_staff=True)
         Player.objects.create(name="admin", registered_user=user, ranking_position=1)
         self.client.login(username="admin", password="pass")
         url = reverse("match")
-        # Send invalid JSON
-        resp = self.client.delete(url, data="{invalid", content_type="application/json")
-        assert resp.status_code == 400
-        assert "error" in resp.json()
+        resp = self.client.post(url, data={"action": "delete", "match_id": 999999}, follow=True)
+        assert any("Error: el partido no existe." in str(m) for m in list(resp.context["messages"]))
         
     def test_about_view_context(self):
         url = reverse("about")

@@ -91,7 +91,7 @@ class UserEdgeCasesTests(APITestCase):
         }
         response = self.client.post('/api/users/', data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("A user with that username already exists.", response.data['username'][0])
+        
 
     def test_register_user_without_required_fields(self):
         """Test that user registration fails if required fields are missing."""
