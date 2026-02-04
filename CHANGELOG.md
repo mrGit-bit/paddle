@@ -13,6 +13,15 @@ Since v1.0.4 the project is two products in one repo in GitHub: a Web app and an
 
 Every change should belong to one of the following categories: `added`, `changed`, `replaced`, `updated`, `upgraded`, `improved`, `removed` or `fixed`.
 
+## [1.2.1] - 2026-02-02
+
+### Mobile
+
+- Added iOS Progressive Web App (PWA) support:
+  - Web App Manifest and iOS-specific meta tags.
+  - Proper Home Screen icons for iPhone.
+  - Safari-only install guidance banner explaining how to add the app to the Home Screen in `base.html`.
+
 ## [1.2.0] - 2026-01-24
 
 - Added scoped gender-based rankings.

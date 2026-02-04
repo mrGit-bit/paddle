@@ -1,8 +1,11 @@
 <!-- markdownlint-disable MD051 -->
 <!-- markdownlint-disable MD033 -->
 <!-- markdownlint-disable MD060 -->
+<!-- markdownlint-disable MD024 -->
 
 # 🏆 Paddle Tennis Hall of Fame
+
+<a id="overview"></a>
 
 ## 📖 Overview
 
@@ -27,22 +30,24 @@ The project is two products in the same repo in GitHub:
 
 ### 🔗 Index
 
-- [📖 Overview](#📖-overview)
-- [🔗 Index](#🔗-index)
-- [✨ Key Features & Implementation](#✨-key-features--implementation)
-- [🛠️ Technologies Used](#🛠️-technologies-used)
-- [🗂️ Project Structure](#🗂️-project-structure)
-- [📡 API Endpoints](#📡-api-endpoints)
-- [🌐 Frontend Endpoints & Templates](#🌐-frontend-endpoints--templates)
-- [🛠️ JavaScript Functionalities](#🛠️-javascript-functionalities)
-- [📑 Pagination](#📑-pagination)
-- [📱 Android Mobile App](#📱-android-mobile-app)
-- [🧪 Testing](#🧪-testing)
-- [🚀 Installation](#🚀-installation)
-- [🤝 Contributing](#🤝-contributing)
-- [📄 License](#📄-license)
+- [📖 Overview](#overview)
+- [✨ Key Features & Implementation](#key-features)
+- [🛠️ Technologies Used](#technologies)
+- [🗂️ Project Structure](#project-structure)
+- [📡 API Endpoints](#api-endpoints)
+- [🌐 Frontend Endpoints & Templates](#frontend-endpoints)
+- [🛠️ JavaScript Functionalities](#javascript)
+- [📑 Pagination](#pagination)
+- [📱 Android Mobile App](#android-app)
+- [📱 iOS Mobile App](#ios-app)
+- [🧪 Testing](#testing)
+- [🚀 Installation](#installation)
+- [🤝 Contributing](#contributing)
+- [📄 License](#license)
 
 ---
+
+<a id="key-features"></a>
 
 ### ✨ Key Features & Implementation
 
@@ -176,6 +181,8 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
 
 ---
 
+<a id="technologies"></a>
+
 ## 🛠️ Technologies Used
 
 - **Backend**: Django Rest Framework (DRF)
@@ -195,6 +202,8 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 
 ---
+
+<a id="project-structure"></a>
 
 ## 🗂️ Project Structure
 
@@ -235,20 +244,6 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
 └── .env                    # Environment variables
 ```
 
-- Configuration files:
-
-```bash
-├── config/            # Project configuration and settings
-│   ├── __init__.py    # Allows notations like config.settings, config.urls, etc.
-│   └── settings/      # Different settings for development and production
-│     ├── __init__.py  # Allows i.e. from config.settings import dev
-│     ├── base.py      # Common settings
-│     ├── dev.py       # Development-specific settings
-│     └── prod.py      # Production-specific settings│    
-│ ├── urls.py
-│ └── wsgi.py
-```
-
 - Tests folders and files:
 
 ```bash
@@ -283,13 +278,21 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
 │   ├── static/frontend/          # Static files for the frontend in development
 │   │   ├── css/                  # Stylesheets
 │   │   │   └── styles.css        # Custom styles for the frontend overriding Bootstrap styles
-│   │   ├── js/                   # JavaScript files
-│   │   │   ├── editUserProfile.js      # Send a PATCH request to the API for updating user details
-│   │   │   ├── matchDeleteHighlight.js # On deletion update match card background dynamically
-│   │   │   ├── passwordValidation.js   # Confirm password match
-│   │   │   ├── playerLabelUpdater.js   # Update player labels dynamically on match form
-│   │   │   ├── tabPaginationReset.js   # Update pagination dynamically on tab change
-│   │   │   └── winningTeamHighlight.js # Update winning team card background
+│   │   ├── img/                  # Images
+│   │   │   ├── ios-share.svg
+│   │   │   ├── logo_96.png
+│   │   │   ├── logo_96.webp
+│   │   │   ├── logo_180.png
+│   │   │   ├── logo_192.png
+│   │   │   ├── logo_512.png
+│   │   │   └── logo_1025.png
+│   │   └── js/                   # JavaScript files
+│   │       ├── editUserProfile.js      # Send a PATCH request to the API for updating user details
+│   │       ├── matchDeleteHighlight.js # On deletion update match card background dynamically
+│   │       ├── passwordValidation.js   # Confirm password match
+│   │       ├── playerLabelUpdater.js   # Update player labels dynamically on match form
+│   │       ├── tabPaginationReset.js   # Update pagination dynamically on tab change
+│   │       └── winningTeamHighlight.js # Update winning team card background
 │   ├── templates/frontend/       # Folder containing Django templates
 │   │   ├── _match_card.html      # Match history card to be included in match.html
 │   │   ├── _pagination.html      # Reusable pagination component
@@ -310,6 +313,8 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 
 ---
+
+<a id="api-endpoints"></a>
 
 ## 📡 API Endpoints
 
@@ -377,6 +382,8 @@ In development, the `api-auth` app provides endpoints for login and logout when 
 
 ---
 
+<a id="frontend-endpoints"></a>
+
 ## 🌐 Frontend Endpoints & Templates
 
 ### 🏗️ Foundation Template
@@ -429,6 +436,8 @@ These partial templates are reusable components designed to be included in other
 
 ---
 
+<a id="javascript"></a>
+
 ## 🛠️ JavaScript Functionalities
 
 - `passwordValidation.js`: Checks if the password and confirm password fields match, and dynamically displays an error message if they don't. Is used in `register.html`.
@@ -447,6 +456,8 @@ These partial templates are reusable components designed to be included in other
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 
 ---
+
+<a id="pagination"></a>
 
 ## 🔄 Pagination
 
@@ -480,45 +491,112 @@ The frontend leverages Bootstrap 5's pagination component to provide a user-frie
 
 ---
 
+<a id="android-app"></a>
+
 ## 📱 Android Mobile App
 
-An Android mobile app is available, built with Capacitor and using a WebView shell that loads the same web application as the desktop/mobile browser version.
+An Android mobile app is available, built with Capacitor and implemented as a WebView-based native wrapper that loads the same web application used in desktop and mobile browsers.
 
 ### How it works
 
 - The app does not duplicate business logic; it simply wraps the existing web frontend.
-- The WebView points to staging & production urls.
-- Session authentication and cookies are reused exactly as in the browser version.
+- It consists of:
+  - An native Android shell (APK/AAB)
+  - An embedded WebView managed by Capacitor
+- The WebView loads the live web application from:
+  - Staging (`https://staging.rankingdepadel.club`)
+  - Production (`https://rankingdepadel.club`)
+- Session-based authentication and cookies are reused exactly as in the browser version.
+- UI and behavior remain consistent with the web app, while native Android-specific behavior (fonts, system UI, edge-to-edge handling) is handled at the wrapper level.
 
 ### Distribution
 
 - The app is built as an **Android App Bundle (AAB)** using a GitHub Actions workflow.
 - Signed AABs are uploaded to **Google Play Console** and distributed via the **Internal Testing** track.
-- Testers gain access through the Google Play testing link and receive updates from the Play Store like any other app.
+- Testers install and update the app through the Play Store like any standard Android application.
 
-> Note: The native Android project lives in the `mobile/` folder (Capacitor project) within this repository.
+> Note: The native Android project (Capacitor configuration and Android build files) lives in the mobile/ folder within this repository.
+
+<div style="text-align: right"><a href="#index">Back to Index</a></div>
 
 ---
 
+<a id="ios-app"></a>
+
+## 📱 iOS Mobile App
+
+An iOS mobile app experience is available via a Progressive Web App (PWA), allowing iPhone and iPad users to install and run the application without using the App Store.
+
+### How it works
+
+- The iOS app is delivered as a Progressive Web App (PWA) built directly from the existing web application.
+- No native iOS wrapper or App Store distribution is used.
+- Users install the app using Safari via:
+  - Safari → Share → Add to Home Screen
+- Once installed, the app:
+  - Runs in standalone full-screen mode
+  - Uses the same UI, routes, and backend as the web and Android versions
+  - Reuses session-based authentication and cookies exactly as in the browser
+- Updates are delivered instantly on every web deployment (no app updates required).
+- Native capabilities are limited by iOS PWA constraints:
+  - No native plugins (camera, biometrics, etc.)
+  - Background execution and system integrations are more restricted than in the Android app
+
+### Distribution
+
+- The app is not distributed via the App Store.
+- Installation is performed directly by the user from the browser.
+- This approach avoids Apple Developer Program requirements and macOS/Xcode dependencies.
+
+> Note: This PWA-based iOS app provides an app-like experience while keeping maintenance and operational complexity minimal.
+
+<div style="text-align: right"><a href="#index">Back to Index</a></div>
+
+---
+
+<a id="testing"></a>
+
 ## 🧪 Testing
 
-The project comes with a suite of tests for the `games`, `users`, and `frontend` apps. The tests can be run using the `pytest` command from the project's root directory. These tests cover authentication, authorization and model logic. Frontend template rendering tests are left for future development.
+The project comes with a suite of tests for the API (`games` and `users`), and `frontend` apps.
 
-The test files follow the naming conventions:
+### Test files
 
-- `frontend/tests/test_views.py`
 - `frontend/tests/test_login.py`
+- `frontend/tests/test_password_reset.py`
+- `frontend/tests/test_players_stats.py`
+- `frontend/tests/test_ranking_redirect.py`
+- `frontend/tests/test_ranking_ties.py`
+- `frontend/tests/test_views_coverage_extra.py`
+- `frontend/tests/test_views.py`
+- `americano/tests/test_americano_views.py`
 - `games/tests/test_permissions.py`
 - `games/tests/test_players.py`
 - `games/tests/test_stats.py`
 - `users/tests/test_authentication.py`
 - `users/tests/test_permissions.py`
 - `users/tests/test_register.py`
-- `americano/tests/test_americano_views.py`
+
+### Test coverage
+
+Ensure first that all tests pass with:
+
+```bash
+pytest -q
+```
+
+and then that more than 90% of frontend and americano code is covered by tests using:
+
+```bash
+pytest /workspaces/paddle/paddle/frontend/tests/ --cov=frontend.views --cov-report=term-missing
+pytest /workspaces/paddle/paddle/americano/tests/test_americano_views.py --cov=americano.views --cov-report=term-missing
+```
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
 
 ---
+
+<a id="installation"></a>
 
 ## 🚀 Installation
 
@@ -629,6 +707,8 @@ python manage.py runserver
 
 ---
 
+<a id="contributing"></a>
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please follow these steps:
@@ -642,6 +722,10 @@ Contributions are welcome! Please follow these steps:
 7. Open a pull request from the branch `feature-name` to `develop`.
 
 <div style="text-align: right"><a href="#index">Back to Index</a></div>
+
+---
+
+<a id="license"></a>
 
 ## 📄 License
 
