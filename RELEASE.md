@@ -125,7 +125,7 @@ But, when testing CRUD operations with the mobile app, the staging server and st
     },
     ```
 
-- To staging server is password protected, so, to avoid login & password request using the mobile app, temporarily  comment / uncomment in the staging server file `/etc/nginx/sites-available/paddle` the password authentication:
+- Because the staging server is password protected, to avoid login & password request using the mobile app, temporarily  comment / uncomment in the staging server file `/etc/nginx/sites-available/paddle` the password authentication following lines:
 
 ```bash
 # auth_basic           "Restricted Area";
