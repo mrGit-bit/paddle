@@ -14,7 +14,8 @@
     <meta name="mobile-web-app-capable" content="yes">
     <!-- Explicitly set this for Apple (Safari) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="dark">
+    <meta name="theme-color" content="#144D29">
     <meta name="apple-mobile-web-app-title" content="Ranking de Pádel">
     <link rel="apple-touch-icon" href="{% static 'frontend/img/logo_180.png' %}">
 
@@ -214,8 +215,32 @@
       {% endblock %}
     </main>
 
+    <!-- iOS install banner (Safari only) -->
+    <div
+      id="ios-install-banner"
+      class="alert alert-info alert-dismissible fade show d-none text-center"
+      role="alert"
+    >
+      <strong>
+        <i class="bi bi-apple mx-1 align-text-bottom" aria-hidden="true"></i>
+        Instala la app en tu iPhone / iPad :
+      </strong><br>
+      Pulsa <strong>Compartir 
+        <i class="bi bi-box-arrow-up mx-1 align-text-bottom" aria-hidden="true"></i></strong>      
+      y luego <strong>
+        <br>
+        <i class="bi bi-plus-square mx-1 align-text-bottom" aria-hidden="true"></i>
+        Añadir a pantalla de inicio </strong>
+      <button
+        type="button"
+        class="btn-close"
+        aria-label="Cerrar"
+        data-bs-dismiss="alert"
+      ></button>
+    </div>
+
     <!-- Footer -->
-    <footer class="text-center py-3 mt-5">
+    <footer class="text-center py-3 mt-0">
       <a href="{% url 'hall_of_fame' %}" class="footer-link d-block">
         <p class="mb-0">
           🏓©2025 www.rankingdepadel.club🏓
@@ -223,24 +248,6 @@
       </a>
     </footer>
 
-    <!-- iOS install banner (Safari only) -->
-    <div
-      id="ios-install-banner"
-      class="alert alert-info alert-dismissible fade show d-none text-center"
-      role="alert"
-    >
-      <strong>Instala la app</strong><br>
-      Pulsa <strong>Compartir</strong>
-      <i class="bi bi-box-arrow-up mx-1 align-text-bottom" aria-hidden="true"></i> 
-      y luego <strong>“Añadir a la pantalla de inicio”</strong>.
-      <button
-        type="button"
-        class="btn-close"
-        aria-label="Cerrar"
-        data-bs-dismiss="alert"
-      ></button>
-
-    </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
