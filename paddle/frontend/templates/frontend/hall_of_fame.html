@@ -51,19 +51,19 @@
   <li class="nav-item">
     <a class="nav-link {% if ranking_scope == 'male' %}active{% endif %}"
     href="{% url 'ranking_male' %}">
-    👬♂️
+    Masc.
   </a>
 </li>
 <li class="nav-item">
   <a class="nav-link {% if ranking_scope == 'female' %}active{% endif %}"
   href="{% url 'ranking_female' %}">
-  👭♀️
+  Fem.
 </a>
 </li>
 <li class="nav-item">
   <a class="nav-link {% if ranking_scope == 'mixed' %}active{% endif %}"
   href="{% url 'ranking_mixed' %}">
-  ♂️♀️
+  Mixtos
 </a>
 </li>
 </ul>
@@ -78,6 +78,8 @@
         Ranking de <b>partidos femeninos</b>
       {% elif ranking_scope == "mixed" %}
         Ranking de <b>partidos mixtos</b>
+      {% else %}
+        Ranking de <b>todos los partidos</b>
       {% endif %}
     </p>
   {% endif %}

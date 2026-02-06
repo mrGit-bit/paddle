@@ -24,6 +24,7 @@ h1, h2, h3 {
 /* Navbar */
 .navbar {
   background-color: #144D29; /* dark green background */
+  padding-top: env(safe-area-inset-top); /* for iOS */
 }
 
 .navbar-brand,
