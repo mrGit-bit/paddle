@@ -11,7 +11,13 @@ Since v1.0.4 the project is two products in one repo in GitHub: a Web app and an
 - API (Django Rest Framework)
 - DevOps: anything that supports running and delivering the web or mobile apps.
 
-Every change should belong to one of the following categories: `added`, `changed`, `replaced`, `updated`, `upgraded`, `improved`, `removed` or `fixed`.
+Every change should belong to one of the following categories: `added`, `changed`, `removed` or `fixed`.
+
+## [Unreleased] - 2026-02-09
+
+### Changed
+
+- About page "Versión" now comes from `.env` `APP_VERSION` instead of hardcoded text (fallback —).
 
 ## [1.2.1] - 2026-02-02
 

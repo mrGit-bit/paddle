@@ -46,6 +46,7 @@ TEMPLATES = [
         "OPTIONS": {
             "context_processors": [
                 "americano.context_processors.americano_nav",
+                "frontend.context_processors.app_version",
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth", 
@@ -150,4 +151,3 @@ EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = f"{config('FROM_NAME', default='Ranking de Pádel')} <{config('DEFAULT_FROM_EMAIL', default='no-reply@rankingdepadel.club')}>"
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
-
