@@ -15,6 +15,10 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ## [Unreleased] - 2026-02-09
 
+### Added
+
+- Added favicon.ico.
+
 ### Changed
 
 - About page "Versión" now comes from `.env` `APP_VERSION` instead of hardcoded text (fallback —).
