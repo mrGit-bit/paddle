@@ -19,6 +19,10 @@ Every change should belong to one of the following categories: `added`, `changed
 
 - Added favicon.ico.
 
+### Fixed
+
+- Fixed inconsistent pagination by ordering Player queryset before paginating.
+
 ### Changed
 
 - About page "Versión" now comes from `.env` `APP_VERSION` instead of hardcoded text (fallback —).

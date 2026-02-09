@@ -102,6 +102,9 @@ def fetch_paginated_data(queryset, request, page_size=12):
     except ValueError:
         page = 1
 
+    if getattr(queryset, "model", None) == Player:
+        queryset = queryset.order_by("ranking_position", "id")
+
     paginator = Paginator(queryset, page_size)
     page_obj = paginator.get_page(page)
     items = list(page_obj.object_list)
@@ -636,5 +639,4 @@ def about_view(request):
         "contact_email": contact_email,
     }
     return render(request, "frontend/about.html", context)
-
 
