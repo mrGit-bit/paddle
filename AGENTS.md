@@ -89,6 +89,12 @@ Avoid speculative refactors and large rewrites unless explicitly requested.
 
 ---
 
+## Summary of changes
+
+Make a summary of the changes.
+
+---
+
 ## Commit Message Suggestions (for Codex output)
 
 When a task produces a standalone change that should be committed independently

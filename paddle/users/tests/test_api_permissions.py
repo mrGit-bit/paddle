@@ -87,3 +87,25 @@ class UserViewSetPermissionsTests(APITestCase):
         self.client.login(username="user1", password="password1")
         response = self.client.delete(f"/api/users/{self.user2.id}/")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class AuthenticationAndPermissionsTests(APITestCase):
+    def setUp(self):
+        # Create users and players
+        self.admin_user = User.objects.create_superuser(username="admin", password="adminpassword")
+        self.user = User.objects.create_user(username="testuser", password="testpassword")
+        self.other_user = User.objects.create_user(username="otheruser", password="otherpassword")
+        self.player = Player.objects.create(name="Test Player", registered_user=self.user)
+        self.other_player = Player.objects.create(name="Other Player", registered_user=self.other_user)
+
+    """Test user can update or delete their own profile but not others'."""
+    def test_user_can_modify_own_profile(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.patch(f'/api/users/{self.user.id}/', {"username": "newusername"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["username"], "newusername")
+        
+    # User cannot modify another user's profile
+    def test_user_cannot_modify_other_user_profile(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.patch(f'/api/users/{self.other_user.id}/', {"username": "newusername"})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
