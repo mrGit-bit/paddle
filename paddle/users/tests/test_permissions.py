@@ -87,17 +87,3 @@ class UserViewSetPermissionsTests(APITestCase):
         self.client.login(username="user1", password="password1")
         response = self.client.delete(f"/api/users/{self.user2.id}/")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-    def test_create_player_permissions_admin_user(self):
-        """Test that admin users can create a player for any user."""
-        self.client.login(username="admin", password="adminpassword")
-        player_data = {"name": "New Player"}  
-        response = self.client.post("/api/games/players/", player_data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-    def test_create_player_permission_regular_user(self):
-        """Test that regular users cannot create a player."""
-        self.client.login(username="user1", password="password1")
-        player_data = {"name": "New Player"}
-        response = self.client.post("/api/games/players/", player_data)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

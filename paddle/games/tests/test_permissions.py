@@ -142,3 +142,30 @@ class PlayerPermissionsTests(APITestCase):
         self.client.force_authenticate(user=self.admin_user)
         response = self.client.delete(f'/api/games/matches/{self.match.id}/')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+
+class PlayerCreationPermissionsTests(APITestCase):
+    def setUp(self):
+        # Create test users
+        self.user1 = User.objects.create_user(username="user1", password="password1", email="user1@example.com")
+        self.user2 = User.objects.create_user(username="user2", password="password2", email="user2@example.com")
+        self.admin_user = User.objects.create_superuser(username="admin", password="adminpassword", email="admin@example.com")
+
+        # Ensure each user has a linked Player 
+        self.player1 = Player.objects.create(name=self.user1.username, registered_user=self.user1)
+        self.player2 = Player.objects.create(name=self.user2.username, registered_user=self.user2)
+        self.admin_player = Player.objects.create(name=self.admin_user.username, registered_user=self.admin_user)
+
+    def test_create_player_permissions_admin_user(self):
+        """Test that admin users can create a player for any user."""
+        self.client.login(username="admin", password="adminpassword")
+        player_data = {"name": "New Player"}  
+        response = self.client.post("/api/games/players/", player_data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_create_player_permission_regular_user(self):
+        """Test that regular users cannot create a player."""
+        self.client.login(username="user1", password="password1")
+        player_data = {"name": "New Player"}
+        response = self.client.post("/api/games/players/", player_data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
