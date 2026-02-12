@@ -1,14 +1,14 @@
-# AGENTS.md — Minimal AI Coding Guidance
+<!-- markdownlint-disable MD025 -->
+# AGENTS.md — Minimal AI Coding Guidance (Refined)
 
-This file defines **baseline constraints** for AI coding agents (e.g. Codex CLI)
-working on the `rankingdepadel.club` project.
+This file defines **baseline constraints and output standards** for AI coding agents (e.g., Codex CLI) working on the `rankingdepadel.club` project.
 
-It is intentionally minimal.
-All detailed instructions are provided explicitly per task.
+It is intentionally minimal in architecture.
+All detailed feature instructions are provided explicitly per task.
 
 ---
 
-## Project Context
+# 1. Project Context
 
 - Stack: Django + Django REST Framework
 - Frontend: Django Templates + Bootstrap 5
@@ -19,52 +19,59 @@ All detailed instructions are provided explicitly per task.
 
 ---
 
-## Core Coding Principles (Mandatory)
+# 2. Core Coding Principles (Mandatory)
 
 - **DRY** — Do not duplicate logic.
 - **KISS** — Prefer the simplest working solution.
-- **SRP** — Single Responsibility Principle: One responsibility per module/file.
-- **YAGNI** — You aren't gonna need it: Do not add any functionality without a current need.
+- **SRP** — Single Responsibility Principle.
+- **YAGNI** — No speculative functionality.
 - **Explicit > Implicit** — Readability over cleverness.
 
 Avoid speculative refactors and large rewrites unless explicitly requested.
 
 ---
 
-## Language Rules
+# 3. Language Rules
 
-- **UI text:** Spanish
-- **Code, variables, comments, documentation:** English
+- **UI text:** Spanish  
+- **Code, variables, comments, documentation:** English  
 
 ---
 
-## Backend Rules
+# 4. Backend Rules
 
 - Prefer model properties for computed data.
 - Keep business logic in backend code, not templates.
 - No frontend ranking logic.
+- Reuse existing helpers before introducing new ones.
+- Do not duplicate query logic across views.
 
 ---
 
-## Frontend Rules
+# 5. Frontend Rules
 
 - Use Django templates by default.
 - Prefer Bootstrap 5 over custom CSS or JavaScript.
 - No business logic in templates.
 - Avoid unnecessary JavaScript.
+- Do not duplicate template structures if a partial can be reused.
 
 ---
 
-## Testing Rules
+# 6. Testing Rules
 
 - Framework: pytest + pytest-django
 - Maintain ≥90% coverage.
 - Every feature or fix must include tests or test updates.
 - Run the smallest relevant pytest scope after changes.
+- Tests must validate:
+  - Functional behavior
+  - Edge cases
+  - Expected HTTP status codes
 
 ---
 
-## Changelog Discipline
+# 7. Changelog Discipline
 
 - `CHANGELOG.md` follows *Keep a Changelog*.
 - During development: add entries under `## [Unreleased]`.
@@ -73,47 +80,120 @@ Avoid speculative refactors and large rewrites unless explicitly requested.
 
 ---
 
-## Workflow Expectations
+# 8. Workflow Expectations
 
 - Architectural decisions are made outside the agent.
 - The agent executes **explicit tasks only**.
 - If something is unclear or ambiguous, the agent must stop and ask.
+- The agent must not introduce improvements beyond the defined scope.
 
 ---
 
-## Output Requirements
+# 9. Output Requirements (Strict Format)
 
-- Show file path + only modified sections.
-- Keep diffs minimal and focused.
+Every Codex output must follow this structure:
+
+---
+
+## A. Functional Summary (Human-Level)
+
+Short paragraph explaining:
+
+- What changed
+- Why it changed
+- What the user will experience differently
+
+This must NOT be a list of modified files.
+It must describe behavior.
+
+---
+
+## B. Technical Summary
+
+Bullet list explaining:
+
+- Which components were modified
+- Why changes were necessary
+- How logic was reused
+- Whether any helpers were extracted
+- Any performance implications
+
+---
+
+## C. Files Modified
+
+List only modified or added files.
+
+For each file:
+
+### `path/to/file.py`
+
+Show only modified sections.
+Use clear markers:
+
+```python
+# --- ADDED ---
+# --- MODIFIED ---
+# --- REMOVED ---
+```
+
+Do NOT repeat entire files.
+
+---
+
+## D. Tests
+
+- List tests added or modified.
+- Explain what behavior is validated.
+- Show the pytest command used.
+- Show the test result summary (e.g., `4 passed`).
+
+---
+
+## E. Changelog Entry
+
+Show exactly what was added to `CHANGELOG.md`.
+
+---
+
+## F. Recommended Commit Message
+
+Provide a Conventional Commit-style message aligned with the changelog.
+
+---
+
+# 10. Diff Discipline
+
 - No unrelated changes.
+- No formatting-only changes unless requested.
+- No import reordering unless necessary.
+- No variable renaming unless required.
+- No file moves unless explicitly requested.
 
 ---
 
-## Summary of changes
+# 11. Forbidden Output Patterns
 
-Make a summary of the changes.
+The agent must NOT:
+
+- Output only “modified sections” without summary.
+- Output vague descriptions like “Updated view logic”.
+- Omit explanation of behavior changes.
+- Mix summary with diff.
+- Omit test explanation.
+- Omit changelog content.
 
 ---
 
-## Commit Message Suggestions (for Codex output)
+# 12. Quality Standard
 
-When a task produces a standalone change that should be committed independently
-(e.g., a feature, fix, refactor, or test reorganization), include a recommended
-`git commit` message in the Codex output using **Conventional Commits** style.
+A task is considered complete only if:
 
-Follow these prefixes:
+- Functional summary is clear.
+- Technical summary is precise.
+- Diffs are minimal.
+- Tests are present and passing.
+- Changelog is updated.
+- Commit message is provided.
 
-- **feat:** for new features or enhancements
-- **fix:** for bug fixes and small behavior corrections
-- **refactor:** for code restructuring without behavior change
-- **test:** for test file moves, renames, or additions
-- **chore:** for non-user-visible tasks (e.g., documentation)
-
-After the prefix, include a concise description. Commit message subjects should align with the corresponding CHANGELOG entry, using technical wording in commits and user-facing wording in the changelog.
-Examples of templates Codex should output:
-
-- `feat(frontend): add favicon and corresponding test`
-- `fix(frontend): enforce ordering before pagination`
-- `refactor(tests): harmonize frontend test structure`
-- `test(games): reorganize games API tests`
-- `chore: update CHANGELOG.md for About page version`
+If any of the above is missing, the task is incomplete.

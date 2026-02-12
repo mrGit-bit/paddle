@@ -7,7 +7,7 @@ from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.utils.safestring import mark_safe
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from datetime import date, datetime
 from games.models import Player, Match
@@ -226,6 +226,42 @@ def fetch_available_players():
     non_registered_players = sorted(non_registered_players, key=lambda player: player['name'].lower())
     return list(registered_players), list(non_registered_players)
 
+
+def build_all_players():
+    """
+    Returns the merged players list used in selects, sorted alphabetically.
+    """
+    registered_players, non_registered_players = fetch_available_players()
+    all_players = sorted(
+        list(registered_players) + list(non_registered_players),
+        key=lambda p: p["name"].lower(),
+    )
+    return registered_players, non_registered_players, all_players
+
+
+def build_player_matches_queryset(player):
+    """
+    Returns matches where player participates, ordered latest first.
+    """
+    profile_matches_qs = Match.objects.filter(
+        team1_player1=player
+    ) | Match.objects.filter(
+        team1_player2=player
+    ) | Match.objects.filter(
+        team2_player1=player
+    ) | Match.objects.filter(
+        team2_player2=player
+    )
+    return profile_matches_qs.distinct().order_by("-date_played")
+
+
+def get_scoped_player_row(scope: str, player_id: int):
+    """
+    Returns the scoped ranked player object with display_* fields or None.
+    """
+    ranked_players, _, _ = compute_ranking(scope)
+    return next((player for player in ranked_players if player.id == player_id), None)
+
 def process_form_data(request):
     """
     Extract and validate form data from the request.
@@ -386,6 +422,66 @@ def process_matches(matches, current_user, user_icon):
             match.date_played = datetime.strptime(match.date_played, "%Y-%m-%d").date()
     return matches
 
+
+def process_matches_plain(matches):
+    """
+    Processes matches without current-user highlighting (public pages).
+    """
+    for match in matches:
+        for key in ["team1_player1", "team1_player2", "team2_player1", "team2_player2"]:
+            player = getattr(match, key)
+            setattr(match, f"{key}_display", player.name if player else "")
+        if isinstance(getattr(match, "date_played", None), str):
+            match.date_played = datetime.strptime(match.date_played, "%Y-%m-%d").date()
+    return matches
+
+
+def players_view(request):
+    """
+    Public players landing page with selector.
+    """
+    _, _, all_players = build_all_players()
+    new_match_ids = get_new_match_ids(request) or []
+    return render(request, "frontend/players.html", {
+        "all_players": all_players,
+        "selected_player_id": None,
+        "new_matches_number": len(new_match_ids),
+    })
+
+
+def player_detail_view(request, player_id):
+    """
+    Public player profile page with scoped stats and match history.
+    """
+    profile_player = get_object_or_404(Player, id=player_id)
+    _, _, all_players = build_all_players()
+
+    scope_rows = [
+        {"label": "Todos", "scoped_player": get_scoped_player_row("all", profile_player.id)},
+    ]
+    if profile_player.gender == Player.GENDER_MALE:
+        scope_rows.append({"label": "Masc.", "scoped_player": get_scoped_player_row("male", profile_player.id)})
+    elif profile_player.gender == Player.GENDER_FEMALE:
+        scope_rows.append({"label": "Fem.", "scoped_player": get_scoped_player_row("female", profile_player.id)})
+    scope_rows.append({"label": "Mixtos", "scoped_player": get_scoped_player_row("mixed", profile_player.id)})
+
+    profile_matches_qs = build_player_matches_queryset(profile_player)
+    profile_matches, profile_pagination = fetch_paginated_data(profile_matches_qs, request)
+    profile_matches = process_matches_plain(profile_matches)
+
+    new_match_ids = get_new_match_ids(request) or []
+    return render(request, "frontend/player_detail.html", {
+        "profile_player": profile_player,
+        "all_players": all_players,
+        "selected_player_id": profile_player.id,
+        "scope_rows": scope_rows,
+        "profile_matches": profile_matches,
+        "profile_pagination": profile_pagination,
+        "new_match_ids": [],
+        "user_matches": [],
+        "new_matches_number": len(new_match_ids),
+    })
+
 @login_required
 def match_view(request, client=None):
     """    
@@ -533,11 +629,7 @@ def match_view(request, client=None):
 
     # GET option renders the match page (form + table of matches)
     # Fetch players for form
-    registered_players, non_registered_players = fetch_available_players()
-    all_players = sorted(
-        list(registered_players) + list(non_registered_players),
-        key=lambda p: p['name'].lower()
-    )
+    registered_players, non_registered_players, all_players = build_all_players()
 
     # Fetch all matches and paginated
     matches_qs = Match.objects.all().order_by('-date_played')
@@ -639,4 +731,3 @@ def about_view(request):
         "contact_email": contact_email,
     }
     return render(request, "frontend/about.html", context)
-

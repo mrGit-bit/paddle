@@ -18,6 +18,8 @@ Every change should belong to one of the following categories: `added`, `changed
 ### Added
 
 - Added favicon.ico.
+- Added public player pages (`/players/` and `/players/<id>/`) with selector, scoped stats and player match history.
+- Added clickable ranking rows to open player profiles using minimal JS (`rowLink.js`).
 
 ### Fixed
 

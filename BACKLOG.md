@@ -30,7 +30,7 @@ Rules:
 | Add gender in players created in the tournament form | 2 | 2 | 4 |
 | Update about.html to compute also the number of matches played by gender | 1 | 3 | 3 |
 | The success message after creating a match should include changes in the rankings for the match creator (global ranking and by gender) and changes in rate for those rankings | 2 | 3 | 6 |
-| Make player names clickable → profile page | 3 | 1 | 3 |
+
 | Add a new button for the creator of the tournament and for the admin to close the tournament and move it to state "finalizado" even in the same day of the tournament day. Creator/admin could also reopen the tournament for editing during the same day of the tournament. | 1 | 2 | 2 |
 | Dark mode | 1 | 2 | 2 |
 | Email field in the registration form should be duplicated to avoid mistakes; reuse password dynamic check to ensure both emails match | 1 | 2 | 2 |

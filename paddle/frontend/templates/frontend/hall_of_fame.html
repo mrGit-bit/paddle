@@ -110,7 +110,10 @@
         <!-- player data row -->
         {% with rank=player.display_position %}
         <!-- highlight the row of the current user -->
-        <tr class="{% if user_player and player.id == user_player.id %}highlight-zoom{% endif %}">
+        <tr
+          class="clickable-row {% if user_player and player.id == user_player.id %}highlight-zoom{% endif %}"
+          data-href="{% url 'player_detail' player.id %}"
+        >
           <!-- ranking position -->
           <td class="text-center">
             {% if player.show_position %}
@@ -203,4 +206,8 @@
 <!-- Pagination block -->
 {% include "frontend/_pagination.html" with pagination=pagination %}
 
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'frontend/js/rowLink.js' %}"></script>
 {% endblock %}

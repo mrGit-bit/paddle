@@ -86,6 +86,9 @@
                 <a class="nav-link" href="{% if user.is_authenticated %}{% url 'match' %}{% else %}{% url 'login' %}{% endif %}">Partidos</a>  
               {% endif %}              
             </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'players' %}">Jugadores</a>
+            </li>
 
             <!-- Americanos dropdown menu -->
             <li class="nav-item dropdown">
