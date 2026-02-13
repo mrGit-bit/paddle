@@ -283,6 +283,19 @@ def get_player_page_in_scope(scope: str, player_id: int, page_size: int = 12):
     ordinal_index = ranked_players.index(scoped_player) + 1
     return ((ordinal_index - 1) // page_size) + 1
 
+
+def get_scoped_player_and_page(scope: str, player_id: int, page_size: int = 12):
+    """
+    Returns (scoped_player, page) from a single ranking computation.
+    """
+    ranked_players, _, _ = compute_ranking(scope)
+    scoped_player = next((p for p in ranked_players if p.id == player_id), None)
+    if not scoped_player:
+        return None, None
+    ordinal_index = ranked_players.index(scoped_player) + 1
+    page = ((ordinal_index - 1) // page_size) + 1
+    return scoped_player, page
+
 def process_form_data(request):
     """
     Extract and validate form data from the request.
@@ -478,19 +491,20 @@ def player_detail_view(request, player_id):
     _, _, all_players = build_all_players()
 
     scope_rows = [
-        {"label": "Todos", "scope": "all", "url_name": "hall_of_fame", "scoped_player": get_scoped_player_row("all", profile_player.id)},
+        {"label": "Todos", "scope": "all", "url_name": "hall_of_fame"},
     ]
     if profile_player.gender == Player.GENDER_MALE:
-        scope_rows.append({"label": "Masc.", "scope": "male", "url_name": "ranking_male", "scoped_player": get_scoped_player_row("male", profile_player.id)})
+        scope_rows.append({"label": "Masc.", "scope": "male", "url_name": "ranking_male"})
     elif profile_player.gender == Player.GENDER_FEMALE:
-        scope_rows.append({"label": "Fem.", "scope": "female", "url_name": "ranking_female", "scoped_player": get_scoped_player_row("female", profile_player.id)})
-    scope_rows.append({"label": "Mixtos", "scope": "mixed", "url_name": "ranking_mixed", "scoped_player": get_scoped_player_row("mixed", profile_player.id)})
+        scope_rows.append({"label": "Fem.", "scope": "female", "url_name": "ranking_female"})
+    scope_rows.append({"label": "Mixtos", "scope": "mixed", "url_name": "ranking_mixed"})
 
     for row in scope_rows:
-        if not row["scoped_player"]:
+        scoped_player, page = get_scoped_player_and_page(row["scope"], profile_player.id)
+        row["scoped_player"] = scoped_player
+        if not scoped_player:
             row["href"] = None
             continue
-        page = get_player_page_in_scope(row["scope"], profile_player.id)
         if page is None:
             row["href"] = None
             continue
