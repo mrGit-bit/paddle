@@ -62,6 +62,8 @@ Full-stack web application that includes:
   - **Match filtering** by own matches and all matches;
   - A **badge indicator** for the number of new matches not reviewed in the current session;
   - **Real-time validation** during user registration; and,
+  - **Public player pages** with selector and per-player profile (`/players/` and `/players/<id>/`);
+  - **Clickable ranking rows** that open player profiles;
   - **Mini Hall of Fame**: personalized ranking section for users not appearing on the current page
   - Player gender is stored in `Player.gender` and match scope is stored in `Match.match_gender_type` (derived automatically via `compute_gender_type()`).
   - The last selected ranking scope is persisted (session-based) and used after match creation redirects.
@@ -76,12 +78,14 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
   - scoped rankings: **Todos**, **Masculinos**, **Femeninos**, **Mixtos**
   - competition ranking with ties (“1224” style), showing the rank number only for the first row in each tie group
   - an “unranked” table (players with 0 matches in the selected scope) shown only on the last page
+  - clickable rows to navigate directly to public player profile pages
 
 - **Implementation**:
   - Frontend app: a single `ranking_view()` renders all ranking scopes (including `"all"`), with `hall_of_fame_view()` acting as a thin wrapper to preserve URL names.
   - Ranking computation is centralized in `frontend/services/ranking.py` (`compute_ranking(scope)`).
   - Templates (`hall_of_fame.html`, `hof_user_snippet.html`) always render `display_*` fields for consistency across scopes and ties.
   - Navigation between scopes is done via Bootstrap 5 nav-tabs (links, no JS state).
+  - `rowLink.js` enables row-level navigation to player profile pages with minimal JavaScript.
 
 #### Match Results
 
@@ -141,18 +145,26 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
 
 #### Player Details
 
-- Provides detailed profiles for each player, including their ranking position, match history and stats such as wins, matches played, win rate, and losses.
+- Provides public player pages:
+  - `/players/`: player selector.
+  - `/players/<id>/`: detailed profile with match history and scoped stats.
+- Player profile scoped stats preserve tie-aware ranking display:
+  - ranking tables keep compact ties (“1224” style);
+  - player profile shows numeric rank when needed for clarity.
 - Only admins can update or delete player details.
 - **Implementation**:
   - API:
     - The `PlayerSerializer` uses calculated fields: `matches_played`, `losses`, and `win_rate`.
     - The `PlayerViewSet` restricts player profile modification to admins.
-  - Frontend app: The `get_player_stats` returns `wins`, `matches`, `win_rate` and `ranking_position`.
+  - Frontend app:
+    - `players_view()` renders the public players selector page.
+    - `player_detail_view()` renders profile stats + paginated match history and builds scope-aware return links to the right ranking page and pagination.
+    - `get_player_stats` returns `wins`, `matches`, `win_rate` and `ranking_position`.
 
 #### Authentication & Permissions
 
 - Unauthenticated users can only:
-  - View the Hall of Fame & about page.
+  - View the Hall of Fame, public players pages and about page.
   - Register.
   - Log in.
 - Authenticated users can:
@@ -278,6 +290,7 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
 │   ├── static/frontend/          # Static files for the frontend in development
 │   │   ├── css/                  # Stylesheets
 │   │   │   └── styles.css        # Custom styles for the frontend overriding Bootstrap styles
+│   │   ├── favicon.ico           # Browser favicon
 │   │   ├── img/                  # Images
 │   │   │   ├── ios-share.svg
 │   │   │   ├── logo_96.png
@@ -285,24 +298,36 @@ The entire application is fully **mobile responsive**, ensuring a consistent exp
 │   │   │   ├── logo_180.png
 │   │   │   ├── logo_192.png
 │   │   │   ├── logo_512.png
-│   │   │   └── logo_1025.png
+│   │   │   └── logo_1024.png
 │   │   └── js/                   # JavaScript files
+│   │       ├── americano_new_players_remaining.js # Update remaining players counter in Americano creation
 │   │       ├── editUserProfile.js      # Send a PATCH request to the API for updating user details
+│   │       ├── ios-install.js          # Controls iOS PWA install banner behavior
 │   │       ├── matchDeleteHighlight.js # On deletion update match card background dynamically
 │   │       ├── passwordValidation.js   # Confirm password match
 │   │       ├── playerLabelUpdater.js   # Update player labels dynamically on match form
+│   │       ├── rowLink.js              # Make ranking rows clickable to open player pages
 │   │       ├── tabPaginationReset.js   # Update pagination dynamically on tab change
 │   │       └── winningTeamHighlight.js # Update winning team card background
+│   │   └── manifest.json         # Web App Manifest (PWA metadata)
 │   ├── templates/frontend/       # Folder containing Django templates
 │   │   ├── _match_card.html      # Match history card to be included in match.html
 │   │   ├── _pagination.html      # Reusable pagination component
+│   │   ├── _player_select.html   # Reusable player selector component
 │   │   ├── _user_form.html       # Reusable user form for register.html and user.html
 │   │   ├── about.html            # Template for About page
+│   │   ├── americano/            # Americano templates
+│   │   │   ├── americano_detail.html
+│   │   │   ├── americano_list.html
+│   │   │   └── americano_new.html
 │   │   ├── base.html             # Base template with common navigation bar & footer
 │   │   ├── hall_of_fame.html     # Template for Hall of Fame
 │   │   ├── hof_user_snippet.html # Template for mini table to be included in hall_of_fame.html
 │   │   ├── login.html            # Template for user login
 │   │   ├── match.html            # Template for adding and reviewing match results
+│   │   ├── pass_reset/           # Password reset flow templates and email texts
+│   │   ├── player_detail.html    # Public player profile page
+│   │   ├── players.html          # Public player selector page
 │   │   ├── register.html         # Template for user registration
 │   │   └── user.html             # Template for checking or editing user details
 │   ├── __init__.py
@@ -408,12 +433,14 @@ These are the full-page templates directly mapped to URLs:
 | `/ranking/male/`   | Ranking – Partidos masculinos | `hall_of_fame.html` | Scoped ranking (male matches only). |
 | `/ranking/female/` | Ranking – Partidos femeninos  | `hall_of_fame.html` | Scoped ranking (female matches only). |
 | `/ranking/mixed/`  | Ranking – Partidos mixtos     | `hall_of_fame.html` | Scoped ranking (mixed matches only). |
+| `/players/` | Public player selector | `players.html` | Public page to select a player and open profile. |
+| `/players/<id>/` | Public player profile | `player_detail.html` | Scoped stats + match history + scope-aware return links to ranking and page. |
 | `/register/`            | User registration                     | `register.html`     | Dynamic checking of restrictions and load available players to choose from.                                                                      |
 | `/login/`               | User login                            | `login.html`        | User & password fields and login button.                                                                                                         |
 | `/logout/`              | User logout                           | N/A - View handled  | Logout link with bootstrap icon. _This action is a redirection._                                                                                 |
 | `/users/<id>/`          | User details and editing              | `user.html`         | User profile stats and editable fields.                                                                                                          |
 | `/matches/` | Match results | `match.html` | Add match + match history (My Matches / All). Note: To edit: delete + re-create. |
-| `/about/`               | About                                 | `about.html`        | About page. |
+| `/about/`               | About                                 | `about.html`        | About page with version from `.env` `APP_VERSION` (fallback `—`). |
 | `/americano/`                         | Americano tournaments list      | `americano_list.html`   | Shows ongoing and finished tournaments. Public.                                                                |
 | `/americano/nuevo/`                   | Create new Americano tournament | `americano_new.html`    | Only authenticated users can create. Supports selecting existing players + adding new players (created in DB). |
 | `/americano/<id>/`                    | Americano tournament detail     | `americano_detail.html` | Standings + rounds. Public read access; participants can edit while tournament is open.                        |
@@ -442,6 +469,7 @@ These partial templates are reusable components designed to be included in other
 
 - `passwordValidation.js`: Checks if the password and confirm password fields match, and dynamically displays an error message if they don't. Is used in `register.html`.
 - `playerLabelUpdater.js`: Provides real-time hints when typing a “new player” name in the match form (registered/existing/new), to prevent duplicates and confusion.
+- `rowLink.js`: Makes ranking rows clickable to open public player profile pages.
 - `winningTeamHighlight.js`: Dynamically updates the background of the "Team 1" and "Team 2" cards in the form fields of `match.html` based on the selection of the "winning_team" radio button with green background for the winning team.
 - `matchDeleteHighlight.js`: Highlights the match card before showing a confirm dialog and submitting the delete POST form (PRG + Django messages).
 - `editUserProfile.js`: Allows editing of allowed user details in `user.html`. _Only the email field has been flagged as editable so far._ By changing the value on the email field in the user profile, "Cancel Changes" and "Save Changes" buttons are enabled:
@@ -468,6 +496,7 @@ This application implements pagination to efficiently handle and display large d
 The backend utilizes Django REST Framework's (DRF) built-in pagination capabilities. This provides a standardized way to paginate API responses.
 
 - **How it Works:** When requesting a paginated endpoint (e.g., `/api/games/players/` or `/api/games/matches/`), the API will return a subset of the data along with metadata about the pagination.
+- **Deterministic Order:** Player pagination uses an ordered queryset before paginating to keep stable page contents.
 - **Query Parameter:** To navigate through pages, use the `?page=<page_number>` query parameter in your request. For example, `/api/games/players/?page=2` will retrieve the second page of players.
 - **Response Structure:** The API response for paginated endpoints includes:
   - `count`: The total number of items available.

@@ -13,23 +13,28 @@ Since v1.0.4 the project is two products in one repo in GitHub: a Web app and an
 
 Every change should belong to one of the following categories: `added`, `changed`, `removed` or `fixed`.
 
-## [Unreleased] - 2026-02-09
+## [1.3.0] - 2026-02-13
 
 ### Added
 
-- Added favicon.ico.
-- Added public player pages (`/players/` and `/players/<id>/`) with selector, scoped stats and player match history.
-- Added clickable ranking rows to open player profiles using minimal JS (`rowLink.js`).
+- Added `favicon.ico`.
+- Added public player pages:
+  - `/players/` (player selector)
+  - `/players/<id>/` (player profile with scoped stats and match history).
+- Added clickable ranking rows to open player profiles using minimal JavaScript (`rowLink.js`).
+- Added scope-aware return navigation from player profile back to the corresponding ranking page and pagination position.
 
 ### Fixed
 
-- Fixed inconsistent pagination by ordering Player queryset before paginating.
-- Fixed player profile stats position display for tied players to show numeric rank when needed.
-- Fixed navbar ranking return path so "Ranking" goes back to the last visited scope.
+- Fixed inconsistent pagination by ensuring `Player` queryset is ordered before paginating.
+- Fixed player profile stats display for tied rankings:
+  - Ranking pages keep compact tie display (only first in group shows position).
+  - Player profile now shows numeric position when needed for clarity.
+- Fixed navbar “Ranking” link to return to the last visited ranking scope instead of always defaulting to “Todos”.
 
 ### Changed
 
-- About page "Versión" now comes from `.env` `APP_VERSION` instead of hardcoded text (fallback —).
+- About page “Versión” now reads from `.env` variable `APP_VERSION` (fallback: `—`).
 
 ## [1.2.1] - 2026-02-02
 
