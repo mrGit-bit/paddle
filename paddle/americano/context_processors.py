@@ -1,4 +1,4 @@
-# americano/context_processors.py
+# absolute path: /workspaces/paddle/paddle/americano/context_processors.py
 from django.utils import timezone
 
 from .models import AmericanoTournament

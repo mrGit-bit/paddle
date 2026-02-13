@@ -28,10 +28,13 @@ pytest frontend/tests/ --cov=frontend.views --cov-report=term-missing
 pytest /workspaces/paddle/paddle/americano/tests/test_americano_views.py --cov=americano.views --cov-report=term-missing
 ```
 
-- Update: `BACKLOG.md`,`CHANGELOG.md`,and `README.md` if needed.
-- Update hardcoded version number `vX.Y.Z` in `/workspaces/paddle/paddle/frontend/templates/frontend/about.html`.
+- Update: 
+  - `BACKLOG.md`: remove implemented functionalities from the backlog in the version
+  - `CHANGELOG.md`: rename unrelease to a new version number `vX.Y.Z`
+  - `README.md`: amended to reflect the current v1.3.0 behavior in the documentation itself (without copying release notes)
+- Update version number `vX.Y.Z` in .env with APP_VERSION that must match CHANGELOG.md last version.
 
-### 📱 1.2 Prepare the Mobile release
+### 📱 1.2 Prepare the Mobile release (only if necessary)
 
 - Rebuild the Mobile app if there are:
   - Changes to Capacitor configuration `capacitor.config.ts`: new server.url, new plugin, or app name/id, etc.
@@ -46,13 +49,13 @@ pytest /workspaces/paddle/paddle/americano/tests/test_americano_views.py --cov=a
   - build `apk`: is generated for debugging/testing (Appetize.io or side loading).
   - build `aab`: is the file uploaded to Play Console.
 
-### 👩‍❤️‍💋‍👨 1.3 Common steps
+### 👩‍❤️‍💋‍👨 1.3 Final preparation steps
 
 - Commit and push changes:
 
 ```bash
 git add --all
-git commit -m "docs(release): prepare release vX.Y.Z"
+git commit -m "version(release): prepare release vX.Y.Z"
 git push origin develop
 ```
 

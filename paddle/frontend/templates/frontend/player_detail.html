@@ -1,0 +1,95 @@
+{% extends 'frontend/base.html' %}
+{% load static %}
+
+{% block title %}Jugador | {{ profile_player.name }}{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+  <h1 class="display-5">Jugadores</h1>
+</div>
+
+<div class="row justify-content-center mb-4">
+  <div class="col-md-8 col-lg-6">
+    {% include "frontend/_player_select.html" with select_id="player_profile_select" select_name="player_profile_select" players=all_players selected_id=selected_player_id include_new_options=False required=False select_label="Jugador" %}
+  </div>
+</div>
+
+<div class="text-center mb-3">
+  <h2>{{ profile_player.name }}</h2>
+</div>
+
+<div class="table-responsive mb-1">
+  <table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th scope="col">Ranking</th>
+        <th scope="col" class="text-center">Pos.</th>
+        <th scope="col" class="text-center">🏆</th>
+        <th scope="col" class="text-center">🏓</th>
+        <th scope="col" class="text-center">🎯</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in scope_rows %}
+        <tr{% if row.href %} class="clickable-row" data-href="{{ row.href }}"{% endif %}>
+          <td>{{ row.label }}</td>
+          {% if row.scoped_player %}
+            {% with rank=row.scoped_player.display_position %}
+              <td class="text-center">
+                {% if rank == 1 %}
+                  <strong class="rank-1">🥇</strong>
+                {% elif rank == 2 %}
+                  <strong class="rank-2">🥈</strong>
+                {% elif rank == 3 %}
+                  <strong class="rank-3">🥉</strong>
+                {% else %}
+                  {{ rank }}
+                {% endif %}
+              </td>
+              <td class="text-center">{{ row.scoped_player.display_wins }}</td>
+              <td class="text-center">{{ row.scoped_player.display_matches }}</td>
+              <td class="text-center">{{ row.scoped_player.display_win_rate|floatformat:0 }}%</td>
+            {% endwith %}
+          {% else %}
+            <td class="text-center">-</td>
+            <td class="text-center">-</td>
+            <td class="text-center">-</td>
+            <td class="text-center">-</td>
+          {% endif %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="d-flex justify-content-end mt-1 mb-4">
+  <a href="{% url 'ranking_home' %}#top" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left"></i> Volver al ranking
+  </a>
+</div>
+
+<h4 class="mb-4" id="player-matches">Partidos jugados</h4>
+<div class="row">
+  {% for match in profile_matches %}
+    {% include "frontend/_match_card.html" with match=match %}
+  {% empty %}
+    <p class="text-center">Sin partidos</p>
+  {% endfor %}
+</div>
+
+{% include "frontend/_pagination.html" with pagination=profile_pagination anchor="#player-matches" %}
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'frontend/js/rowLink.js' %}"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const select = document.getElementById("player_profile_select");
+      if (!select) return;
+      select.addEventListener("change", function () {
+        if (!select.value) return;
+        window.location.href = "{% url 'players' %}" + select.value + "/";
+      });
+    });
+  </script>
+{% endblock %}

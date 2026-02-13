@@ -8,6 +8,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}Ranking de pádel{% endblock %}</title>
+    <link rel="icon" href="{% static 'frontend/favicon.ico' %}">
     
     <!-- Loads manifest to allow PWA functionality -->
     <link rel="manifest" href="{% static 'frontend/manifest.json' %}">
@@ -39,12 +40,13 @@
   </head>
 
   <body class="d-flex flex-column min-vh-100">
+    <a id="top"></a>
 
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
       <div class="container-fluid">
         <!-- Logo and brand -->
-        <a class="navbar-brand d-flex align-items-center" href="{% url 'hall_of_fame' %}">
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'ranking_home' %}">
           <picture>
             <source srcset="{% static 'frontend/img/logo_96.webp' %}" type="image/webp" />
             <img
@@ -84,6 +86,9 @@
               {% else %}
                 <a class="nav-link" href="{% if user.is_authenticated %}{% url 'match' %}{% else %}{% url 'login' %}{% endif %}">Partidos</a>  
               {% endif %}              
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'players' %}">Jugadores</a>
             </li>
 
             <!-- Americanos dropdown menu -->
@@ -227,10 +232,11 @@
       </strong><br>
       Pulsa <strong>Compartir 
         <i class="bi bi-box-arrow-up mx-1 align-text-bottom" aria-hidden="true"></i></strong>      
-      y luego <strong>
-        <br>
-        <i class="bi bi-plus-square mx-1 align-text-bottom" aria-hidden="true"></i>
-        Añadir a pantalla de inicio </strong>
+      y luego
+        <br><strong>
+          Añadir a pantalla de inicio 
+          <i class="bi bi-plus-square mx-1 align-text-bottom" aria-hidden="true"></i>
+        </strong>
       <button
         type="button"
         class="btn-close"

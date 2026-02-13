@@ -1,11 +1,116 @@
 import pytest
 from datetime import date, timedelta
+from django.urls import reverse
+from django.test import RequestFactory
 
 from games.models import Player, Match
 from frontend.services.ranking import compute_ranking
-
+from frontend.views import get_ranking_redirect
+from frontend.views import get_player_page_in_scope
+from frontend.views import paginate_list
 
 pytestmark = pytest.mark.django_db
+
+
+def test_get_ranking_redirect_male():
+    resp = get_ranking_redirect("male")
+    assert resp.status_code == 302
+    assert resp.url == reverse("ranking_male")
+
+
+def test_get_ranking_redirect_female():
+    resp = get_ranking_redirect("female")
+    assert resp.status_code == 302
+    assert resp.url == reverse("ranking_female")
+
+
+def test_get_ranking_redirect_mixed():
+    resp = get_ranking_redirect("mixed")
+    assert resp.status_code == 302
+    assert resp.url == reverse("ranking_mixed")
+
+
+def test_get_ranking_redirect_default_all_or_unknown():
+    resp = get_ranking_redirect("all")
+    assert resp.status_code == 302
+    assert resp.url == reverse("hall_of_fame")
+
+    resp2 = get_ranking_redirect("unknown")
+    assert resp2.status_code == 302
+    assert resp2.url == reverse("hall_of_fame")
+
+
+def test_ranking_home_redirects_to_last_scope_male(client):
+    session = client.session
+    session["last_ranking_scope"] = "male"
+    session.save()
+
+    resp = client.get(reverse("ranking_home"))
+    assert resp.status_code == 302
+    assert resp.url == reverse("ranking_male")
+
+
+def test_ranking_home_redirects_to_last_scope_female(client):
+    session = client.session
+    session["last_ranking_scope"] = "female"
+    session.save()
+
+    resp = client.get(reverse("ranking_home"))
+    assert resp.status_code == 302
+    assert resp.url == reverse("ranking_female")
+
+
+def test_ranking_home_redirects_to_last_scope_mixed(client):
+    session = client.session
+    session["last_ranking_scope"] = "mixed"
+    session.save()
+
+    resp = client.get(reverse("ranking_home"))
+    assert resp.status_code == 302
+    assert resp.url == reverse("ranking_mixed")
+
+
+def test_ranking_home_redirects_default_to_all(client):
+    resp = client.get(reverse("ranking_home"))
+    assert resp.status_code == 302
+    assert resp.url == reverse("hall_of_fame")
+
+
+def test_get_player_page_in_scope_returns_expected_page_two():
+    target = Player.objects.create(name="A14", gender="M")
+    players = [Player.objects.create(name=f"A{idx:02d}", gender="M") for idx in range(1, 14)]
+    filler1 = Player.objects.create(name="ZZ_FILLER_WIN", gender="M")
+    filler2 = Player.objects.create(name="ZZ_FILLER_LOSE1", gender="M")
+    filler3 = Player.objects.create(name="ZZ_FILLER_LOSE2", gender="M")
+
+    all_main = players + [target]
+    base = date.today() - timedelta(days=30)
+    for idx, p in enumerate(all_main):
+        Match.objects.create(
+            team1_player1=p,
+            team1_player2=filler1,
+            team2_player1=filler2,
+            team2_player2=filler3,
+            winning_team=1,
+            date_played=base + timedelta(days=idx),
+        )
+
+    page = get_player_page_in_scope("male", target.id, page_size=12)
+    assert page == 2
+
+
+@pytest.mark.django_db
+def test_paginate_list_invalid_page_defaults_to_1():
+    rf = RequestFactory()
+    request = rf.get("/", {"page": "not-an-int"})
+
+    items = list(range(30))  # 30 items, page_size=12 -> 3 pages
+    page_items, pagination = paginate_list(items, request, page_size=12)
+
+    assert pagination["current_page"] == 1
+    assert pagination["total_pages"] == 3
+    assert len(page_items) == 12
+    assert page_items[0] == 0
 
 
 def mk_player(name: str, gender: str):
@@ -81,6 +186,7 @@ def test_tie_positions_show_only_once_and_skip_numbers():
     if first_idx + k <= len(ranked):
         next_after_group = ranked[first_idx + k - 1]  # convert to 0-based
         assert next_after_group.display_position == first_idx + k
+
 
 def test_untie_by_matches_fewer_matches_ranks_higher_when_wins_and_rate_equal():
     """

@@ -57,20 +57,7 @@
                 
                 <!-- Team 1 Player 2 options from the player list or new one-->
                 <div class="mb-3">
-                  <div class="form-floating">
-                    <select class="form-select player-select"
-                      id="team1_player2_choice"
-                      name="team1_player2_choice"
-                      required>
-                      <option value="" selected>Selecciona jugador</option>
-                      {% for player in all_players %}
-                        <option value="{{ player.id }}">{{ player.name }}</option>
-                      {% endfor %}
-                      <option value="NEW_M">➕ Nuevo jugador (Hombre)</option>
-                      <option value="NEW_F">➕ Nueva jugadora (Mujer)</option>
-                    </select>
-                    <label for="team1_player2_choice" class="form-label">Jugador*</label>
-                  </div>
+                  {% include "frontend/_player_select.html" with select_id="team1_player2_choice" select_name="team1_player2_choice" players=all_players selected_id=None include_new_options=True required=True select_label="Jugador*" %}
 
                   <div class="form-floating mt-2 d-none new-player-wrapper" id="team1_player2_new_wrapper">
                     <input
@@ -108,20 +95,7 @@
                 <h5 class="card-title">Pareja 2️⃣</h5>
                 <!-- Team 2 Player 1 choose from the player list or new one-->
                 <div class="mb-3">
-                  <div class="form-floating">
-                    <select class="form-select player-select"
-                      id="team2_player1_choice"
-                      name="team2_player1_choice"
-                      required>
-                      <option value="" selected>Selecciona jugador</option>
-                      {% for player in all_players %}
-                        <option value="{{ player.id }}">{{ player.name }}</option>
-                      {% endfor %}
-                      <option value="NEW_M">➕ Nuevo jugador (Hombre)</option>
-                      <option value="NEW_F">➕ Nueva jugadora (Mujer)</option>
-                    </select>
-                    <label for="team2_player1_choice" class="form-label">Jugador*</label>
-                  </div>
+                  {% include "frontend/_player_select.html" with select_id="team2_player1_choice" select_name="team2_player1_choice" players=all_players selected_id=None include_new_options=True required=True select_label="Jugador*" %}
 
                   <div class="form-floating mt-2 d-none new-player-wrapper" id="team2_player1_new_wrapper">
                     <input
@@ -139,20 +113,7 @@
 
                 <!-- Team 2 Player 2 choose from the player list or new one-->
                 <div class="mb-3">
-                  <div class="form-floating">
-                    <select class="form-select player-select"
-                      id="team2_player2_choice"
-                      name="team2_player2_choice"
-                      required>
-                      <option value="" selected>Selecciona jugador</option>
-                      {% for player in all_players %}
-                        <option value="{{ player.id }}">{{ player.name }}</option>
-                      {% endfor %}
-                      <option value="NEW_M">➕ Nuevo jugador (Hombre)</option>
-                      <option value="NEW_F">➕ Nueva jugadora (Mujer)</option>
-                    </select>
-                    <label for="team2_player2_choice" class="form-label">Jugador*</label>
-                  </div>
+                  {% include "frontend/_player_select.html" with select_id="team2_player2_choice" select_name="team2_player2_choice" players=all_players selected_id=None include_new_options=True required=True select_label="Jugador*" %}
 
                   <div class="form-floating mt-2 d-none new-player-wrapper" id="team2_player2_new_wrapper">
                     <input
@@ -183,14 +144,8 @@
             </div>
           </div>
         </div>
-        
-        {% comment %} <!-- Datalist options for Players input fields-->
-        <datalist id="players">
-          {% for player in all_players %}
-          <option value="{{ player.name }}">{{ player.name }}</option>
-          {% endfor %}
-        </datalist> {% endcomment %}
-        
+       
+
         <!-- Date and Submit Button -->
         <div class="d-flex justify-content-between mt-3">
           <!-- Date Picker limited to today (max must be in ISO format)-->
