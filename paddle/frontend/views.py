@@ -494,7 +494,7 @@ def player_detail_view(request, player_id):
         if page is None:
             row["href"] = None
             continue
-        row["href"] = f'{reverse(row["url_name"])}?page={page}#ranking-table'
+        row["href"] = f'{reverse(row["url_name"])}?page={page}#top'
 
     profile_matches_qs = build_player_matches_queryset(profile_player)
     profile_matches, profile_pagination = fetch_paginated_data(profile_matches_qs, request)

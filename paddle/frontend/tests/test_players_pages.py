@@ -81,6 +81,6 @@ def test_player_detail_scope_rows_render_data_href_only_when_applicable(client):
     content = response.content.decode("utf-8")
 
     assert response.status_code == 200
-    assert 'data-href="/?page=1#ranking-table"' in content
-    assert 'data-href="/ranking/male/?page=1#ranking-table"' in content
+    assert 'data-href="/?page=1#top"' in content
+    assert 'data-href="/ranking/male/?page=1#top"' in content
     assert 'data-href="/ranking/mixed/' not in content
