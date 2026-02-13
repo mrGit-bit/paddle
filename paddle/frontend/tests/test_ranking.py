@@ -6,6 +6,7 @@ from django.test import RequestFactory
 from games.models import Player, Match
 from frontend.services.ranking import compute_ranking
 from frontend.views import get_ranking_redirect
+from frontend.views import get_player_page_in_scope
 from frontend.views import paginate_list
 
 pytestmark = pytest.mark.django_db
@@ -73,6 +74,29 @@ def test_ranking_home_redirects_default_to_all(client):
     resp = client.get(reverse("ranking_home"))
     assert resp.status_code == 302
     assert resp.url == reverse("hall_of_fame")
+
+
+def test_get_player_page_in_scope_returns_expected_page_two():
+    target = Player.objects.create(name="A14", gender="M")
+    players = [Player.objects.create(name=f"A{idx:02d}", gender="M") for idx in range(1, 14)]
+    filler1 = Player.objects.create(name="ZZ_FILLER_WIN", gender="M")
+    filler2 = Player.objects.create(name="ZZ_FILLER_LOSE1", gender="M")
+    filler3 = Player.objects.create(name="ZZ_FILLER_LOSE2", gender="M")
+
+    all_main = players + [target]
+    base = date.today() - timedelta(days=30)
+    for idx, p in enumerate(all_main):
+        Match.objects.create(
+            team1_player1=p,
+            team1_player2=filler1,
+            team2_player1=filler2,
+            team2_player2=filler3,
+            winning_team=1,
+            date_played=base + timedelta(days=idx),
+        )
+
+    page = get_player_page_in_scope("male", target.id, page_size=12)
+    assert page == 2
 
 
 @pytest.mark.django_db

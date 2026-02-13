@@ -1,4 +1,5 @@
 {% extends 'frontend/base.html' %}
+{% load static %}
 
 {% block title %}Jugador | {{ profile_player.name }}{% endblock %}
 
@@ -30,7 +31,7 @@
     </thead>
     <tbody>
       {% for row in scope_rows %}
-        <tr>
+        <tr{% if row.href %} class="clickable-row" data-href="{{ row.href }}"{% endif %}>
           <td>{{ row.label }}</td>
           {% if row.scoped_player %}
             {% with rank=row.scoped_player.display_position %}
@@ -80,6 +81,7 @@
 {% endblock %}
 
 {% block scripts %}
+  <script src="{% static 'frontend/js/rowLink.js' %}"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       const select = document.getElementById("player_profile_select");

@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.utils.safestring import mark_safe
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.core.paginator import Paginator
 from datetime import date, datetime
 from games.models import Player, Match
@@ -270,6 +271,18 @@ def get_scoped_player_row(scope: str, player_id: int):
     ranked_players, _, _ = compute_ranking(scope)
     return next((player for player in ranked_players if player.id == player_id), None)
 
+
+def get_player_page_in_scope(scope: str, player_id: int, page_size: int = 12):
+    """
+    Returns the pagination page number where player_id appears for a ranking scope.
+    """
+    ranked_players, _, _ = compute_ranking(scope)
+    scoped_player = next((p for p in ranked_players if p.id == player_id), None)
+    if not scoped_player:
+        return None
+    ordinal_index = ranked_players.index(scoped_player) + 1
+    return ((ordinal_index - 1) // page_size) + 1
+
 def process_form_data(request):
     """
     Extract and validate form data from the request.
@@ -465,13 +478,23 @@ def player_detail_view(request, player_id):
     _, _, all_players = build_all_players()
 
     scope_rows = [
-        {"label": "Todos", "scoped_player": get_scoped_player_row("all", profile_player.id)},
+        {"label": "Todos", "scope": "all", "url_name": "hall_of_fame", "scoped_player": get_scoped_player_row("all", profile_player.id)},
     ]
     if profile_player.gender == Player.GENDER_MALE:
-        scope_rows.append({"label": "Masc.", "scoped_player": get_scoped_player_row("male", profile_player.id)})
+        scope_rows.append({"label": "Masc.", "scope": "male", "url_name": "ranking_male", "scoped_player": get_scoped_player_row("male", profile_player.id)})
     elif profile_player.gender == Player.GENDER_FEMALE:
-        scope_rows.append({"label": "Fem.", "scoped_player": get_scoped_player_row("female", profile_player.id)})
-    scope_rows.append({"label": "Mixtos", "scoped_player": get_scoped_player_row("mixed", profile_player.id)})
+        scope_rows.append({"label": "Fem.", "scope": "female", "url_name": "ranking_female", "scoped_player": get_scoped_player_row("female", profile_player.id)})
+    scope_rows.append({"label": "Mixtos", "scope": "mixed", "url_name": "ranking_mixed", "scoped_player": get_scoped_player_row("mixed", profile_player.id)})
+
+    for row in scope_rows:
+        if not row["scoped_player"]:
+            row["href"] = None
+            continue
+        page = get_player_page_in_scope(row["scope"], profile_player.id)
+        if page is None:
+            row["href"] = None
+            continue
+        row["href"] = f'{reverse(row["url_name"])}?page={page}#ranking-table'
 
     profile_matches_qs = build_player_matches_queryset(profile_player)
     profile_matches, profile_pagination = fetch_paginated_data(profile_matches_qs, request)
