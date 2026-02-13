@@ -23,6 +23,7 @@ from . import views
 
 urlpatterns = [
     path('', views.hall_of_fame_view, name='hall_of_fame'),
+    path("ranking/", views.ranking_home_view, name="ranking_home"),
     path('ranking/male/', views.ranking_view, {"scope": "male"}, name='ranking_male'),
     path('ranking/female/', views.ranking_view, {"scope": "female"}, name='ranking_female'),
     path('ranking/mixed/', views.ranking_view, {"scope": "mixed"}, name='ranking_mixed'),

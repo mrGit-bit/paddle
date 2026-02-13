@@ -24,6 +24,8 @@ Every change should belong to one of the following categories: `added`, `changed
 ### Fixed
 
 - Fixed inconsistent pagination by ordering Player queryset before paginating.
+- Fixed player profile stats position display for tied players to show numeric rank when needed.
+- Fixed navbar ranking return path so "Ranking" goes back to the last visited scope.
 
 ### Changed
 

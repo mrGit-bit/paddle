@@ -39,6 +39,42 @@ def test_get_ranking_redirect_default_all_or_unknown():
     assert resp2.url == reverse("hall_of_fame")
 
 
+def test_ranking_home_redirects_to_last_scope_male(client):
+    session = client.session
+    session["last_ranking_scope"] = "male"
+    session.save()
+
+    resp = client.get(reverse("ranking_home"))
+    assert resp.status_code == 302
+    assert resp.url == reverse("ranking_male")
+
+
+def test_ranking_home_redirects_to_last_scope_female(client):
+    session = client.session
+    session["last_ranking_scope"] = "female"
+    session.save()
+
+    resp = client.get(reverse("ranking_home"))
+    assert resp.status_code == 302
+    assert resp.url == reverse("ranking_female")
+
+
+def test_ranking_home_redirects_to_last_scope_mixed(client):
+    session = client.session
+    session["last_ranking_scope"] = "mixed"
+    session.save()
+
+    resp = client.get(reverse("ranking_home"))
+    assert resp.status_code == 302
+    assert resp.url == reverse("ranking_mixed")
+
+
+def test_ranking_home_redirects_default_to_all(client):
+    resp = client.get(reverse("ranking_home"))
+    assert resp.status_code == 302
+    assert resp.url == reverse("hall_of_fame")
+
+
 @pytest.mark.django_db
 def test_paginate_list_invalid_page_defaults_to_1():
     rf = RequestFactory()

@@ -17,11 +17,11 @@
   <h2>{{ profile_player.name }}</h2>
 </div>
 
-<div class="table-responsive mb-4">
+<div class="table-responsive mb-1">
   <table class="table table-striped table-hover">
     <thead>
       <tr>
-        <th scope="col">Tipo</th>
+        <th scope="col">Ranking</th>
         <th scope="col" class="text-center">Pos.</th>
         <th scope="col" class="text-center">🏆</th>
         <th scope="col" class="text-center">🏓</th>
@@ -35,18 +35,14 @@
           {% if row.scoped_player %}
             {% with rank=row.scoped_player.display_position %}
               <td class="text-center">
-                {% if row.scoped_player.show_position %}
-                  {% if rank == 1 %}
-                    <strong class="rank-1">🥇</strong>
-                  {% elif rank == 2 %}
-                    <strong class="rank-2">🥈</strong>
-                  {% elif rank == 3 %}
-                    <strong class="rank-3">🥉</strong>
-                  {% else %}
-                    {{ rank }}
-                  {% endif %}
+                {% if rank == 1 %}
+                  <strong class="rank-1">🥇</strong>
+                {% elif rank == 2 %}
+                  <strong class="rank-2">🥈</strong>
+                {% elif rank == 3 %}
+                  <strong class="rank-3">🥉</strong>
                 {% else %}
-                  &nbsp;
+                  {{ rank }}
                 {% endif %}
               </td>
               <td class="text-center">{{ row.scoped_player.display_wins }}</td>
@@ -63,6 +59,12 @@
       {% endfor %}
     </tbody>
   </table>
+</div>
+
+<div class="d-flex justify-content-end mt-1 mb-4">
+  <a href="{% url 'ranking_home' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left"></i> Volver al ranking
+  </a>
 </div>
 
 <h4 class="mb-4" id="player-matches">Partidos jugados</h4>

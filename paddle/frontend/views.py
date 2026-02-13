@@ -130,6 +130,14 @@ def get_ranking_redirect(scope: str):
     return redirect("hall_of_fame")  # "all" or unknown
 
 
+def ranking_home_view(request):
+    """
+    Redirects to the last visited ranking scope.
+    """
+    scope = request.session.get("last_ranking_scope", "all")
+    return get_ranking_redirect(scope)
+
+
 def paginate_list(items, request, page_size=12):
     """
     Helper to paginate an in-memory list (same pagination dict shape as fetch_paginated_data()).
