@@ -106,14 +106,19 @@ jobs:
           TARGET: ${{ inputs.target_branch }}
         run: |
           set -e
-          gh pr create \
-            --base "$TARGET" \
-            --head "$BRANCH" \
-            --title "version(release): prepare release v${VERSION}" \
-            --body "Automated release preparation (no-AI).
+
+          PR_BODY=$(cat <<EOF
+Automated release preparation (no-AI).
 
 Checklist:
 - [ ] Review CHANGELOG.md section for v${VERSION}
 - [ ] Update BACKLOG.md manually if needed
 - [ ] CI is green
-"
+EOF
+          )
+
+          gh pr create \
+            --base "$TARGET" \
+            --head "$BRANCH" \
+            --title "version(release): prepare release v${VERSION}" \
+            --body "$PR_BODY"
