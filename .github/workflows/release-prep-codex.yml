@@ -58,7 +58,7 @@ jobs:
           # Codex instruction inline (no extra files, minimal moving parts)
           codex --version
           
-          codex exec --full-auto "$OPENAI_API_KEY" "
+          codex exec --full-auto "
           You are preparing a release for this repository.
 
           HARD RULES:
