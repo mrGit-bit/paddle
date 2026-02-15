@@ -25,6 +25,18 @@ jobs:
       - name: Install Codex CLI
         run: npm i -g @openai/codex
 
+      - name: Debug OpenAI key presence
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo "❌ OPENAI_API_KEY is EMPTY"
+            exit 1
+          else
+            echo "✅ OPENAI_API_KEY is present (masked)"
+          fi
+
+        
       - name: Codex - update release docs + open PR
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
