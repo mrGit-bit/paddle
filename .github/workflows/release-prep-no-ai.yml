@@ -90,6 +90,37 @@ jobs:
           print(f"Updated CHANGELOG.md: created {new_header.strip()}")
           PY
 
+      - name: Update config.__version__
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          python - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          VERSION = os.environ["VERSION"]
+          path = Path("paddle/config/__init__.py")
+
+          if not path.exists():
+              raise SystemExit("config/__init__.py not found")
+
+          text = path.read_text(encoding="utf-8")
+
+          if "__version__" in text:
+              text = re.sub(
+                  r'__version__\s*=\s*".*?"',
+                  f'__version__ = "{VERSION}"',
+                  text
+              )
+          else:
+              text += f'\n__version__ = "{VERSION}"\n'
+
+          path.write_text(text, encoding="utf-8")
+          print(f"Updated __version__ to {VERSION}")
+          PY
+
+
       - name: Commit changes
         env:
           VERSION: ${{ inputs.version }}
