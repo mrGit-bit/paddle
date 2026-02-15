@@ -39,18 +39,26 @@ jobs:
       - name: Codex - update release docs + open PR
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_KEY: ${{ secrets.OPENAI_API_KEY }}
           VERSION: ${{ inputs.version }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
-
+          
+          # Force-export auth vars for Codex CLI compatibility
+          export OPENAI_API_KEY="$OPENAI_API_KEY"
+          export OPENAI_KEY="$OPENAI_KEY"
+          
+          # Avoid accidental conflicting config
+          unset OPENAI_BASE_URL OPENAI_ORG OPENAI_ORGANIZATION OPENAI_PROJECT
+          
           BRANCH="chore/release-v${VERSION}"
           git checkout -b "$BRANCH"
 
           # Codex instruction inline (no extra files, minimal moving parts)
           codex --version
-          env | grep -E '^OPENAI_API_KEY=' | sed 's/=.*/=***masked***/'
-          codex exec --full-auto --api-key "$OPENAI_API_KEY" "
+          
+          codex exec --full-auto "$OPENAI_API_KEY" "
           You are preparing a release for this repository.
 
           HARD RULES:
