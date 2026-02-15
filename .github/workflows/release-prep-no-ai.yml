@@ -37,6 +37,13 @@ jobs:
         run: |
           set -e
           BRANCH="chore/release-v${VERSION}"
+
+          # Delete remote branch if it already exists
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+            echo "Remote branch exists. Deleting..."
+            git push origin --delete "$BRANCH"
+          fi
+
           git checkout -b "$BRANCH"
           echo "BRANCH=$BRANCH" >> $GITHUB_ENV
 
