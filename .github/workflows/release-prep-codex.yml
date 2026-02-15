@@ -35,7 +35,6 @@ jobs:
           else
             echo "✅ OPENAI_API_KEY is present (masked)"
           fi
-
         
       - name: Codex - update release docs + open PR
         env:
@@ -49,7 +48,9 @@ jobs:
           git checkout -b "$BRANCH"
 
           # Codex instruction inline (no extra files, minimal moving parts)
-          codex exec --full-auto "
+          codex --version
+          env | grep -E '^OPENAI_API_KEY=' | sed 's/=.*/=***masked***/'
+          codex exec --full-auto --api-key "$OPENAI_API_KEY" "
           You are preparing a release for this repository.
 
           HARD RULES:
