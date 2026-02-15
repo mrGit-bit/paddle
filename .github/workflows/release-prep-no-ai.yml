@@ -45,32 +45,30 @@ jobs:
           VERSION: ${{ inputs.version }}
         run: |
           python - <<'PY'
+          import os
           import re
           from datetime import datetime, timezone
           from pathlib import Path
 
+          VERSION = os.environ["VERSION"]
           path = Path("CHANGELOG.md")
           if not path.exists():
             raise SystemExit("CHANGELOG.md not found at repo root")
 
           text = path.read_text(encoding="utf-8")
 
-          # Find Unreleased section: from '## [Unreleased]' until next '## ['
           m = re.search(r"^## \[Unreleased\]\s*\n(?P<body>.*?)(?=^## \[|\Z)", text, flags=re.M | re.S)
           if not m:
             raise SystemExit("No '## [Unreleased]' section found in CHANGELOG.md")
 
           body = m.group("body").strip("\n")
-          # If Unreleased is empty (or only whitespace), still create the new section but with placeholder
           if not body.strip():
             body = "- (no notable changes)\n"
 
           today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
           new_header = f"## [{VERSION}] - {today}\n"
-          # Ensure there is at least a short summary area (keep simple placeholder if user didn't write bullets)
           new_section = new_header + body.strip() + "\n\n"
 
-          # Replace Unreleased content with empty section
           unreleased_replacement = "## [Unreleased]\n\n"
           new_text = re.sub(
             r"^## \[Unreleased\]\s*\n.*?(?=^## \[|\Z)",
@@ -79,7 +77,6 @@ jobs:
             flags=re.M | re.S
           )
 
-          # Insert new version section immediately after Unreleased
           new_text = new_text.replace(unreleased_replacement, unreleased_replacement + new_section, 1)
 
           path.write_text(new_text, encoding="utf-8")
