@@ -10,13 +10,32 @@ from django.utils.safestring import mark_safe
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.core.paginator import Paginator
-from datetime import date, datetime
-from games.models import Player, Match
 import json
+import re
+from datetime import date, datetime
+from functools import lru_cache
+from pathlib import Path
+
+from games.models import Player, Match
 
 from .services.ranking import compute_ranking
 
 User = get_user_model()
+
+
+@lru_cache(maxsize=1)
+def get_about_app_version_label():
+    changelog_path = Path(__file__).resolve().parents[2] / "CHANGELOG.md"
+    try:
+        changelog_text = changelog_path.read_text(encoding="utf-8")
+    except OSError:
+        return None
+
+    if "## [Unreleased]" in changelog_text:
+        return "Unreleased"
+
+    match = re.search(r"^## \[(\d+(?:\.\d+)*)\](?:\s+-\s+.+)?$", changelog_text, re.MULTILINE)
+    return match.group(1) if match else None
 
 class EmailExistsPasswordResetForm(PasswordResetForm):
     """Password reset form requires the email to exist in DB."""
@@ -774,5 +793,6 @@ def about_view(request):
         "num_players": num_players,
         "num_matches": num_matches,
         "contact_email": contact_email,
+        "app_version_label": get_about_app_version_label(),
     }
     return render(request, "frontend/about.html", context)

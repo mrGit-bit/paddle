@@ -95,20 +95,7 @@ Every Codex output must follow this structure:
 
 ---
 
-## A. Functional Summary (Human-Level)
-
-Short paragraph explaining:
-
-- What changed
-- Why it changed
-- What the user will experience differently
-
-This must NOT be a list of modified files.
-It must describe behavior.
-
----
-
-## B. Technical Summary
+## A. Technical Summary
 
 Bullet list explaining:
 
@@ -120,33 +107,31 @@ Bullet list explaining:
 
 ---
 
-## C. Files Modified
+## B. Files Modified
 
-List only modified or added files.
-
-For each file:
-
-### `path/to/file.py`
-
-Show only modified sections.
-Use clear markers:
-
-```python
-# --- ADDED ---
-# --- MODIFIED ---
-# --- REMOVED ---
-```
-
-Do NOT repeat entire files.
+List modified, added or removed files. Do NOT repeat entire files.
 
 ---
 
-## D. Tests
+## C. Tests
 
 - List tests added or modified.
 - Explain what behavior is validated.
 - Show the pytest command used.
 - Show the test result summary (e.g., `4 passed`).
+
+---
+
+## D. Functional Summary (Human-Level)
+
+Short paragraph explaining:
+
+- What changed
+- Why it changed
+- What the user will experience differently
+
+This must NOT be a list of modified files.
+It must describe behavior.
 
 ---
 

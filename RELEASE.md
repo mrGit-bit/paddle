@@ -28,11 +28,11 @@ pytest frontend/tests/ --cov=frontend.views --cov-report=term-missing
 pytest /workspaces/paddle/paddle/americano/tests/test_americano_views.py --cov=americano.views --cov-report=term-missing
 ```
 
-- Update: 
-  - `BACKLOG.md`: remove implemented functionalities from the backlog in the version
-  - `CHANGELOG.md`: rename unrelease to a new version number `vX.Y.Z`
+- Update:
+  - `BACKLOG.md`: remove implemented functionalities from the backlog in the current release version
+  - `CHANGELOG.md`: rename [Unreleased] to a new version number `vX.Y.Z`. Also add a summary of the release under the new version number.
   - `README.md`: amended to reflect the current v1.3.0 behavior in the documentation itself (without copying release notes)
-- Update version number `vX.Y.Z` in .env with APP_VERSION that must match CHANGELOG.md last version.
+- Ensure `CHANGELOG.md` is updated correctly (`## [Unreleased]` during development, then promote to `## [X.Y.Z] - YYYY-MM-DD` on release).
 
 ### 📱 1.2 Prepare the Mobile release (only if necessary)
 
@@ -62,16 +62,41 @@ git push origin develop
 ## 🚆 2. Promote to staging
 
 - In GitHub Open PR: `develop ➜ staging`
-- Title: `Release X.Y.Z — summary`
+- Title: `Release X.Y.Z — summary` where summary is the short description of the release contained in the CHANGELOG.md
 - Merge PR.
 
 ## 🚆 3. Deploy to staging VM
 
 ### 🖥️ 3.1 Deploy the Web App to Staging
 
-If the staging database has been stopped due to inactivity do not forget to restart it in the console panel.
+Deployment could be done semi-automatically (with the `staging-update` command) or manually.
 
-On staging server:
+> Notes:
+>
+> - if .env needs to be modified remember to do: `nano .env`
+> - If the staging database has been stopped due to inactivity do not forget to restart it in the console panel.
+
+#### Semi-automated deploy
+
+Automated deploy to staging server could be achieved with ```ssh staging-update``` command in windows local terminal.
+
+If ```git pull --ff-only``` fails (because fast-forwarding is not possible), force sync with:
+
+```bash
+cd ~/paddle
+git reset --hard origin/main
+```
+
+If Django models have changed and migrations are pending, run:
+
+```bash
+cd ~/paddle/paddle
+python manage.py migrate --settings=config.settings.prod
+```
+
+If nginx has changed (changes in the configuration or in certificates), restart nginx: ```sudo systemctl restart nginx```
+
+#### Manual deploy
 
 ```bash
 git fetch origin
@@ -79,8 +104,6 @@ git checkout staging
 git pull --ff-only
 source ~/venv/bin/activate
 ```
-
-- if .env needs to be modified: `nano .env`
 
 - if dependencies have been changed:
 
@@ -102,11 +125,17 @@ Note: use the `--clear` option to remove old static files.
 (venv) ubuntu@staging:~/paddle/paddle$ python manage.py migrate --noinput
 ```
 
-### 📱 3.2 “Test the Mobile App on Staging Backend
+Finally, restart services:
 
-To test the mobile app layout only, the production server and production database can be used.
+```bash
+sudo systemctl restart paddle
+sudo nginx -t
+sudo systemctl reload nginx
+```
 
-But, when testing CRUD operations with the mobile app, the staging server and staging database needs to be used instead of the production server and production database. This is only for testing staging API calls. It should never be applied on production.
+### 📱 3.2 Test the Mobile App on Staging Backend
+
+Only if Android has been bundled and if CRUD operations with the mobile app are required, the staging backend needs to be used.
 
 - Replace in `/workspaces/paddle/mobile/capacitor.config.ts` the production build:
   
@@ -137,15 +166,7 @@ But, when testing CRUD operations with the mobile app, the staging server and st
 
 - Don´t forget uncomment `auth_basic` and `auth_basic_user_file` in `/etc/nginx/sites-available/paddle` after mobile app testing.
 
-### 👩‍❤️‍💋‍👨 3.3 Common actions
-
-Finally, restart services:
-
-```bash
-sudo systemctl restart paddle
-sudo nginx -t
-sudo systemctl reload nginx
-```
+>Note: Before moving to production, make a plan for manual testing of functionalities.
 
 ## 📱 4. Mobile App release
 
@@ -190,28 +211,13 @@ sudo systemctl reload nginx
 
 ## 🏭 6. Deploy Web App to production VM
 
-On production server:
-
-- as above in the staging server:
-
-```bash
-git checkout main
-git fetch origin
-git status
-git pull --ff-only # if needed use `git reset --hard origin/main`
-sudo systemctl restart paddle
-sudo nginx -t
-sudo systemctl reload nginx
-```
+To deploy the web app to production VM make the same changes as in the staging replacing ```ssh staging-update``` with ```ssh prod-update```.
 
 if you find an error requesting to stash or merge conflicts, use `git reset --hard origin/main`.
 
 ## 🔖 7. Tag the release
 
-- Repo tags represent the overall codebase release.
-- They do not have to match Play Store version.
-- Tag version refers to the repository state (web + mobile), not the mobile versionCode.
-- The repository tag version is shown in the `about` page of the web app (don´t forget to update the template `frontend/templates/frontend/about.html`!).
+>Note: The repository tag version is shown in the `about` page of the web app (don´t forget to update!).
 
 🌳 From IDE Codespaces on main branch:
 

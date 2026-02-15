@@ -440,7 +440,7 @@ These are the full-page templates directly mapped to URLs:
 | `/logout/`              | User logout                           | N/A - View handled  | Logout link with bootstrap icon. _This action is a redirection._                                                                                 |
 | `/users/<id>/`          | User details and editing              | `user.html`         | User profile stats and editable fields.                                                                                                          |
 | `/matches/` | Match results | `match.html` | Add match + match history (My Matches / All). Note: To edit: delete + re-create. |
-| `/about/`               | About                                 | `about.html`        | About page with version from `.env` `APP_VERSION` (fallback `—`). |
+| `/about/`               | About                                 | `about.html`        | About page with version label derived from `CHANGELOG.md` (`Unreleased` or latest release; fallback `—`). |
 | `/americano/`                         | Americano tournaments list      | `americano_list.html`   | Shows ongoing and finished tournaments. Public.                                                                |
 | `/americano/nuevo/`                   | Create new Americano tournament | `americano_new.html`    | Only authenticated users can create. Supports selecting existing players + adding new players (created in DB). |
 | `/americano/<id>/`                    | Americano tournament detail     | `americano_detail.html` | Standings + rounds. Public read access; participants can edit while tournament is open.                        |

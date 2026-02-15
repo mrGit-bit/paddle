@@ -1,0 +1,90 @@
+name: Release (tag + GitHub Release + back-merge PR)
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  tag_and_release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # needed for tags
+
+      - name: Extract latest version from CHANGELOG.md
+        id: ver
+        shell: bash
+        run: |
+          # Expect: ## [1.2.3] - 2026-01-24
+          line=$(grep -m 1 -E '^## \[[0-9]+\.[0-9]+\.[0-9]+\] - ' CHANGELOG.md || true)
+          if [ -z "$line" ]; then
+            echo "No released version header found in CHANGELOG.md"
+            exit 1
+          fi
+          version=$(echo "$line" | sed -E 's/^## \[([0-9]+\.[0-9]+\.[0-9]+)\].*/\1/')
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "tag=v$version" >> $GITHUB_OUTPUT
+
+      - name: Create tag if missing
+        shell: bash
+        run: |
+          tag="${{ steps.ver.outputs.tag }}"
+          if git rev-parse "$tag" >/dev/null 2>&1; then
+            echo "Tag $tag already exists. Skipping tag creation."
+            exit 0
+          fi
+          git tag -a "$tag" -m "Release $tag"
+          git push origin "$tag"
+
+      - name: Create GitHub Release (notes from CHANGELOG section)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          tag="${{ steps.ver.outputs.tag }}"
+          ver="${{ steps.ver.outputs.version }}"
+
+          # Extract section text from CHANGELOG: from "## [ver]" until next "## ["
+          notes=$(awk -v ver="$ver" '
+            $0 ~ "^## \\[" ver "\\]" {in=1; next}
+            in && $0 ~ "^## \\[" {exit}
+            in {print}
+          ' CHANGELOG.md)
+
+          if [ -z "$notes" ]; then
+            notes="(No release notes found under ## [$ver] in CHANGELOG.md)"
+          fi
+
+          # Create release if missing
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "GitHub Release $tag already exists. Skipping."
+            exit 0
+          fi
+
+          gh release create "$tag" \
+            --title "Release $tag" \
+            --notes "$notes"
+
+      - name: Open back-merge PR main -> develop
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          tag="${{ steps.ver.outputs.tag }}"
+          # Avoid duplicate PRs
+          if gh pr list --base develop --head main --state open --json number --jq 'length' | grep -q '^0$'; then
+            gh pr create \
+              --base develop \
+              --head main \
+              --title "chore(branches): back-merge main into develop after $tag" \
+              --body "Automated back-merge after release $tag."
+          else
+            echo "Back-merge PR already open. Skipping."
+          fi

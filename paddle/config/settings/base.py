@@ -46,7 +46,6 @@ TEMPLATES = [
         "OPTIONS": {
             "context_processors": [
                 "americano.context_processors.americano_nav",
-                "frontend.context_processors.app_version",
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth", 
