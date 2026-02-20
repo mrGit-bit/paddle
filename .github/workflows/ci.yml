@@ -24,9 +24,19 @@ jobs:
 
       # If your tests need env vars, add them here (safe defaults)
       - name: Run pytest (frontend)
+        env:
+          DJANGO_ENVIRONMENT: dev
+          SECRET_KEY: ci-secret-key
+          ALLOWED_HOSTS: 127.0.0.1,localhost,testserver
+          CSRF_TRUSTED_ORIGINS: http://127.0.0.1:8000,http://localhost:8000
         run: |
           pytest paddle/frontend/tests/ --cov=frontend.views --cov-report=term-missing --cov-fail-under=90
 
       - name: Run pytest (americano)
+        env:
+          DJANGO_ENVIRONMENT: dev
+          SECRET_KEY: ci-secret-key
+          ALLOWED_HOSTS: 127.0.0.1,localhost,testserver
+          CSRF_TRUSTED_ORIGINS: http://127.0.0.1:8000,http://localhost:8000
         run: |
           pytest paddle/americano/tests/test_americano_views.py --cov=americano.views --cov-report=term-missing --cov-fail-under=90
