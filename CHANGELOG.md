@@ -15,6 +15,7 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-02-15
 ### Added
 
 - Added `favicon.ico`.
