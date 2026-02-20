@@ -13,8 +13,9 @@ Since v1.0.4 the project is two products in one repo in GitHub: a Web app and an
 
 Every change should belong to one of the following categories: `added`, `changed`, `removed` or `fixed`.
 
-## [1.3.0] - 2026-02-13
+## [Unreleased]
 
+## [1.3.1] - 2026-02-20
 ### Added
 
 - Added `favicon.ico`.
@@ -34,7 +35,7 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ### Changed
 
-- About page “Versión” now reads from `.env` variable `APP_VERSION` (fallback: `—`).
+- About page version label is derived from `CHANGELOG.md` (`Unreleased` or latest release).
 
 ## [1.2.1] - 2026-02-02
 

@@ -34,7 +34,7 @@
             <i class="bi bi-github"></i>
             <strong>Versión:</strong>
             <small class="text-muted">
-              {% if app_version %}{{ app_version }}{% else %}—{% endif %}
+              {{ app_version_label|default:"—" }}
             </small>
           </div>
           <div class="text-center">

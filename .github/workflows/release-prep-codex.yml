@@ -1,0 +1,78 @@
+name: Release Prep (Codex)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (X.Y.Z), e.g. 1.3.0"
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  prep:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          fetch-depth: 0
+
+      - name: Install Codex CLI
+        run: npm i -g @openai/codex
+
+      - name: Codex - update release docs + open PR
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+
+          BRANCH="chore/release-v${VERSION}"
+          git checkout -b "$BRANCH"
+
+          # Codex instruction inline (no extra files, minimal moving parts)
+          codex exec --full-auto "
+          You are preparing a release for this repository.
+
+          HARD RULES:
+          - Only modify: CHANGELOG.md and BACKLOG.md (and nothing else).
+          - Keep edits minimal. Do NOT touch code, settings, templates, JS, migrations, workflows.
+          - Use Keep a Changelog style.
+
+          TASKS:
+          1) In CHANGELOG.md:
+             - Create a new section: ## [${VERSION}] - $(date -u +%Y-%m-%d)
+             - Move all content currently under ## [Unreleased] into that new section.
+             - Leave an empty ## [Unreleased] section at the top.
+             - Add a short summary (3–7 bullets) under the new version.
+          2) In BACKLOG.md:
+             - Remove items clearly marked as done/implemented for this release.
+             - Do not restructure the file.
+          "
+
+          if git diff --quiet; then
+            echo "No changes produced by Codex. Exiting."
+            exit 1
+          fi
+
+          git add CHANGELOG.md BACKLOG.md
+          git commit -m "version(release): prepare release v${VERSION}"
+          git push -u origin "$BRANCH"
+
+          gh pr create \
+            --base develop \
+            --head "$BRANCH" \
+            --title "version(release): prepare release v${VERSION}" \
+            --body "Automated release preparation PR created by Codex.
+
+          Checklist:
+          - [ ] Review CHANGELOG.md section for v${VERSION}
+          - [ ] Review BACKLOG.md cleanup
+          - [ ] CI is green
+          "
