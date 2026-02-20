@@ -150,4 +150,3 @@ EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = f"{config('FROM_NAME', default='Ranking de Pádel')} <{config('DEFAULT_FROM_EMAIL', default='no-reply@rankingdepadel.club')}>"
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
-

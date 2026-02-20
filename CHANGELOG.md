@@ -11,7 +11,31 @@ Since v1.0.4 the project is two products in one repo in GitHub: a Web app and an
 - API (Django Rest Framework)
 - DevOps: anything that supports running and delivering the web or mobile apps.
 
-Every change should belong to one of the following categories: `added`, `changed`, `replaced`, `updated`, `upgraded`, `improved`, `removed` or `fixed`.
+Every change should belong to one of the following categories: `added`, `changed`, `removed` or `fixed`.
+
+## [Unreleased]
+
+## [1.3.1] - 2026-02-20
+### Added
+
+- Added `favicon.ico`.
+- Added public player pages:
+  - `/players/` (player selector)
+  - `/players/<id>/` (player profile with scoped stats and match history).
+- Added clickable ranking rows to open player profiles using minimal JavaScript (`rowLink.js`).
+- Added scope-aware return navigation from player profile back to the corresponding ranking page and pagination position.
+
+### Fixed
+
+- Fixed inconsistent pagination by ensuring `Player` queryset is ordered before paginating.
+- Fixed player profile stats display for tied rankings:
+  - Ranking pages keep compact tie display (only first in group shows position).
+  - Player profile now shows numeric position when needed for clarity.
+- Fixed navbar “Ranking” link to return to the last visited ranking scope instead of always defaulting to “Todos”.
+
+### Changed
+
+- About page version label is derived from `CHANGELOG.md` (`Unreleased` or latest release).
 
 ## [1.2.1] - 2026-02-02
 

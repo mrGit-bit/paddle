@@ -1,4 +1,4 @@
-# tests/test_login.py
+# absolute path: /workspaces/paddle/paddle/frontend/tests/test_auth.py
 import pytest
 from django.urls import reverse
 from django.contrib.auth import get_user_model
@@ -70,4 +70,3 @@ def test_logout_view_get_redirects(client):
     assert resp.status_code == 302
     assert resp.url == reverse("login")
     
-

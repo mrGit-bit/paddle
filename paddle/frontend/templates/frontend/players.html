@@ -1,0 +1,28 @@
+{% extends 'frontend/base.html' %}
+
+{% block title %}Jugadores{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+  <h1 class="display-5">Jugadores</h1>
+</div>
+
+<div class="row justify-content-center mb-4">
+  <div class="col-md-8 col-lg-6">
+    {% include "frontend/_player_select.html" with select_id="player_profile_select" select_name="player_profile_select" players=all_players selected_id=selected_player_id include_new_options=False required=False select_label="Jugador" %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const select = document.getElementById("player_profile_select");
+      if (!select) return;
+      select.addEventListener("change", function () {
+        if (!select.value) return;
+        window.location.href = "{% url 'players' %}" + encodeURIComponent(select.value) + "/";
+      });
+    });
+  </script>
+{% endblock %}

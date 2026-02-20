@@ -1,0 +1,20 @@
+<div class="form-floating">
+  <select
+    class="form-select player-select"
+    id="{{ select_id }}"
+    name="{{ select_name|default:select_id }}"
+    {% if required %}required{% endif %}
+  >
+    <option value="" {% if not selected_id %}selected{% endif %}>Selecciona jugador</option>
+    {% for player in players %}
+      <option value="{{ player.id }}" {% if player.id == selected_id %}selected{% endif %}>
+        {{ player.name }}
+      </option>
+    {% endfor %}
+    {% if include_new_options %}
+      <option value="NEW_M">➕ Nuevo jugador (Hombre)</option>
+      <option value="NEW_F">➕ Nueva jugadora (Mujer)</option>
+    {% endif %}
+  </select>
+  <label for="{{ select_id }}" class="form-label">{{ select_label|default:"Jugador" }}</label>
+</div>

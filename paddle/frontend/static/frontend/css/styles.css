@@ -318,5 +318,13 @@ ul.errorlist li {
   border-top: 2px solid rgba(25, 135, 84, 0.5); 
 }
 
+.clickable-row {
+  cursor: pointer;
+}
+
+.clickable-row:focus,
+.clickable-row:focus-within {
+  outline: none;
+}
 
 

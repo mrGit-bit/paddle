@@ -279,3 +279,28 @@ class MatchEdgeCasesTests(APITestCase):
         response = self.client.post('/api/games/matches/', data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("You are only allowed to create or update your own matches.", response.data['non_field_errors'][0])
+
+
+class MatchAdminPermissionsTests(APITestCase):
+    def setUp(self):
+        # Create users and players
+        self.admin_user = User.objects.create_superuser(username="admin", password="adminpassword")
+        self.user = User.objects.create_user(username="testuser", password="testpassword")
+        self.other_user = User.objects.create_user(username="otheruser", password="otherpassword")
+        self.player = Player.objects.create(name="Test Player", registered_user=self.user)
+        self.other_player = Player.objects.create(name="Other Player", registered_user=self.other_user)
+
+    def test_admin_can_modify_any_match(self):
+        """Test admin can modify or delete any match."""
+        match = Match.objects.create(
+            team1_player1=self.player,
+            team1_player2=self.player,
+            team2_player1=self.other_player,
+            team2_player2=self.other_player,
+            winning_team=1,
+            date_played="2024-12-01"
+        )
+        self.client.force_authenticate(user=self.admin_user)
+        response = self.client.delete(f'/api/games/matches/{match.id}/')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Match.objects.filter(id=match.id).exists())
