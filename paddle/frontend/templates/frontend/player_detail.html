@@ -87,8 +87,11 @@
       const select = document.getElementById("player_profile_select");
       if (!select) return;
       select.addEventListener("change", function () {
-        if (!select.value) return;
-        window.location.href = "{% url 'players' %}" + select.value + "/";
+        const value = select.value;
+        if (!value) return;
+        // Allow only expected player IDs (digits); ignore unexpected values
+        if (!/^\d+$/.test(value)) return;
+        window.location.href = "{% url 'players' %}" + value + "/";
       });
     });
   </script>
