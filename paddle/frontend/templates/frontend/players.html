@@ -21,7 +21,7 @@
       if (!select) return;
       select.addEventListener("change", function () {
         if (!select.value) return;
-        window.location.href = "{% url 'players' %}" + select.value + "/";
+        window.location.href = "{% url 'players' %}" + encodeURIComponent(select.value) + "/";
       });
     });
   </script>
