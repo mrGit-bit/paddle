@@ -25,7 +25,7 @@ jobs:
       # If your tests need env vars, add them here (safe defaults)
       - name: Run pytest (frontend)
         run: |
-          pytest frontend/tests/ --cov=frontend.views --cov-report=term-missing --cov-fail-under=90
+          pytest paddle/frontend/tests/ --cov=frontend.views --cov-report=term-missing --cov-fail-under=90
 
       - name: Run pytest (americano)
         run: |
