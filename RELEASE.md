@@ -239,10 +239,32 @@ Same steps as staging, but on production server.
 
 # 7️⃣ Tag the Release
 
-From local machine:
+## Install release scripts (one-time)
+
+Scripts live in:
+
+```bash
+scripts/
+```
+
+Make them executable:
+
+```bash
+chmod +x scripts/tag_release.sh \
+  scripts/backmerge_main_to_develop.sh
+```
+
+## A) Automated (scripts)
+
+```bash
+./scripts/tag_release.sh X.Y.Z "Release vX.Y.Z"
+```
+
+## B) Manual (CLI commands)
 
 ```bash
 git checkout main
+git fetch origin
 git pull --ff-only
 git tag -a vX.Y.Z -m "Release vX.Y.Z"
 git push origin vX.Y.Z
@@ -291,15 +313,23 @@ sudo systemctl reload nginx
 
 ---
 
-# 🔁 After Production Deployment
+# 🔁 Update IDE Branches After Production Deployment
 
-Update develop:
+## A) Automated (scripts)
+
+```bash
+./scripts/backmerge_main_to_develop.sh X.Y.Z
+```
+
+## B) Manual (CLI commands)
 
 ```bash
 git checkout develop
 git fetch origin
-git merge origin/main -m "chore(branches): back-merge main after vX.Y.Z"
-git push
+git pull --ff-only origin develop
+git merge origin/main \
+  -m "merge(release): backmerge main into develop after vX.Y.Z"
+git push origin develop
 ```
 
 ---
