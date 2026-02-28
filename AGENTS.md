@@ -122,6 +122,12 @@ List modified, added or removed files. Do NOT repeat entire files.
 
 ---
 
+## C. Changelog Entry
+
+Show exactly what was added to `CHANGELOG.md`.
+
+---
+
 ## D. Functional Summary (Human-Level)
 
 Short paragraph explaining:
@@ -135,15 +141,24 @@ It must describe behavior.
 
 ---
 
-## E. Changelog Entry
+## E. Checks & Tests Confirmation
 
-Show exactly what was added to `CHANGELOG.md`.
+- Confirm checks/tests status clearly (`passed` / `failed`).
+- Include the command(s) executed.
+- Include concise result summary (e.g., `4 passed`, `1 failed`).
 
 ---
 
 ## F. Recommended Commit Message
 
 Provide a Conventional Commit-style message aligned with the changelog.
+
+---
+
+## G. Continuous Improvement Question
+
+End every output with:
+"What should I improve next time? (plan clarity, diff granularity, test scope, commit message precision, other?)"
 
 ---
 
@@ -167,6 +182,7 @@ The agent must NOT:
 - Mix summary with diff.
 - Omit test explanation.
 - Omit changelog content.
+- Omit the final continuous improvement question.
 
 ---
 
@@ -180,5 +196,62 @@ A task is considered complete only if:
 - Tests are present and passing.
 - Changelog is updated.
 - Commit message is provided.
+- Output ends with the required sequence:
+  `D. Functional Summary` → `E. Checks & Tests Confirmation` → `F. Recommended Commit Message` → `G. Continuous Improvement Question`.
 
 If any of the above is missing, the task is incomplete.
+
+---
+
+# 13. Plan Mode Workflow
+
+Use `/plan` before implementation for:
+
+- Any multi-step change.
+- Structural refactors.
+- Cross-app modifications.
+- Test suite changes.
+- Changes affecting deployment or configuration.
+
+Rules:
+
+- Create a new plan file in `/plans/` using `/plans/TEMPLATE.md`.
+- Use file name format: `YYYY-MM-DD_short-description.md`.
+- Do not execute implementation until the plan is approved.
+- Update the plan file during execution (mark completed steps).
+- Add post-mortem notes at the end of execution.
+- Suggest improvements to `AGENTS.md` if recurring patterns emerge.
+
+Feedback Loop:
+
+- After successful completion, ask: "What should I improve next time? (plan clarity, diff granularity, test scope, commit message precision, other?)"
+
+---
+
+# 14. Governance Docs
+
+- Governance and workflow rules: `/docs/PROJECT_INSTRUCTIONS.md`
+- Consult it when:
+  - A task is ambiguous about workflow/roles/approval steps.
+  - A change affects multiple apps or cross-cutting concerns (deployment, changelog discipline, plan mode).
+  - A task conflicts with rules in `AGENTS.md` or the brief.
+- Authority: Explicit task brief > Project Instructions > `AGENTS.md`
+- Version/date synchronization rules:
+  - `AGENTS.md` must mirror `Instruction Set Version` and `Last Updated` defined in `/docs/PROJECT_INSTRUCTIONS.md`.
+  - Any change to `/docs/PROJECT_INSTRUCTIONS.md` must update mirrored version/date metadata in `AGENTS.md` in the same commit.
+  - If version/date metadata is not aligned, stop implementation and align governance docs first.
+
+---
+
+# 15. Governance Metadata Mirror
+
+- Instruction Set Version: `1.0.1`
+- Last Updated: `2026-02-28`
+
+---
+
+# 16. Mandatory Output Reminder
+
+Every Codex output must end with this exact line:
+
+`Reminder: update ChatGPT Project Instructions version/date to match this repository.`

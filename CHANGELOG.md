@@ -15,6 +15,11 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ## [Unreleased]
 
+### Changed
+
+- Added governance synchronization rules requiring version/date updates in `docs/PROJECT_INSTRUCTIONS.md` and `AGENTS.md` on every Project Instructions change.
+- Added a mandatory AI output ending reminder to update ChatGPT Project Instructions version/date.
+
 ## [1.3.0] - 2026-02-20
 
 ### Added

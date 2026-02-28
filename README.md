@@ -4,6 +4,11 @@
 
 Production domain: rankingdepadel.club
 
+## Governance & AI Workflow
+- See /docs/PROJECT_INSTRUCTIONS.md for governance and workflow rules.
+- See AGENTS.md for agent constraints.
+- See /plans/ for plan-mode task histories and templates.
+
 ---
 
 # 1️⃣ Project Purpose
