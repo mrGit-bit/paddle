@@ -32,6 +32,7 @@ Every change should belong to one of the following categories: `added`, `changed
 - Updated governance flow to enforce mandatory stop-and-review gates immediately after spec creation and plan creation.
 - Added frontend module architecture documentation and inline module responsibility comments for `views.py` and all `view_modules` files.
 - Strengthened Markdown governance rules to require markdownlint-compliant authoring/checklist for every new or modified Markdown file.
+- Aligned ranking source of truth by sharing one canonical ranking policy between persisted `Player.ranking_position` and frontend ranking computation (same ordering, tie keys, and competition-style positions), with zero-match players persisted as unranked (`0`).
 
 ## [1.3.0] - 2026-02-20
 

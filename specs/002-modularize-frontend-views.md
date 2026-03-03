@@ -39,10 +39,10 @@ Improve coherence and simplicity by splitting `paddle/frontend/views.py` into fo
 - Do not duplicate helper logic across modules.
 
 ## Acceptance Criteria
-- [ ] AC1: `paddle/frontend/views.py` is reduced to a facade and exports existing public view/helper callables.
-- [ ] AC2: `paddle/frontend/urls.py` continues resolving the same callables without route changes.
-- [ ] AC3: Targeted frontend and americano tests pass unchanged.
-- [ ] AC4: Changelog includes a clear note about internal frontend view modularization.
+- [x] AC1: `paddle/frontend/views.py` is reduced to a facade and exports existing public view/helper callables.
+- [x] AC2: `paddle/frontend/urls.py` continues resolving the same callables without route changes.
+- [x] AC3: Targeted frontend and americano tests pass unchanged.
+- [x] AC4: Changelog includes a clear note about internal frontend view modularization.
 
 ## Manual Functional Checks
 1. Open `/`, `/ranking/male/`, `/ranking/female/`, `/ranking/mixed/` and confirm same rendering/behavior.
@@ -76,3 +76,8 @@ Improve coherence and simplicity by splitting `paddle/frontend/views.py` into fo
 
 ## Notes
 This spec focuses on module boundaries and maintainability only (no functional deltas).
+
+## Status
+- Approved by user.
+- Implemented and verified.
+- Closed on 2026-03-03.

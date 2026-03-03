@@ -6,19 +6,90 @@ from django.contrib.auth.models import User
 
 def update_player_rankings():
     """
-    Recalculates the ranking position of all players in the database.
-    Ranking is done by wins, then by win rate (only if the player has played a match),
-    and finally by name (case insensitive).
+    Recalculates persisted `ranking_position` using the canonical ranking policy.
+
+    Canonical policy is shared with frontend ranking pages:
+    - sort key: wins desc, rounded win rate (2dp) desc, matches asc, name asc
+    - tie key: wins + rounded win rate + matches
+    - position style: competition ranking ("1224")
+
+    Players with zero matches are persisted as unranked (`ranking_position = 0`).
     """
+    from frontend.services.ranking import canonical_ranking_sort_key, canonical_ranking_tie_key
+
     players = list(Player.objects.all())
-    players.sort(
-        key=lambda p: (-p.wins, -p.win_rate if p.matches_played > 0 else 0, p.name.lower())
+    if not players:
+        return
+
+    matches_qs = Match.objects.select_related(
+        "team1_player1", "team1_player2", "team2_player1", "team2_player2"
     )
-    for idx, player in enumerate(players, start=1):
-        if player.ranking_position != idx:
-            player.ranking_position = idx
-            player.save(update_fields=['ranking_position'])
-            
+    stats: dict[int, dict[str, int]] = {}
+
+    for match in matches_qs:
+        match_players = [
+            match.team1_player1,
+            match.team1_player2,
+            match.team2_player1,
+            match.team2_player2,
+        ]
+        for player in match_players:
+            row = stats.setdefault(player.id, {"matches": 0, "wins": 0})
+            row["matches"] += 1
+
+        winners = [match.team1_player1, match.team1_player2] if match.winning_team == 1 else [
+            match.team2_player1,
+            match.team2_player2,
+        ]
+        for winner in winners:
+            stats[winner.id]["wins"] += 1
+
+    ranked_players: list[Player] = []
+    unranked_players: list[Player] = []
+    for player in players:
+        row = stats.get(player.id)
+        if not row or row["matches"] == 0:
+            unranked_players.append(player)
+            continue
+
+        matches_played = row["matches"]
+        wins = row["wins"]
+        win_rate = (wins / matches_played) * 100 if matches_played else 0.0
+        player._ranking_wins = wins
+        player._ranking_matches = matches_played
+        player._ranking_win_rate = win_rate
+        ranked_players.append(player)
+
+    ranked_players.sort(
+        key=lambda player: canonical_ranking_sort_key(
+            wins=player._ranking_wins,
+            win_rate=player._ranking_win_rate,
+            matches=player._ranking_matches,
+            name=player.name,
+        )
+    )
+
+    last_tie_key = None
+    last_rank = 0
+    for ordinal, player in enumerate(ranked_players, start=1):
+        tie_key = canonical_ranking_tie_key(
+            wins=player._ranking_wins,
+            win_rate=player._ranking_win_rate,
+            matches=player._ranking_matches,
+        )
+        if tie_key != last_tie_key:
+            last_tie_key = tie_key
+            last_rank = ordinal
+
+        if player.ranking_position != last_rank:
+            player.ranking_position = last_rank
+            player.save(update_fields=["ranking_position"])
+
+    for player in unranked_players:
+        if player.ranking_position != 0:
+            player.ranking_position = 0
+            player.save(update_fields=["ranking_position"])
+
 
 class Player(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -198,7 +269,6 @@ class Match(models.Model):
         # - recompute match_gender_type
         # - apply new effects
         self.save()
-
 
 
 

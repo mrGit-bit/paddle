@@ -1,12 +1,35 @@
-# absolute path: /workspaces/paddle/paddle/frontend/services/ranking.py
-# shared ranking service
-
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Callable, Iterable, Tuple
+from typing import TYPE_CHECKING, Callable
 
-from games.models import Match, Player
+if TYPE_CHECKING:
+    from games.models import Player
+
+# Canonical ranking policy (source of truth):
+# - Sort key: wins desc, win_rate(2dp) desc, matches asc, name asc (case-insensitive).
+# - Tie key: wins, win_rate(2dp), matches.
+# - Position style: competition ranking ("1224"), with one displayed row per tie group.
+
+
+def canonical_rounded_win_rate(win_rate: float) -> float:
+    return round(win_rate, 2)
+
+
+def canonical_ranking_sort_key(*, wins: int, win_rate: float, matches: int, name: str) -> tuple:
+    return (
+        -wins,
+        -canonical_rounded_win_rate(win_rate),
+        matches,
+        name.lower(),
+    )
+
+
+def canonical_ranking_tie_key(*, wins: int, win_rate: float, matches: int) -> tuple:
+    return (
+        wins,
+        canonical_rounded_win_rate(win_rate),
+        matches,
+    )
 
 
 def apply_competition_ranking_with_ties(players: list[Player], key_fn: Callable[[Player], tuple]) -> None:
@@ -45,6 +68,8 @@ def compute_ranking(scope: str) -> tuple[list[Player], list[Player], str]:
         unranked_players (scoped population),
         normalized_scope
     """
+    from games.models import Match, Player
+
     scope_map = {
         "all": None,
         "male": Match.GENDER_TYPE_MALE,
@@ -104,20 +129,26 @@ def compute_ranking(scope: str) -> tuple[list[Player], list[Player], str]:
         p.display_win_rate = win_rate
         ranked_players.append(p)
 
-    # Order: wins desc, win_rate desc, matches asc, name asc
+    # Canonical ordering policy.
     ranked_players.sort(
         key=lambda p: (
-            -p.display_wins,
-            -round(p.display_win_rate, 2),
-            p.display_matches,
-            p.name.lower(),
+            canonical_ranking_sort_key(
+                wins=p.display_wins,
+                win_rate=p.display_win_rate,
+                matches=p.display_matches,
+                name=p.name,
+            )
         )
     )
 
-    # Ties: wins + win_rate + matches (T1 + your untie rule)
+    # Canonical tie policy (competition ranking).
     apply_competition_ranking_with_ties(
         ranked_players,
-        key_fn=lambda p: (p.display_wins, round(p.display_win_rate, 2), p.display_matches),
+        key_fn=lambda p: canonical_ranking_tie_key(
+            wins=p.display_wins,
+            win_rate=p.display_win_rate,
+            matches=p.display_matches,
+        ),
     )
 
     return ranked_players, unranked_players, scope

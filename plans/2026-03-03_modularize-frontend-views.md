@@ -108,8 +108,17 @@
 ## Execution Log
 - 2026-03-03 21:36 UTC — Spec created.
 - 2026-03-03 21:36 UTC — Plan created.
+- 2026-03-03 21:36 UTC — Spec approved.
+- 2026-03-03 21:36 UTC — Plan approved.
 - 2026-03-03 21:37 UTC — Implementation started.
 - 2026-03-03 21:42 UTC — Tests executed (`63 passed`, `43 passed`).
+- 2026-03-03 22:19 UTC — Manual checks confirmed by user; cycle closed.
 
 ## Post-Mortem / Improvements
-- To be completed after implementation.
+- Worked well:
+  - Facade pattern preserved import stability while allowing module split.
+  - Existing tests caught monkeypatch compatibility regressions quickly.
+- Friction:
+  - Compatibility tests relying on monkeypatching `frontend.views` required specific runtime indirection.
+- Suggested follow-up:
+  - Add an architecture guard test to keep `frontend/views.py` facade-only.
