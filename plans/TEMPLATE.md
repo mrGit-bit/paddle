@@ -4,34 +4,75 @@
 # Title
 
 ## Context
-- Describe the current state and why this task is needed.
+- Current state and why this task is needed.
+- Files/components that will be read first (discovery list).
+
+## Spec Reference
+- Link the exact spec file:
+  - `specs/###-short-title.md`
 
 ## Objectives
-- Define the intended outcomes.
+- Intended outcomes (measurable).
 
 ## Scope
+
 ### In
-- List what is included.
+- Explicitly included items.
 
 ### Out
-- List what is explicitly excluded.
+- Explicit exclusions.
 
 ## Risks
-- List key risks and mitigations.
+- Key risks and mitigations.
 
-## Plan Steps
+## Files Allowed to Change
+- List explicitly.
+
+## Files Forbidden to Change
+- List explicitly.
+
+## Proposed Changes (Step-by-Step by File)
+For each file, describe the intended change at a high level (no code in Plan Mode).
+
+Example structure:
+- `path/to/file.py`
+  - Change:
+  - Why:
+  - Notes:
+
+## Plan Steps (Execution Order)
 - [ ] Step 1
 - [ ] Step 2
 - [ ] Step 3
 
-## Acceptance Criteria
-- Define clear, testable completion conditions.
+## Acceptance Criteria (Testable)
+- [ ] AC1
+- [ ] AC2
+- [ ] AC3
 
 ## Validation Commands
 - `pytest <targeted-scope>`
+- Add other commands only if required (migrations, collectstatic, etc.)
+
+## Manual Functional Checks
+1. Check 1
+2. Check 2
+3. Check 3
 
 ## Execution Log
-- YYYY-MM-DD HH:MM - Plan created.
+- YYYY-MM-DD HH:MM — Spec created.
+- YYYY-MM-DD HH:MM — Spec approved.
+- YYYY-MM-DD HH:MM — Plan created.
+- YYYY-MM-DD HH:MM — Plan approved.
+- YYYY-MM-DD HH:MM — Implementation started.
+- YYYY-MM-DD HH:MM — Tests executed.
+- YYYY-MM-DD HH:MM — Implementation approved.
+- YYYY-MM-DD HH:MM — Governance changed (if needed).
 
 ## Post-Mortem / Improvements
-- Capture what worked, what did not, and improvements for next time.
+- What worked well
+- What caused friction
+- Suggested updates to:
+  - `/docs/PROJECT_INSTRUCTIONS.md`
+  - `/AGENTS.md`
+  - `/plans/TEMPLATE.md`

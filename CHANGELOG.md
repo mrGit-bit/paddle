@@ -15,10 +15,10 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ## [Unreleased]
 
-### Changed
+### Added
 
 - Added governance synchronization rules requiring version/date updates in `docs/PROJECT_INSTRUCTIONS.md` and `AGENTS.md` on every Project Instructions change.
-- Added a mandatory AI output ending reminder to update ChatGPT Project Instructions version/date.
+- Added player insights on `/players/<id>/` with trend (últimos 5/10/total), most frequent partner, and top 3 most frequent rival pairs.
 
 ## [1.3.0] - 2026-02-20
 

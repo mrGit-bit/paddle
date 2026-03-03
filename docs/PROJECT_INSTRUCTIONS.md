@@ -1,26 +1,32 @@
+<!-- markdownlint-disable MD022 -->
+<!-- markdownlint-disable MD032 -->
+<!-- markdownlint-disable MD034 -->
+<!-- markdownlint-disable MD041 -->
+
 This document mirrors the governance configuration used in ChatGPT Project mode.
 
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 1.0.1  
-Last Updated: 2026-02-28
+Instruction Set Version: 2.1.0  
+Last Updated: 2026-03-02
 
 ---
 
-## 1. Purpose
+# 1. Purpose
 
-Web application for padel rankings, matches, tournaments, and Hall of Fame.
+Web application for padel rankings, matches and tournaments.
 
 Includes Android/iOS WebView wrappers using the same backend and frontend (no duplicated business logic).
 
 Stack overview:
-- Backend: Django + DRF
+- Backend: Django
 - Frontend: Django Templates + Bootstrap 5
 - Mobile: Capacitor WebView (same URLs)
+- API endpoints and DRF use in the backend for those API endpoints are deprecated.
 
 ---
 
-## 2. Technology Stack
+# 2. Technology Stack
 
 Python 3.10.12
 
@@ -36,74 +42,18 @@ Frontend:
 
 ---
 
-## 3. Repository & Branching
+# 3. Core Governance Principles
 
-Repository:
-https://github.com/mrGit-bit/paddle
-
-IDE:
-VS Code (GitHub Codespaces – web)
-
-Branches:
-- main → Production
-- staging → Pre-production
-- develop → Integration
-
-Deployment:
-- Manual via SSH + git pull
-- Manual migrations
-
----
-
-## 4. Deployment Architecture
-
-- Ubuntu 22.04 LTS
-- Gunicorn bound to 127.0.0.1:8000
-- nginx (80 → 443)
-- systemd services
-- Cloudflare (SSL Full strict)
-- iptables firewall
-- Static files: /home/ubuntu/paddle/paddle/staticfiles
-
-Staging:
-- Separate VM
-- Separate Oracle DB
-- nginx Basic Auth protection
-
----
-
-## 5. Django Configuration (Strict)
-
-Settings path:
-paddle/config/settings/
-
-Files:
-- base.py
-- dev.py
-- prod.py
-
-No staging.py (staging uses prod.py with different .env).
-
-Configuration rules:
-- Configuration only via .env
-- python-decouple mandatory
-- .env.example must be complete
-- No secrets in code
-- No environment-specific logic in templates
-
----
-
-## 6. Governance & Code Principles
-
-Core principles:
 - DRY
 - KISS
-- SRP
-- YAGNI
+- SRP (Single Responsibility Principle)
+- YAGNI (No speculative functionality)
 - Explicit > Implicit
-- Backend computes logic; frontend renders only
+- Backend computes business logic
+- Templates render only
 - No business logic in templates
 - No frontend ranking logic
+- No speculative refactors
 
 Authority hierarchy:
 1. Explicit Task Brief
@@ -122,219 +72,134 @@ Version control rules for governance docs:
 
 ---
 
-## 7. Feature Specification Protocol (Mandatory)
+# 4. Spec-Driven Development (SDD) — Mandatory Flow (A → B → C)
 
-Codex must NOT start implementation until a complete specification is defined.
+All work follows three phases: **A) Specification**, **B) Planning**, **C) Implementation**.
 
-Every feature must define:
-
-A. Functional Goal  
-B. Scope (included / excluded)  
-C. UI/UX requirements  
-D. Backend requirements  
-E. Data rules  
-F. Reuse rules  
-G. Acceptance criteria (testable)  
-H. Files allowed to change  
-I. Files that must NOT change  
-
-If ambiguity exists, Codex must stop and request clarification.
+No code implementation starts without:
+- A written spec in `specs/`
+- An approved plan in `/plans/`
+- Clear acceptance criteria and validation commands
 
 ---
 
-## 8. Testing & Quality
+## Phase A — Specification (ChatGPT)
 
-Framework:
-- pytest
-- pytest-django
-- pytest-cov
+ChatGPT is used for:
+- Complex reasoning
+- High-level design
+- Clarifying requirements
 
-Coverage:
-Minimum ≥ 90%
+### A1. Clarification First (Mandatory)
+Before writing or updating any spec, ChatGPT MUST:
+- Ask enough precise questions to obtain a complete, unambiguous specification.
+- Clarify scope boundaries (In/Out).
+- Clarify constraints (UI, backend, performance, testing).
+- Clarify allowed and forbidden files.
 
-Rules:
-- Every feature includes tests or test updates.
-- Run smallest relevant pytest scope.
-- No feature is complete without tests.
+No plan is created before specification clarity.
 
----
+### A2. Spec File (Mandatory)
+Once clear, ChatGPT MUST produce a Markdown spec file in:
+- `specs/###-short-title.md` (example: `specs/001-auth.md`)
 
-## 9. Changelog Discipline (Mandatory)
+Each spec MUST include (minimum):
+- Functional Goal
+- Scope (In / Out)
+- UI/UX Requirements
+- Backend Requirements
+- Data Rules (ordering/tie-breakers/null handling)
+- Reuse Rules
+- Acceptance Criteria (binary, testable)
+- Manual Functional Checks (3–6)
+- Files Allowed to Change
+- Files Forbidden to Change
 
-CHANGELOG.md follows Keep a Changelog.
-
-During development:
-Add entries under:
-## [Unreleased]
-
-On release:
-Move entries to:
-## [X.Y.Z] - YYYY-MM-DD
-
-Categories:
-- Added
-- Changed
-- Fixed
-- Removed
-
-Rules:
-- UI-visible changes → user wording.
-- Internal changes → technical wording.
-- Every Codex task must update CHANGELOG unless formatting-only.
-- Commit subject must align with CHANGELOG entry.
+### A3. Refinement Antipattern (Continuous Improvement Trigger)
+If the ChatGPT clarification cycle requires many corrections AND a recurring cause is identified:
+ChatGPT MUST suggest updating `PROJECT_INSTRUCTIONS.md` (and/or `AGENTS.md` / `plans/TEMPLATE.md`) to prevent repetition.
 
 ---
 
-## 10. AI Workflow — Strict Role Separation
+## Phase B — Planning (Codex CLI in Plan Mode)
 
-This project enforces strict separation between:
+Planning happens in the terminal using Codex CLI **Plan Mode**.
 
-- ChatGPT (Project Chat — architecture & governance)
-- Codex CLI (planning, execution & repository modification)
+### B1. Plan Template (Mandatory)
+All plans must use:
+- `/plans/TEMPLATE.md`
 
----
+### B2. Create Plan File (Mandatory)
+The plan must live in:
+- `/plans/YYYY-MM-DD_short-description.md`
 
-### 10.1 ChatGPT Responsibilities
+### B3. Plan Input Source
+Codex Plan Mode MUST be instructed to base the plan on:
+- the relevant `specs/*.md` file
 
-ChatGPT must:
+Codex in Plan Mode:
+- MUST NOT write product code
+- MAY update repository Markdown files (project/agents/template/spec/plan) when instructed
 
-- Define specifications.
-- Provide architectural guidance.
-- Present 2–4 options with trade-offs.
-- Generate Codex CLI task and planning prompts.
-- Refine documentation.
-- Enforce governance rules.
-- Design testing strategy (not implement tests).
+### B4. Plan Review Loop (Mandatory)
+The plan is iterated until approved:
+- ChatGPT can review plan quality and completeness
+- User edits or requests adjustments
+- Repeat until fully agreed
 
-ChatGPT must NOT:
-
-- Write executable production code.
-- Modify repository files directly.
-- Produce final scripts or operational YAML.
-- Implement multi-file changes.
-- Planning for coding (codex planning mode will do it).
-
-If repository modifications or panning in codex cli are required, ChatGPT must generate a Codex CLI instruction prompt.
+If planning becomes difficult or repeats the same friction:
+ChatGPT should recommend improving governance docs or templates.
 
 ---
 
-### 10.2 Codex CLI Responsibilities
+## Phase C — Implementation (Codex CLI Execute Mode)
 
-Codex CLI must:
+Only after the plan is approved:
 
-- Planning features.
-- Implement features.
-- Modify repository files.
-- Write and run tests.
-- Update CHANGELOG.
-- Suggest commit messages.
-- Follow AGENTS.md constraints.
-- Respect authority hierarchy.
-- Ask for self improvement.
+### C1. Execute Step-by-Step
+Codex is instructed using the plan:
+- “Implement Step 1 of `/plans/...md` following `AGENTS.md` rules.”
 
-Codex must NOT:
-- Make architectural decisions.
-- Introduce speculative refactors.
-- Change project rules if not asked explicitly.
-- Proceed with unclear specifications.
+### C2. Optimization to Reduce Iterations (Continuous Improvement)
+C2.1. Capture of Errors:
+- If Codex repeats a mistake, add a constraint to `PROJECT_INSTRUCTIONS.md` and/or `AGENTS.md`.
 
----
+C2.2. Dynamic Checklists:
+- After a complex task is completed successfully, request:
+  - “Based on this session, propose updates to `/plans/TEMPLATE.md` to avoid the problems we had.”
 
-## 11. Plan Mode Workflow (Living Plans)
-
-For any multi-step, structural, cross-app, or test-related task:
-
-Codex must use Plan Mode.
-
-### Plan Mode Requirements
-
-1. Create a new file inside:
-   /plans/
-
-2. File naming format:
-   YYYY-MM-DD_short-description.md
-
-3. Use /plans/TEMPLATE.md structure.
-
-4. A plan must include:
-   - Context
-   - Objectives
-   - Scope (In / Out)
-   - Risks
-   - Step checklist
-   - Acceptance criteria
-   - Validation commands
-   - Execution log
-   - Post-mortem notes
-
-5. Codex must:
-   - Present the plan.
-   - Wait for approval.
-   - Update the plan file during execution.
-   - Mark completed steps.
-   - Add post-mortem notes.
-
-6. Completed plans remain in /plans/ for historical review.
+### C3. Testing & Changelog (Mandatory)
+- Tests must be updated/added and executed.
+- Coverage target: ≥ 90%.
+- `CHANGELOG.md` updated under `## [Unreleased]` unless formatting-only.
 
 ---
 
-## 12. Mandatory Execution Sequence
+# 5. ChatGPT Availability Throughout
 
-Standard tasks:
+ChatGPT remains available in any phase for:
+- Clarifications
+- Edge cases
+- Architectural validation
+- Risk evaluation
+- Suggesting manual checks
 
-Step 1 — Project Chat  
-Clarify → Define full specification → Produce final Codex brief.
-
-Step 2 — Codex CLI  
-Implement → Test → Update CHANGELOG → Suggest commit.
-
-Step 3 — Project Chat  
-Review diff → Approve or reject.
-
-Structural or cross-app tasks:
-
-Plan Mode must precede implementation.
-
-Skipping steps is not allowed.
+ChatGPT must NOT implement repository code.
 
 ---
 
-## 13. Feedback Loop (Continuous Improvement)
+# 6. Markdown Output Discipline
 
-After successful completion of a task:
+To avoid truncation and broken paste:
+1. Only one fenced block per copy artifact.
+2. No nested fences.
+3. No partial markdown blocks.
+4. If formatting breaks, return flat markdown text.
+5. After creating or amending a markdown file, fix all markdownlint violations detected in the document.
 
-Codex must ask one short improvement question:
+When Codex changes PROJECT_INSTRUCTIONS.md, it must explain changes and include the reminder:
 
-"What should I improve next time? (plan clarity, diff granularity, test scope, commit message precision, other?)"
-
-Project Chat may refine AGENTS.md or workflow rules based on recurring patterns.
-
----
-
-## 14. Anti-Drift Rules
-
-- No renaming functions unless required.
-- No moving files across apps unless specified.
-- No service extraction unless requested.
-- No template restructuring beyond feature needs.
-- No CSS rewrites.
-- No global JS changes unless required.
-- No pagination behavior changes unless specified.
-
----
-
-## 15. Markdown Output Rules (Critical)
-
-To avoid broken or truncated Markdown in AI outputs:
-
-1. Use only one code fence per block.
-2. Wrap full copy-paste content in a single fenced block.
-3. Never nest triple backticks.
-4. Do not split Markdown blocks.
-5. If formatting cannot be preserved, return plain text instead.
-
-6. End every AI output with this exact reminder line:
-   `Reminder: update ChatGPT Project Instructions version/date to match this repository.`
+`Reminder: update ChatGPT Project Instructions version/date to match this repository.`
 
 ---
 
