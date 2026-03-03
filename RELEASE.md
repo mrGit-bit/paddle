@@ -1,4 +1,5 @@
 <!-- markdownlint-disable MD025 -->
+<!-- markdownlint-disable MD024 -->
 
 # 🚀 Release Process
 

@@ -7,8 +7,8 @@ This document mirrors the governance configuration used in ChatGPT Project mode.
 
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.1.0  
-Last Updated: 2026-03-02
+Instruction Set Version: 2.2.1  
+Last Updated: 2026-03-03
 
 ---
 
@@ -103,6 +103,18 @@ No plan is created before specification clarity.
 Once clear, ChatGPT MUST produce a Markdown spec file in:
 - `specs/###-short-title.md` (example: `specs/001-auth.md`)
 
+### A2.1. Mandatory Stop After Spec Creation
+After creating or updating a spec file, Codex MUST stop implementation work and ask for explicit user review/approval.
+
+Allowed before approval:
+- Clarifications and refinements to the spec file
+- Other Markdown governance adjustments requested by the user
+
+Forbidden before approval:
+- Plan creation
+- Product code changes
+- Test execution tied to implementation
+
 Each spec MUST include (minimum):
 - Functional Goal
 - Scope (In / Out)
@@ -133,6 +145,17 @@ All plans must use:
 The plan must live in:
 - `/plans/YYYY-MM-DD_short-description.md`
 
+### B2.1. Mandatory Stop After Plan Creation
+After creating or updating a plan file, Codex MUST stop implementation work and ask for explicit user review/approval of the plan.
+
+Allowed before approval:
+- Plan refinements requested by the user
+- Other Markdown governance/template adjustments requested by the user
+
+Forbidden before approval:
+- Product code changes
+- Implementation test execution
+
 ### B3. Plan Input Source
 Codex Plan Mode MUST be instructed to base the plan on:
 - the relevant `specs/*.md` file
@@ -155,6 +178,8 @@ ChatGPT should recommend improving governance docs or templates.
 ## Phase C — Implementation (Codex CLI Execute Mode)
 
 Only after the plan is approved:
+- The latest spec must be explicitly approved by the user.
+- The latest plan must be explicitly approved by the user.
 
 ### C1. Execute Step-by-Step
 Codex is instructed using the plan:
@@ -174,7 +199,7 @@ C2.2. Dynamic Checklists:
 - `CHANGELOG.md` updated under `## [Unreleased]` unless formatting-only.
 
 ---
-
+before
 # 5. ChatGPT Availability Throughout
 
 ChatGPT remains available in any phase for:
@@ -196,6 +221,21 @@ To avoid truncation and broken paste:
 3. No partial markdown blocks.
 4. If formatting breaks, return flat markdown text.
 5. After creating or amending a markdown file, fix all markdownlint violations detected in the document.
+
+## 6.1 Markdownlint Compliance (Mandatory)
+For every new or modified Markdown file:
+- Do not add `markdownlint-disable` directives unless the user explicitly requests them.
+- Keep exactly one blank line around headings.
+- Keep exactly one blank line before and after lists.
+- Use consistent list markers (`-` for unordered lists).
+- Avoid trailing spaces.
+- Keep ordered lists sequential and explicit (`1.`, `2.`, `3.`).
+- Ensure files end with a single trailing newline.
+
+Validation workflow:
+1. Run markdownlint on the changed Markdown files.
+2. Fix violations in the same commit.
+3. If markdownlint CLI is unavailable, perform a manual checklist pass using the rules above before delivering.
 
 When Codex changes PROJECT_INSTRUCTIONS.md, it must explain changes and include the reminder:
 

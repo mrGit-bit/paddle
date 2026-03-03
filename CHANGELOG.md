@@ -26,6 +26,13 @@ Every change should belong to one of the following categories: `added`, `changed
   - API-specific modules and API-only tests in `games` and `users`
   - DRF runtime/settings/dependency wiring no longer used by the supported web product
 
+### Changed
+
+- Refactored `frontend.views` into internal domain modules (`view_modules`) while keeping `frontend.views` as a compatibility facade with unchanged route behavior.
+- Updated governance flow to enforce mandatory stop-and-review gates immediately after spec creation and plan creation.
+- Added frontend module architecture documentation and inline module responsibility comments for `views.py` and all `view_modules` files.
+- Strengthened Markdown governance rules to require markdownlint-compliant authoring/checklist for every new or modified Markdown file.
+
 ## [1.3.0] - 2026-02-20
 
 ### Added

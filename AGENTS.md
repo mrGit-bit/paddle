@@ -4,8 +4,8 @@
 
 # AGENTS.md — Spec-Driven Execution Rules
 
-Instruction Set Version: 2.1.0  
-Last Updated: 2026-03-02
+Instruction Set Version: 2.2.1  
+Last Updated: 2026-03-03
 
 ---
 
@@ -27,6 +27,9 @@ STOP and align first.
 Implementation MUST NOT start unless there is an approved spec file in:
 - `specs/###-short-title.md`
 
+After creating/updating a spec file:
+- STOP and request user review/approval before creating a plan or implementing.
+
 ### Phase B — Planning (Plan Mode)
 Implementation MUST NOT start unless there is an approved plan file in:
 - `/plans/YYYY-MM-DD_short-description.md`
@@ -37,10 +40,14 @@ In Plan Mode, the agent:
 - MUST NOT write product code
 - MAY update Markdown files when instructed
 
+After creating/updating a plan file:
+- STOP and request user review/approval before implementation.
+
 ### Phase C — Implementation (Execute Mode)
 Only after plan approval:
 - Implement step-by-step, following plan order.
 - No scope expansion.
+- Start only when both latest spec and latest plan are explicitly approved by the user.
 
 ---
 
@@ -105,3 +112,20 @@ F) Recommended Commit Message
 G) Ask for confirmation to close the development cycle  
 H) Eventually, and If needed, make a Continuous Improvement Question with suggestions
 I) If required, ammend markdown files to align with suggestions
+
+---
+
+## 8. Markdownlint Rules (Mandatory for Markdown files)
+
+For any created/modified Markdown file:
+- Avoid `markdownlint-disable` directives unless explicitly requested by the user.
+- Keep one blank line around headings and lists.
+- Use consistent unordered list markers (`-`).
+- Avoid trailing spaces and malformed list indentation.
+- Ensure numbered lists are explicit and sequential (`1.`, `2.`, `3.`).
+- End files with a single newline.
+
+Before final delivery:
+1. Run markdownlint on changed Markdown files when available.
+2. Fix all violations in the same change set.
+3. If markdownlint is unavailable, perform a manual pass against this checklist.
