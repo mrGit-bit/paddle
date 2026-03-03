@@ -8,7 +8,6 @@ Since v1.0.4 the project is two products in one repo in GitHub: a Web app and an
 
 - Web app (Django)
 - Android app (Capacitor → Play Store)
-- API (Django Rest Framework)
 - DevOps: anything that supports running and delivering the web or mobile apps.
 
 Every change should belong to one of the following categories: `added`, `changed`, `removed` or `fixed`.
@@ -19,6 +18,13 @@ Every change should belong to one of the following categories: `added`, `changed
 
 - Added governance synchronization rules requiring version/date updates in `docs/PROJECT_INSTRUCTIONS.md` and `AGENTS.md` on every Project Instructions change.
 - Added player insights on `/players/<id>/` with trend (últimos 5/10/total), most frequent partner, and top 3 most frequent rival pairs.
+
+### Removed
+
+- Removed deprecated Django REST Framework API surface:
+  - URL endpoints: `/api/games/`, `/api/users/`, `/api-auth/`
+  - API-specific modules and API-only tests in `games` and `users`
+  - DRF runtime/settings/dependency wiring no longer used by the supported web product
 
 ## [1.3.0] - 2026-02-20
 
