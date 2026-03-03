@@ -14,7 +14,12 @@ from django.urls import reverse
 
 from games.models import Match, Player
 
-from .common import build_all_players, fetch_paginated_data, get_new_match_ids
+from .common import (
+    build_all_players,
+    build_player_participation_queryset,
+    fetch_paginated_data,
+    get_new_match_ids,
+)
 from .ranking import get_scoped_player_and_page
 
 
@@ -22,10 +27,7 @@ def build_player_matches_queryset(player):
     """
     Returns matches where player participates, ordered latest first.
     """
-    profile_matches_qs = Match.objects.filter(team1_player1=player) | Match.objects.filter(
-        team1_player2=player
-    ) | Match.objects.filter(team2_player1=player) | Match.objects.filter(team2_player2=player)
-    return profile_matches_qs.distinct().order_by("-date_played")
+    return build_player_participation_queryset(player).order_by("-date_played")
 
 
 def _compute_win_rate_percent(wins: int, matches: int) -> int:

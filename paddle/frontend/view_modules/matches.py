@@ -20,6 +20,7 @@ from games.models import Match, Player
 
 from .common import (
     build_all_players,
+    build_player_participation_queryset,
     fetch_paginated_data,
     get_new_match_ids,
     get_ranking_redirect,
@@ -183,12 +184,7 @@ def match_view(request, client=None):
     matches_qs = Match.objects.all().order_by("-date_played")
     matches, pagination = fetch_paginated_data(matches_qs, request)
 
-    user_matches_qs = Match.objects.filter(team1_player1=user_player) | Match.objects.filter(
-        team1_player2=user_player
-    ) | Match.objects.filter(team2_player1=user_player) | Match.objects.filter(
-        team2_player2=user_player
-    )
-    user_matches_qs = user_matches_qs.distinct().order_by("-date_played")
+    user_matches_qs = build_player_participation_queryset(user_player).order_by("-date_played")
     user_matches, user_pagination = fetch_paginated_data(user_matches_qs, request)
 
     new_match_ids = get_new_match_ids(request)

@@ -82,6 +82,18 @@ def get_player_stats(request, player_id=None):
     return stats
 
 
+def build_player_participation_queryset(player):
+    """
+    Returns matches where `player` participates in any of the four match slots.
+    """
+    return (
+        Match.objects.filter(team1_player1=player)
+        | Match.objects.filter(team1_player2=player)
+        | Match.objects.filter(team2_player1=player)
+        | Match.objects.filter(team2_player2=player)
+    ).distinct()
+
+
 def get_new_match_ids(request):
     """
     Retrieves the list of new match IDs for the user.
@@ -94,13 +106,7 @@ def get_new_match_ids(request):
     if not user_player:
         return []
 
-    matches = Match.objects.filter(team1_player1=user_player) | Match.objects.filter(
-        team1_player2=user_player
-    ) | Match.objects.filter(team2_player1=user_player) | Match.objects.filter(
-        team2_player2=user_player
-    )
-    matches = matches.distinct()
-
+    matches = build_player_participation_queryset(user_player)
     seen_matches = set(request.session.get("seen_matches", []))
     new_match_ids = [match.id for match in matches if match.id not in seen_matches]
     return new_match_ids
