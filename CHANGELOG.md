@@ -14,6 +14,7 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-03-05
 ### Added
 
 - Added player insights on `/players/<id>/` with trend (últimos 5/10/total), most frequent partner, and top 3 most frequent rival pairs.
