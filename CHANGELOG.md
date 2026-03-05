@@ -36,6 +36,10 @@ Every change should belong to one of the following categories: `added`, `changed
 - Hardened pytest database safety by using tracked `config.settings.dev` in pytest and adding a fail-fast guard that aborts test runs if they target development `db.sqlite3`.
 - Updated Americano tournament creation to capture gender for newly added non-registered players (male/female inputs) and persist it on player creation.
 
+### Fixed
+
+- Fixed `release-prep-no-ai` workflow commit staging so release PRs include both `CHANGELOG.md` and `paddle/config/__init__.py` version bump changes.
+
 ## [1.3.0] - 2026-02-20
 
 ### Added
