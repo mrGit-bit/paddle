@@ -16,8 +16,8 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ### Added
 
-- Added governance synchronization rules requiring version/date updates in `docs/PROJECT_INSTRUCTIONS.md` and `AGENTS.md` on every Project Instructions change.
 - Added player insights on `/players/<id>/` with trend (últimos 5/10/total), most frequent partner, and top 3 most frequent rival pairs.
+- Added governance synchronization rules requiring version/date updates in `docs/PROJECT_INSTRUCTIONS.md` and `AGENTS.md` on every Project Instructions change.
 
 ### Removed
 
@@ -30,10 +30,11 @@ Every change should belong to one of the following categories: `added`, `changed
 
 - Refactored `frontend.views` into internal domain modules (`view_modules`) while keeping `frontend.views` as a compatibility facade with unchanged route behavior.
 - Updated governance flow to enforce mandatory stop-and-review gates immediately after spec creation and plan creation.
-- Added frontend module architecture documentation and inline module responsibility comments for `views.py` and all `view_modules` files.
 - Strengthened Markdown governance rules to require markdownlint-compliant authoring/checklist for every new or modified Markdown file.
 - Aligned ranking source of truth by sharing one canonical ranking policy between persisted `Player.ranking_position` and frontend ranking computation (same ordering, tie keys, and competition-style positions), with zero-match players persisted as unranked (`0`).
 - Harmonized frontend player-participation match queries by centralizing shared queryset construction across matches, players, and new-match detection helpers (behavior preserved).
+- Hardened pytest database safety by using tracked `config.settings.dev` in pytest and adding a fail-fast guard that aborts test runs if they target development `db.sqlite3`.
+- Updated Americano tournament creation to capture gender for newly added non-registered players (male/female inputs) and persist it on player creation.
 
 ## [1.3.0] - 2026-02-20
 

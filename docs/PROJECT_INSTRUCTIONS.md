@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD025 -->
 # Project Instructions — rankingdepadel.club
 
 Instruction Set Version: 2.2.3  
