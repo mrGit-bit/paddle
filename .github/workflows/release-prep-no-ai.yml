@@ -85,6 +85,12 @@ jobs:
           )
 
           new_text = new_text.replace(unreleased_replacement, unreleased_replacement + new_section, 1)
+          new_text = re.sub(
+            r"(?m)^## \[Unreleased\]\n+(?=## \[)",
+            "## [Unreleased]\n\n",
+            new_text,
+            count=1,
+          )
 
           path.write_text(new_text, encoding="utf-8")
           print(f"Updated CHANGELOG.md: created {new_header.strip()}")
@@ -130,9 +136,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add CHANGELOG.md
+          git add CHANGELOG.md paddle/config/__init__.py
           if git diff --cached --quiet; then
-            echo "No CHANGELOG changes staged. Exiting."
+            echo "No release file changes staged (CHANGELOG.md or paddle/config/__init__.py). Exiting."
             exit 1
           fi
 
