@@ -5,7 +5,7 @@
 - Summary (from CHANGELOG)
   -
 
-## Checklist
+## Checklist (from ci chore to develop)
 
 - [ ] CHANGELOG.md updated (Unreleased -> [X.Y.Z] - YYYY-MM-DD)
 - [ ] BACKLOG.md updated (done items removed)
@@ -13,7 +13,7 @@
 - [ ] CI green (tests + coverage)
 - [ ] Staging deploy performed & smoke-tested (for staging->main PR)
 
-## Test plan (staging)
+## Test plan (in staging)
 
 - [ ] Login / logout
 - [ ] Rankings page loads

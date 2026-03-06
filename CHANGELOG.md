@@ -15,6 +15,10 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ## [Unreleased]
 
+### Fixed
+
+- Updated about-page version test to assert the configured version label dynamically instead of a hardcoded release number.
+
 ## [1.3.1] - 2026-02-20
 ### Added
 

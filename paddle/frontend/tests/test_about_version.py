@@ -8,9 +8,11 @@ pytestmark = pytest.mark.django_db
 
 def test_about_page_shows_configured_version_label(client):
     response = client.get(reverse("about"))
+    expected_version = views.get_about_app_version_label()
 
     assert response.status_code == 200
-    assert "1.3.0" in response.content.decode("utf-8")
+    assert expected_version is not None
+    assert expected_version in response.content.decode("utf-8")
 
 
 def test_about_page_shows_fallback_when_version_missing(client, monkeypatch):
