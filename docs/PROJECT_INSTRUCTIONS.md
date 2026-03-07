@@ -233,6 +233,7 @@ C2.2. Dynamic Checklists:
 - Coverage target: ≥ 90%.
 - `CHANGELOG.md` updated under `## [Unreleased]` unless formatting-only.
 - Commit message suggestions must be provided only after the user confirms the current spec implementation cycle is closed.
+- Immediately after the recommended commit message, Codex must ask whether to proceed with staging changes, committing with that message, and pushing to the remote branch.
 
 ---
 

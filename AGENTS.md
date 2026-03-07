@@ -118,9 +118,10 @@ D) Changelog Entry (exact text added)
 E) Human readable summary of changes  
 E) Manual Functional Checks proposed (3–6)  
 F) Recommended Commit Message
-G) Ask for confirmation to close the development cycle  
-H) After closure, provide a suggestion of next steps (if relevant)
-I) If required, ammend markdown files to align with suggestions
+G) Ask: "Do you want me to proceed with staging changes, committing with the recommended commit message, and pushing to the remote branch?"
+H) Ask for confirmation to close the development cycle  
+I) After closure, provide a suggestion of next steps (if relevant)
+J) If required, ammend markdown files to align with suggestions
 
 ---
 
