@@ -31,9 +31,10 @@
 ## Minimum smoke test (staging/main promotions)
 
 - [ ] Login / logout
-- [ ] Rankings page loads
+- [ ] All rankings page loads + pagination works
 - [ ] Match list loads + pagination works
-- [ ] Add a Match works and updates players' stats
-- 
+- [ ] Adding a Match works and updates players' stats and rankings
+- [ ] Jugadores view loads and diplays players' stats and match history
 - [ ] Americano view loads
 - [ ] Static assets ok (CSS/JS/images)
+- [ ] New version features work as expected
