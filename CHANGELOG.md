@@ -19,6 +19,10 @@ Every change should belong to one of the following categories: `added`, `changed
 
 - Updated about-page version test to assert the configured version label dynamically instead of a hardcoded release number.
 
+### Changed
+
+- Updated release PR template to align checklist and CI gates with `.github/workflows/ci.yml` and `.github/workflows/release-prep-no-ai.yml`.
+
 ## [1.3.1] - 2026-02-20
 ### Added
 
