@@ -22,6 +22,7 @@ Every change should belong to one of the following categories: `added`, `changed
 ### Changed
 
 - Updated release PR template to align checklist and CI gates with `.github/workflows/ci.yml` and `.github/workflows/release-prep-no-ai.yml`.
+- Configured Codespaces/Web VS Code workspace port settings so port `8000` defaults to public visibility on load.
 
 ## [1.3.1] - 2026-02-20
 ### Added
