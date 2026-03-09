@@ -1,4 +1,6 @@
 <!-- markdownlint-disable MD024 -->
+<!-- markdownlint-disable MD022 -->
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
@@ -17,6 +19,7 @@ Every change should belong to one of the following categories: `added`, `changed
 ### Fixed
 
 - Updated about-page version test to assert the configured version label dynamically instead of a hardcoded release number.
+- Fixed `release-prep-no-ai` workflow commit staging so release PRs include both `CHANGELOG.md` and `paddle/config/__init__.py` version bump changes.
 
 ### Changed
 
@@ -24,8 +27,14 @@ Every change should belong to one of the following categories: `added`, `changed
 - Configured Codespaces/Web VS Code workspace port settings so port `8000` defaults to public visibility on load.
 - Updated `release-prep-no-ai.yml` to build PR bodies from `.github/PULL_REQUEST_TEMPLATE/release.md` and inject the corresponding `CHANGELOG.md` release section as the summary.
 - Updated governance instructions in `AGENTS.md` and `docs/PROJECT_INSTRUCTIONS.md` to require an explicit post-commit-message question about staging changes, committing, and pushing to the remote branch.
+- Refactored `frontend.views` into internal domain modules (`view_modules`) while keeping `frontend.views` as a compatibility facade with unchanged route behavior.
+- Updated governance flow to enforce mandatory stop-and-review gates immediately after spec creation and plan creation.
+- Strengthened Markdown governance rules to require markdownlint-compliant authoring/checklist for every new or modified Markdown file.
+- Aligned ranking source of truth by sharing one canonical ranking policy between persisted `Player.ranking_position` and frontend ranking computation (same ordering, tie keys, and competition-style positions), with zero-match players persisted as unranked (`0`).
+- Harmonized frontend player-participation match queries by centralizing shared queryset construction across matches, players, and new-match detection helpers (behavior preserved).
+- Hardened pytest database safety by using tracked `config.settings.dev` in pytest and adding a fail-fast guard that aborts test runs if they target development `db.sqlite3`.
+- Updated Americano tournament creation to capture gender for newly added non-registered players (male/female inputs) and persist it on player creation.
 
-## [1.3.1] - 2026-03-06
 ### Added
 
 - Added player insights on `/players/<id>/` with trend (últimos 5/10/total), most frequent partner, and top 3 most frequent rival pairs.
@@ -37,20 +46,6 @@ Every change should belong to one of the following categories: `added`, `changed
   - URL endpoints: `/api/games/`, `/api/users/`, `/api-auth/`
   - API-specific modules and API-only tests in `games` and `users`
   - DRF runtime/settings/dependency wiring no longer used by the supported web product
-
-### Changed
-
-- Refactored `frontend.views` into internal domain modules (`view_modules`) while keeping `frontend.views` as a compatibility facade with unchanged route behavior.
-- Updated governance flow to enforce mandatory stop-and-review gates immediately after spec creation and plan creation.
-- Strengthened Markdown governance rules to require markdownlint-compliant authoring/checklist for every new or modified Markdown file.
-- Aligned ranking source of truth by sharing one canonical ranking policy between persisted `Player.ranking_position` and frontend ranking computation (same ordering, tie keys, and competition-style positions), with zero-match players persisted as unranked (`0`).
-- Harmonized frontend player-participation match queries by centralizing shared queryset construction across matches, players, and new-match detection helpers (behavior preserved).
-- Hardened pytest database safety by using tracked `config.settings.dev` in pytest and adding a fail-fast guard that aborts test runs if they target development `db.sqlite3`.
-- Updated Americano tournament creation to capture gender for newly added non-registered players (male/female inputs) and persist it on player creation.
-
-### Fixed
-
-- Fixed `release-prep-no-ai` workflow commit staging so release PRs include both `CHANGELOG.md` and `paddle/config/__init__.py` version bump changes.
 
 ## [1.3.0] - 2026-02-20
 
