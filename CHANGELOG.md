@@ -16,6 +16,10 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed `.github/workflows/release.yml` release-notes extraction by replacing reserved `awk` variable usage that caused GitHub Actions parser errors.
+
 ## [1.3.1] - 2026-03-09
 ### Fixed
 
