@@ -31,7 +31,11 @@ class TestFrontendViews:
         url = reverse("hall_of_fame")
         response = self.client.get(url)
         assert response.status_code == 200
-        
+
+    def test_deprecated_api_routes_are_not_available(self):
+        for path in ("/api/games/", "/api/users/", "/api-auth/"):
+            response = self.client.get(path)
+            assert response.status_code == 404
 
     def test_register_view_get(self):
         url = reverse("register")

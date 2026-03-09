@@ -4,6 +4,12 @@
 
 Production domain: rankingdepadel.club
 
+## Governance & AI Workflow
+
+- See /docs/PROJECT_INSTRUCTIONS.md for governance and workflow rules.
+- See AGENTS.md for agent constraints.
+- See /plans/ for plan-mode task histories and templates.
+
 ---
 
 # 1️⃣ Project Purpose
@@ -29,7 +35,6 @@ There is no duplicated business logic in the mobile app.
 ## Backend
 
 - Django
-- Django REST Framework
 - Session authentication
 - Oracle Autonomous DB (staging / production)
 - SQLite (development)
@@ -46,6 +51,11 @@ There is no duplicated business logic in the mobile app.
 - Capacitor (Android)
 - WebView loads production or staging URL
 - No duplicated backend logic
+
+## Deprecated Components Removed
+
+- Django REST Framework API endpoints (`/api/games/`, `/api/users/`, `/api-auth/`) have been removed.
+- The supported product surface is the server-rendered web app plus the mobile WebView wrapper.
 
 ---
 

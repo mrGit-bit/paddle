@@ -164,10 +164,10 @@ def americano_new(request):
 
             # Combine selected players + newly created players
             selected_players = list(form.cleaned_data["players"])
-            new_names = form.cleaned_data.get("new_player_names", [])
+            new_entries = form.cleaned_data.get("new_player_entries", [])
 
             created_players = []
-            for name in new_names:
+            for name, gender in new_entries:
                 normalized = name.strip()
                 if not normalized:
                     continue
@@ -176,10 +176,13 @@ def americano_new(request):
                 player = Player.objects.filter(name__iexact=normalized).first()
                 if player is None:
                     try:
-                        player = Player.objects.create(name=normalized)
+                        player = Player.objects.create(name=normalized, gender=gender)
                     except IntegrityError:
                         # Safety net for race conditions / DB constraint hit
                         player = Player.objects.filter(name__iexact=normalized).first()
+                elif not player.gender:
+                    player.gender = gender
+                    player.save(update_fields=["gender"])
 
                 if player:
                     created_players.append(player)

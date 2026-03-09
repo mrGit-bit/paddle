@@ -143,7 +143,8 @@ def test_americano_new_creates_new_players_and_round1(client, user, player_user,
         "play_date": str(timezone.localdate()),
         "num_players": 10,
         "players": [p.pk for p in selected],  # 8 existing
-        "new_players": "NewOne\nNewTwo\n",     # 2 new => total 10 (not multiple of 4)
+        "new_players_male": "NewOne\n",        # 1 new M
+        "new_players_female": "NewTwo\n",      # 1 new F => total 10 (not multiple of 4)
     }
     # This should fail because num_players must be multiple of 4 per your form
     res = client.post(reverse("americano_new"), data=payload)
@@ -152,7 +153,8 @@ def test_americano_new_creates_new_players_and_round1(client, user, player_user,
 
     # Now valid: total 12 and multiple of 4
     payload["num_players"] = 12
-    payload["new_players"] = "NewOne\nNewTwo\nNewThree\nNewFour\n"  # +4 => total 12
+    payload["new_players_male"] = "NewOne\nNewThree\n"
+    payload["new_players_female"] = "NewTwo\nNewFour\n"  # +4 => total 12
 
     res = client.post(reverse("americano_new"), data=payload)
     assert res.status_code == 302  # redirect to detail
@@ -161,10 +163,29 @@ def test_americano_new_creates_new_players_and_round1(client, user, player_user,
     assert t.created_by == user
     assert t.players.count() == 12
 
-    assert Player.objects.filter(name__iexact="NewOne").exists()
+    assert Player.objects.filter(name__iexact="NewOne", gender=Player.GENDER_MALE).exists()
+    assert Player.objects.filter(name__iexact="NewTwo", gender=Player.GENDER_FEMALE).exists()
 
     # No random rounds created automatically anymore
     assert t.rounds.count() == 0
+
+
+def test_americano_new_rejects_same_name_with_different_gender(client, user, player_user, players_pool):
+    client.login(username="u1", password="pass1234")
+
+    selected = players_pool[:5] + [player_user]
+    payload = {
+        "name": "torneo validacion",
+        "play_date": str(timezone.localdate()),
+        "num_players": 8,
+        "players": [p.pk for p in selected],
+        "new_players_male": "DUPLICADO\n",
+        "new_players_female": "duplicado\n",
+    }
+
+    res = client.post(reverse("americano_new"), data=payload)
+    assert res.status_code == 200
+    assert "repetido con distinto género" in res.content.decode("utf-8")
 
 # -----------------------
 # Tests: permissions / edit
@@ -718,5 +739,3 @@ def test_assign_round_action_new_round_saves_and_creates_next_round(client, user
     assert r2.number == 2
     assert r2.matches.count() == 8 // 4  # 2 empty matches
     assert r2.matches.filter(team1_player1__isnull=False).count() == 0
-
-

@@ -1,0 +1,11 @@
+{
+  "forwardPorts": [8000],
+  "portsAttributes": {
+    "8000": {
+      "label": "Django dev server",
+      "protocol": "http",
+      "onAutoForward": "notify",
+      "visibility": "public"
+    }
+  }
+}
