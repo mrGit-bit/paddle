@@ -1,8 +1,8 @@
 <!-- markdownlint-disable MD025 -->
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.2.3  
-Last Updated: 2026-03-03
+Instruction Set Version: 2.2.4  
+Last Updated: 2026-03-09
 
 ---
 
@@ -85,6 +85,14 @@ No code implementation starts without:
 - A written spec in `specs/`
 - An approved plan in `/plans/`
 - Clear acceptance criteria and validation commands
+
+Before starting any development/implementation/code-change request, Codex MUST check the current git branch.
+
+If the active branch is not `develop`, Codex MUST:
+
+- Warn clearly that work is not currently on `develop`.
+- Ask explicitly which branch the user wants the changes applied to.
+- Wait for user confirmation before implementing changes.
 
 ---
 

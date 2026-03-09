@@ -1,7 +1,7 @@
 # AGENTS.md — Spec-Driven Execution Rules
 
-Instruction Set Version: 2.2.3  
-Last Updated: 2026-03-03
+Instruction Set Version: 2.2.4  
+Last Updated: 2026-03-09
 
 ---
 
@@ -19,6 +19,16 @@ STOP and align first.
 ---
 
 ## 2. SDD Workflow (Mandatory A → B → C)
+
+## 2.1 Mandatory Branch Check Before Development
+
+Before starting any development/implementation/code-change request, Codex MUST check the current git branch.
+
+If the active branch is not `develop`, Codex MUST:
+
+- Warn clearly that work is not currently on `develop`.
+- Ask explicitly which branch the user wants the changes applied to.
+- Wait for user confirmation before implementing changes.
 
 ### Phase A — Specification
 
