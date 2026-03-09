@@ -32,17 +32,11 @@ django==5.2.9
     #   dj-database-url
     #   django-allauth
     #   django-extensions
-    #   django-filter
-    #   djangorestframework
 django-allauth==65.13.0
     # via -r requirements.in
 django-environ==0.12.0
     # via -r requirements.in
 django-extensions==3.2.3
-    # via -r requirements.in
-django-filter==23.5
-    # via -r requirements.in
-djangorestframework==3.16.0
     # via -r requirements.in
 gunicorn==23.0.0
     # via -r requirements.in

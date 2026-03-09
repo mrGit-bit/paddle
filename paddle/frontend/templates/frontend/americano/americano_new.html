@@ -40,12 +40,19 @@
     </div>
 
     <div class="mb-3">
-      {{ form.new_players.label_tag }}
-      {{ form.new_players }}
-      <div class="form-text">
-        La jugadores seleccionados (registrados y no registrados) deben de ser igual al número de jugadores.
-      </div>
-      <div class="text-danger small">{{ form.new_players.errors }}</div>
+      {{ form.new_players_male.label_tag }}
+      {{ form.new_players_male }}
+      <div class="text-danger small">{{ form.new_players_male.errors }}</div>
+    </div>
+
+    <div class="mb-3">
+      {{ form.new_players_female.label_tag }}
+      {{ form.new_players_female }}
+      <div class="text-danger small">{{ form.new_players_female.errors }}</div>
+    </div>
+
+    <div class="form-text">
+      Los jugadores seleccionados (registrados y no registrados) deben ser iguales al número de jugadores.
     </div>
 
     <div class="mt-2">
@@ -61,12 +68,13 @@
     {% endif %}
 
 
-
-    <button type="submit" class="btn btn-primary">Empezar</button>
-    <a href="{% url 'americano_list' %}" class="btn btn-outline-secondary">Cancelar</a>
+    <div class="text-end mb-3 gap-2">
+      <button type="submit" class="btn btn-primary">Empezar</button>
+      <a href="{% url 'americano_list' %}" class="btn btn-outline-secondary">Cancelar</a>
+    </div>
   </form>
 </div>
 
-<script src="{% static 'frontend/js/americano_new_players_remaining.js' %}"></script>
+<script src="{% static 'frontend/js/americano_new_players_remaining.js' %}?v=20260305"></script>
 
 {% endblock %}

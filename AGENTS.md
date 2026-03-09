@@ -1,184 +1,145 @@
-<!-- markdownlint-disable MD025 -->
-# AGENTS.md — Minimal AI Coding Guidance (Refined)
+# AGENTS.md — Spec-Driven Execution Rules
 
-This file defines **baseline constraints and output standards** for AI coding agents (e.g., Codex CLI) working on the `rankingdepadel.club` project.
-
-It is intentionally minimal in architecture.
-All detailed feature instructions are provided explicitly per task.
+Instruction Set Version: 2.2.3  
+Last Updated: 2026-03-03
 
 ---
 
-# 1. Project Context
+## 1. Authority & Scope
 
-- Stack: Django + Django REST Framework
-- Frontend: Django Templates + Bootstrap 5
-- JavaScript: Vanilla JS only when strictly necessary
-- Databases:
-  - Dev: SQLite
-  - Staging/Prod: Oracle Autonomous DB (TCPS)
+Authority:
 
----
+1) Explicit Task Brief
+2) `/docs/PROJECT_INSTRUCTIONS.md`
+3) `AGENTS.md`
 
-# 2. Core Coding Principles (Mandatory)
-
-- **DRY** — Do not duplicate logic.
-- **KISS** — Prefer the simplest working solution.
-- **SRP** — Single Responsibility Principle.
-- **YAGNI** — No speculative functionality.
-- **Explicit > Implicit** — Readability over cleverness.
-
-Avoid speculative refactors and large rewrites unless explicitly requested.
+If version/date mismatch exists between `PROJECT_INSTRUCTIONS.md` and `AGENTS.md`:
+STOP and align first.
 
 ---
 
-# 3. Language Rules
+## 2. SDD Workflow (Mandatory A → B → C)
 
-- **UI text:** Spanish  
-- **Code, variables, comments, documentation:** English  
+### Phase A — Specification
 
----
+Implementation MUST NOT start unless there is an approved spec file in:
 
-# 4. Backend Rules
+- `specs/###-short-title.md`
 
-- Prefer model properties for computed data.
-- Keep business logic in backend code, not templates.
-- No frontend ranking logic.
-- Reuse existing helpers before introducing new ones.
-- Do not duplicate query logic across views.
+After creating/updating a spec file:
 
----
+- STOP and request user review/approval before creating a plan or implementing.
 
-# 5. Frontend Rules
+### Phase B — Planning (Plan Mode)
 
-- Use Django templates by default.
-- Prefer Bootstrap 5 over custom CSS or JavaScript.
-- No business logic in templates.
-- Avoid unnecessary JavaScript.
-- Do not duplicate template structures if a partial can be reused.
+Implementation MUST NOT start unless there is an approved plan file in:
 
----
+- `/plans/YYYY-MM-DD_short-description.md`
 
-# 6. Testing Rules
+Plan must be based on the spec (`specs/*.md`) and follow `/plans/TEMPLATE.md`.
 
-- Framework: pytest + pytest-django
-- Maintain ≥90% coverage.
-- Every feature or fix must include tests or test updates.
-- Run the smallest relevant pytest scope after changes.
-- Tests must validate:
-  - Functional behavior
-  - Edge cases
-  - Expected HTTP status codes
+In Plan Mode, the agent:
 
----
+- MUST NOT write product code
+- MAY update Markdown files when instructed
 
-# 7. Changelog Discipline
+After creating/updating a plan file:
 
-- `CHANGELOG.md` follows *Keep a Changelog*.
-- During development: add entries under `## [Unreleased]`.
-- On release: move entries to `## [X.Y.Z] - YYYY-MM-DD`.
-- Every feature or fix must update the changelog unless purely formatting/comments.
+- STOP and request user review/approval before implementation.
+
+### Phase C — Implementation (Execute Mode)
+
+Only after plan approval:
+
+- Implement step-by-step, following plan order.
+- No scope expansion.
+- Start only when both latest spec and latest plan are explicitly approved by the user.
 
 ---
 
-# 8. Workflow Expectations
+## 3. Engineering Rules
 
-- Architectural decisions are made outside the agent.
-- The agent executes **explicit tasks only**.
-- If something is unclear or ambiguous, the agent must stop and ask.
-- The agent must not introduce improvements beyond the defined scope.
+- DRY, KISS, SRP, YAGNI
+- No speculative refactors
+- No unrelated formatting changes
+- No file moves unless explicitly required
+- No renaming unless required
 
----
+Backend/Frontend separation:
 
-# 9. Output Requirements (Strict Format)
+- No business logic in templates
+- No frontend ranking logic
+- Prefer backend helpers and reuse existing ones
 
-Every Codex output must follow this structure:
+Language rules:
 
----
-
-## A. Technical Summary
-
-Bullet list explaining:
-
-- Which components were modified
-- Why changes were necessary
-- How logic was reused
-- Whether any helpers were extracted
-- Any performance implications
+- UI text: Spanish
+- Code/comments/docs: English
 
 ---
 
-## B. Files Modified
+## 4. Testing & Quality
 
-List modified, added or removed files. Do NOT repeat entire files.
-
----
-
-## C. Tests
-
-- List tests added or modified.
-- Explain what behavior is validated.
-- Show the pytest command used.
-- Show the test result summary (e.g., `4 passed`).
+- pytest + pytest-django (+ pytest-cov when relevant)
+- Target ≥ 90% coverage (project standard)
+- Add/update tests for every feature/fix
+- Run smallest relevant pytest scope
+- Include edge cases and expected HTTP statuses (when applicable)
 
 ---
 
-## D. Functional Summary (Human-Level)
+## 5. Changelog Discipline
 
-Short paragraph explaining:
-
-- What changed
-- Why it changed
-- What the user will experience differently
-
-This must NOT be a list of modified files.
-It must describe behavior.
+- Update `CHANGELOG.md` under `## [Unreleased]` unless formatting-only
+- Changelog entry must match the actual behavior changes
+- Recommend commit message aligned with changelog only after the user confirms the current spec implementation cycle is closed
 
 ---
 
-## E. Changelog Entry
+## 6. Manual Functional Checks (Mandatory)
 
-Show exactly what was added to `CHANGELOG.md`.
+Every implementation output must include:
 
----
+- 3–6 manual functional checks (UI navigation + edge cases)
+- Permission/regression checks when relevant
 
-## F. Recommended Commit Message
-
-Provide a Conventional Commit-style message aligned with the changelog.
-
----
-
-# 10. Diff Discipline
-
-- No unrelated changes.
-- No formatting-only changes unless requested.
-- No import reordering unless necessary.
-- No variable renaming unless required.
-- No file moves unless explicitly requested.
+These checks complement automated tests.
 
 ---
 
-# 11. Forbidden Output Patterns
+## 7. Output Requirements (Codex Responses)
 
-The agent must NOT:
+Every Codex output must include:
 
-- Output only “modified sections” without summary.
-- Output vague descriptions like “Updated view logic”.
-- Omit explanation of behavior changes.
-- Mix summary with diff.
-- Omit test explanation.
-- Omit changelog content.
+A) Technical Summary  
+B) Files Modified  
+C) Tests (added/modified + command + result summary)  
+D) Changelog Entry (exact text added)
+E) Human readable summary of changes  
+E) Manual Functional Checks proposed (3–6)  
+F) Recommended Commit Message
+G) Ask: "Do you want me to proceed with staging changes, committing with the recommended commit message, and pushing to the remote branch?"
+H) Ask for confirmation to close the development cycle  
+I) After closure, provide a suggestion of next steps (if relevant)
+J) If required, ammend markdown files to align with suggestions
 
 ---
 
-# 12. Quality Standard
+## 8. Markdownlint Rules (Mandatory for Markdown files)
 
-A task is considered complete only if:
+For any created/modified Markdown file:
 
-- Functional summary is clear.
-- Technical summary is precise.
-- Diffs are minimal.
-- Tests are present and passing.
-- Changelog is updated.
-- Commit message is provided.
+- Do not add `markdownlint-disable` directives unless explicitly requested by the user.
+- `MD022` is mandatory: keep exactly one blank line before and after every heading.
+- `MD032` is mandatory: keep exactly one blank line before and after every list.
+- Use consistent unordered list markers (`-`).
+- Avoid trailing spaces and malformed list indentation.
+- Ensure numbered lists are explicit and sequential (`1.`, `2.`, `3.`).
+- End files with a single newline.
 
-If any of the above is missing, the task is incomplete.
+Before final delivery:
+
+1. Run markdownlint on changed Markdown files when available.
+2. Fix all violations in the same change set.
+3. If markdownlint is unavailable, perform a manual pass against this checklist.
+4. If `MD022` or `MD032` fails, do not deliver until fixed.

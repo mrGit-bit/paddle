@@ -9,6 +9,7 @@ from django.urls import reverse
 
 from games.models import Player, Match
 from frontend.views import get_player_stats, process_matches
+from frontend.view_modules.common import build_player_participation_queryset
 
 from django.test import Client
 
@@ -33,6 +34,27 @@ def mk_match(p1, p2, p3, p4, winning_team=1, d=None):
         winning_team=winning_team,
         date_played=d or date.today(),
     )
+
+
+def test_build_player_participation_queryset_includes_all_slots_without_duplicates():
+    p = Player.objects.create(name="Q_MAIN", gender=Player.GENDER_MALE)
+    a = Player.objects.create(name="Q_A", gender=Player.GENDER_MALE)
+    b = Player.objects.create(name="Q_B", gender=Player.GENDER_MALE)
+    c = Player.objects.create(name="Q_C", gender=Player.GENDER_MALE)
+    d = Player.objects.create(name="Q_D", gender=Player.GENDER_MALE)
+    e = Player.objects.create(name="Q_E", gender=Player.GENDER_MALE)
+    f = Player.objects.create(name="Q_F", gender=Player.GENDER_MALE)
+
+    m1 = mk_match(p, a, b, c, winning_team=1, d=date(2026, 3, 1))  # team1_player1
+    m2 = mk_match(a, p, b, c, winning_team=1, d=date(2026, 3, 2))  # team1_player2
+    m3 = mk_match(a, b, p, c, winning_team=1, d=date(2026, 3, 3))  # team2_player1
+    m4 = mk_match(a, b, c, p, winning_team=1, d=date(2026, 3, 4))  # team2_player2
+    mk_match(d, e, f, a, winning_team=1, d=date(2026, 3, 5))  # unrelated
+
+    qs = build_player_participation_queryset(p)
+    ids = set(qs.values_list("id", flat=True))
+
+    assert ids == {m1.id, m2.id, m3.id, m4.id}
 
 
 def test_get_player_stats_authenticated_with_linked_player_covers_line_39():

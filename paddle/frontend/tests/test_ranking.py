@@ -249,3 +249,32 @@ def test_unranked_population_is_scoped_by_gender_for_female():
     # With no matches, all female players should be unranked
     assert {p.name for p in unranked} == {"F1", "F2"}
     assert len(ranked) == 0
+
+
+def test_all_scope_persisted_ranking_positions_match_canonical_display_positions():
+    a = mk_player("A", "M")
+    b = mk_player("B", "M")
+    c = mk_player("C", "M")
+    d = mk_player("D", "M")
+    e = mk_player("E", "M")
+    f = mk_player("F", "M")
+    z = mk_player("Z", "M")  # stays unranked
+
+    base = date.today() - timedelta(days=10)
+
+    mk_match(a, b, c, d, winning_team=1, d=base)
+    mk_match(c, d, a, b, winning_team=1, d=base + timedelta(days=1))
+    mk_match(e, a, b, c, winning_team=1, d=base + timedelta(days=2))
+    mk_match(e, f, b, d, winning_team=1, d=base + timedelta(days=3))
+
+    ranked, unranked, scope = compute_ranking("all")
+    assert scope == "all"
+
+    persisted_positions = dict(Player.objects.values_list("id", "ranking_position"))
+    display_positions = {player.id: player.display_position for player in ranked}
+
+    for player in ranked:
+        assert persisted_positions[player.id] == display_positions[player.id]
+
+    assert z in unranked
+    assert persisted_positions[z.id] == 0

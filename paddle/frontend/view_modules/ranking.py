@@ -1,0 +1,126 @@
+"""Ranking domain views and helpers.
+
+Responsibilities:
+- Ranking home redirect and hall of fame wrapper.
+- Scoped ranking page rendering and scoped-player pagination helpers.
+
+Integration:
+- Uses ranking service (`frontend.services.ranking`) and shared helpers from `common.py`.
+- Exported to URLconf through `frontend.views` facade.
+"""
+
+from django.shortcuts import render
+
+from games.models import Player
+
+from frontend.services.ranking import compute_ranking
+
+from .common import get_new_match_ids, get_ranking_redirect, paginate_list
+
+
+def ranking_home_view(request):
+    """
+    Redirects to the last visited ranking scope.
+    """
+    scope = request.session.get("last_ranking_scope", "all")
+    return get_ranking_redirect(scope)
+
+
+def hall_of_fame_view(request):
+    """Wrapper to avoid changing URLs."""
+    return ranking_view(request, scope="all")
+
+
+def ranking_view(request, scope):
+    """
+    Renders scoped ranking pages: all/male/female/mixed.
+    """
+    ranked_players, unranked_players, scope = compute_ranking(scope)
+
+    request.session["last_ranking_scope"] = scope
+
+    players, pagination = paginate_list(ranked_players, request, page_size=12)
+
+    new_match_ids = get_new_match_ids(request) or []
+    new_matches_number = len(new_match_ids)
+
+    user_page = None
+    user_player = None
+    previous_player = None
+    following_player = None
+
+    if request.user.is_authenticated:
+        db_user_player = Player.objects.filter(registered_user=request.user).first()
+
+        if db_user_player:
+            scoped_user_player = next((p for p in ranked_players if p.id == db_user_player.id), None)
+
+            if scoped_user_player:
+                user_player = scoped_user_player
+                ordinal_index = ranked_players.index(user_player) + 1
+
+                current_page = int(request.GET.get("page", 1))
+                user_page = ((ordinal_index - 1) // 12) + 1
+
+                if user_page != current_page:
+                    previous_player = ranked_players[ordinal_index - 2] if ordinal_index > 1 else None
+                    following_player = (
+                        ranked_players[ordinal_index] if ordinal_index < len(ranked_players) else None
+                    )
+
+    titles = {
+        "all": "Ranking — Todos los partidos",
+        "male": "Ranking — Partidos masculinos",
+        "female": "Ranking — Partidos femeninos",
+        "mixed": "Ranking — Partidos mixtos",
+    }
+
+    return render(
+        request,
+        "frontend/hall_of_fame.html",
+        {
+            "players": players,
+            "pagination": pagination,
+            "unranked_players": unranked_players,
+            "new_matches_number": new_matches_number,
+            "user_page": user_page,
+            "user_player": user_player,
+            "previous_player": previous_player,
+            "following_player": following_player,
+            "ranking_scope": scope,
+            "page_title": titles.get(scope, titles["all"]),
+        },
+    )
+
+
+def get_scoped_player_row(scope: str, player_id: int):
+    """
+    Returns the scoped ranked player object with display_* fields or None.
+    """
+    ranked_players, _, _ = compute_ranking(scope)
+    return next((player for player in ranked_players if player.id == player_id), None)
+
+
+def get_player_page_in_scope(scope: str, player_id: int, page_size: int = 12):
+    """
+    Returns the pagination page number where player_id appears for a ranking scope.
+    """
+    ranked_players, _, _ = compute_ranking(scope)
+    scoped_player = next((p for p in ranked_players if p.id == player_id), None)
+    if not scoped_player:
+        return None
+    ordinal_index = ranked_players.index(scoped_player) + 1
+    return ((ordinal_index - 1) // page_size) + 1
+
+
+def get_scoped_player_and_page(scope: str, player_id: int, page_size: int = 12):
+    """
+    Returns (scoped_player, page) from a single ranking computation.
+    """
+    ranked_players, _, _ = compute_ranking(scope)
+    scoped_player = next((p for p in ranked_players if p.id == player_id), None)
+    if not scoped_player:
+        return None, None
+    ordinal_index = ranked_players.index(scoped_player) + 1
+    page = ((ordinal_index - 1) // page_size) + 1
+    return scoped_player, page

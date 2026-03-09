@@ -8,9 +8,11 @@
 
     const numPlayersEl = document.querySelector('input[name="num_players"]');
     const registeredEl = document.querySelector('select[name="players"]');
-    const newPlayersEl = document.querySelector('textarea[name="new_players"]');
+    const newPlayersEls = Array.from(
+      document.querySelectorAll('textarea[name="new_players_male"], textarea[name="new_players_female"]')
+    );
 
-    if (!numPlayersEl || !registeredEl || !newPlayersEl) {
+    if (!numPlayersEl || !registeredEl) {
       remainingEl.textContent = "Jugadores restantes: —";
       return;
     }
@@ -21,10 +23,13 @@
 
     // One player per line
     function countNewPlayers() {
-      return (newPlayersEl.value || "")
-        .split("\n")
-        .map((s) => s.trim())
-        .filter((s) => s.length > 0).length;
+      return newPlayersEls.reduce((acc, el) => {
+        const count = (el.value || "")
+          .split("\n")
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0).length;
+        return acc + count;
+      }, 0);
     }
 
     function updateRemaining() {
@@ -53,7 +58,7 @@
 
     numPlayersEl.addEventListener("input", updateRemaining);
     registeredEl.addEventListener("change", updateRemaining);
-    newPlayersEl.addEventListener("input", updateRemaining);
+    newPlayersEls.forEach((el) => el.addEventListener("input", updateRemaining));
 
     updateRemaining();
   });

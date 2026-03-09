@@ -3,7 +3,6 @@
 # specific settings are in dev.py and prod.py
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-import os
 from pathlib import Path
 from decouple import config
 
@@ -18,7 +17,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "rest_framework",    
     "users",
     "games",
     "frontend",
@@ -99,31 +97,13 @@ LOCALE_PATHS = [BASE_DIR / "locale"]  # Path to translation files
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Rest Framework Settings
-REST_FRAMEWORK = {
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-    "PAGE_SIZE": 12,  # Display 12 items per page (multiple of 3 for Bootstrap grid)
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.SessionAuthentication",
-        "rest_framework.authentication.BasicAuthentication",
-    ],
-    'DEFAULT_RENDERER_CLASSES': (
-        'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
-    ),
-    "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.AllowAny",
-    ],
-}
-
-# URL to be redirected after login with api-auth/
-LOGIN_REDIRECT_URL = '/api/games/players/'
+# URL to be redirected after login
+LOGIN_REDIRECT_URL = '/'
 
 # Override the Django´s default login page (/account/login/)
 LOGIN_URL = '/login/'
 
-# DRF recognizes the actual domain that was forwarded by the proxy 
-# (the GitHub Codespace URL) instead of assuming 127.0.0.1.
+# Honor forwarded host when running behind a proxy (for example Codespaces).
 USE_X_FORWARDED_HOST = True
 
 LOGGING = {
