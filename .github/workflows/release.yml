@@ -53,9 +53,9 @@ jobs:
 
           # Extract section text from CHANGELOG: from "## [ver]" until next "## ["
           notes=$(awk -v ver="$ver" '
-            $0 ~ "^## \\[" ver "\\]" {in=1; next}
-            in && $0 ~ "^## \\[" {exit}
-            in {print}
+            $0 ~ "^## \\[" ver "\\]" {in_section=1; next}
+            in_section && $0 ~ "^## \\[" {exit}
+            in_section {print}
           ' CHANGELOG.md)
 
           if [ -z "$notes" ]; then

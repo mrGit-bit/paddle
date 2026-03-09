@@ -19,6 +19,7 @@ Every change should belong to one of the following categories: `added`, `changed
 ## [1.3.1] - 2026-03-09
 ### Fixed
 
+- Fixed `.github/workflows/release.yml` release-notes extraction by replacing reserved `awk` variable usage that caused GitHub Actions parser errors.
 - Updated about-page version test to assert the configured version label dynamically instead of a hardcoded release number.
 - Fixed `release-prep-no-ai` workflow commit staging so release PRs include both `CHANGELOG.md` and `paddle/config/__init__.py` version bump changes.
 
