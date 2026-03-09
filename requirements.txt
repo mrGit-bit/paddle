@@ -78,7 +78,7 @@ python-decouple==3.8
     # via -r requirements.in
 requests==2.32.4
     # via -r requirements.in
-sqlparse==0.5.3
+sqlparse==0.5.4
     # via django
 urllib3==2.6.3
     # via requests
