@@ -1,8 +1,8 @@
 <!-- markdownlint-disable MD025 -->
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.2.4  
-Last Updated: 2026-03-09
+Instruction Set Version: 2.2.5  
+Last Updated: 2026-03-10
 
 ---
 
@@ -240,8 +240,9 @@ C2.2. Dynamic Checklists:
 - Tests must be updated/added and executed.
 - Coverage target: ≥ 90%.
 - `CHANGELOG.md` updated under `## [Unreleased]` unless formatting-only.
-- Commit message suggestions must be provided only after the user confirms the current spec implementation cycle is closed.
-- Immediately after the recommended commit message, Codex must ask whether to proceed with staging changes, committing with that message, and pushing to the remote branch.
+- Commit message suggestions must be provided once implementation output is ready for handoff.
+- Immediately after the recommended commit message, Codex must ask whether to proceed with staging changes, committing with that message, pushing to the remote branch, and closing the current development cycle in one step.
+- If the user confirms, Codex must execute commit/push and close the current development cycle in the same flow.
 
 ---
 

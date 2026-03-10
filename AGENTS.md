@@ -1,7 +1,7 @@
 # AGENTS.md — Spec-Driven Execution Rules
 
-Instruction Set Version: 2.2.4  
-Last Updated: 2026-03-09
+Instruction Set Version: 2.2.5  
+Last Updated: 2026-03-10
 
 ---
 
@@ -102,7 +102,7 @@ Language rules:
 
 - Update `CHANGELOG.md` under `## [Unreleased]` unless formatting-only
 - Changelog entry must match the actual behavior changes
-- Recommend commit message aligned with changelog only after the user confirms the current spec implementation cycle is closed
+- Recommend commit message aligned with changelog once implementation output is ready for handoff
 
 ---
 
@@ -128,8 +128,8 @@ D) Changelog Entry (exact text added)
 E) Human readable summary of changes  
 E) Manual Functional Checks proposed (3–6)  
 F) Recommended Commit Message
-G) Ask: "Do you want me to proceed with staging changes, committing with the recommended commit message, and pushing to the remote branch?"
-H) Ask for confirmation to close the development cycle  
+G) Ask: "Do you want me to proceed with staging changes, committing with the recommended commit message, pushing to the remote branch, and closing the current development cycle?"
+H) If user confirms Step G, perform commit/push and close the development cycle in the same flow
 I) After closure, provide a suggestion of next steps (if relevant)
 J) If required, ammend markdown files to align with suggestions
 
