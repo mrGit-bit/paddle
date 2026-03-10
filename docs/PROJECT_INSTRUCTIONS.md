@@ -1,6 +1,6 @@
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.2.10  
+Instruction Set Version: 2.2.11  
 Last Updated: 2026-03-10
 
 This file mirrors the repository governance subset kept in ChatGPT Project instructions and must remain explicitly under 8000 characters so it fits within ChatGPT Project instruction limits.
@@ -161,7 +161,10 @@ For every changed Markdown file:
 - use `-` for unordered lists,
 - keep ordered lists explicit and sequential,
 - avoid trailing spaces,
-- end files with a single newline.
+- end files with a single newline,
+- treat generated text as authoritative output; when markdown review is needed,
+  fix structure without rewriting or wrapping long generated audit lines only
+  for line-length limits.
 
 Validation:
 

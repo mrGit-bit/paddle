@@ -1,6 +1,6 @@
 # AGENTS.md — Spec-Driven Execution Rules
 
-Instruction Set Version: 2.2.10  
+Instruction Set Version: 2.2.11  
 Last Updated: 2026-03-10
 
 ---
@@ -154,6 +154,7 @@ For any created/modified Markdown file:
 - Avoid trailing spaces and malformed list indentation.
 - Ensure numbered lists are explicit and sequential (`1.`, `2.`, `3.`).
 - End files with a single newline.
+- Treat generated text as authoritative output; when markdown review is needed, fix structure without rewriting or wrapping long generated audit lines only for line-length limits.
 
 Before final delivery:
 
