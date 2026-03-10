@@ -1,155 +1,121 @@
 <!-- absolute path: /workspaces/paddle/paddle/frontend/templates/frontend/_user_form.html -->
 <!-- reusable user form included in register.html and user.html -->
-<!-- passed context variables: form_action, is_registration, players, submit_label -->
+<!-- passed context variables: form_action, form, is_registration, submit_label -->
 
 {% load static %}
 
 <form method="POST" 
   id="user-form"
   action="{{ form_action }}" 
-  class="needs-validation" 
-  novalidate>
+  class="{% if is_registration %}needs-validation{% endif %}"
+  {% if is_registration %}novalidate{% endif %}>
   {% csrf_token %}
 
   <!-- Username field -->
   <div class="mb-3 form-floating">
-    <input
-    type="text"
-    class="form-control"
-    id="username"
-    name="username"
-    autocomplete="username"
-    autocapitalize="off"
-    autocorrect="off"
-    spellcheck="false"
-    placeholder="Tu nombre de usuario"
-    pattern="^[a-zA-Z0-9@.+-_]{3,15}$"
-    maxlength="15"
-    minlength="3"
-    value="{{ user.username|default:'' }}"
-    {% if is_registration %}required{%else%}readonly disabled{% endif %}
-    required
-    />
-    <label for="username" class="form-label">Usuario*</label>
-    <div class="invalid-feedback">
-      Nombre de usuario de 3 a 15 caracteres. Solo letras, números y @/./+/-/_.
-    </div>
+    {{ form.username }}
+    <label for="{{ form.username.id_for_label }}" class="form-label">Usuario*</label>
+    {% if form.username.errors %}
+      <div class="invalid-feedback">{{ form.username.errors|join:", " }}</div>
+    {% else %}
+      <div class="invalid-feedback">
+        Nombre de usuario de 3 a 15 caracteres. Solo letras, números y @/./+/-/_.
+      </div>
+    {% endif %}
   </div>
 
   <!-- Email field -->
   <div class="mb-3 form-floating">
-    <input
-      type="email"
-      class="form-control{% if form.email.errors %} is-invalid{% endif %}"
-      id="email"
-      name="email"
-      autocomplete="email"
-      autocapitalize="off"
-      autocorrect="off"
-      spellcheck="false"
-      placeholder="Correo electrónico"
-      value="{{ user.email|default:'' }}"    
-      required
-    />
-    <label for="email" class="form-label">Correo electrónico*</label>
+    {{ form.email }}
+    <label for="{{ form.email.id_for_label }}" class="form-label">Correo electrónico*</label>
     {% if form.email.errors %}
-      <div class="invalid-feedback">{{ form.email.errors.as_text|escape }}</div>
+      <div class="invalid-feedback">{{ form.email.errors|join:", " }}</div>
     {% endif %}
   </div>
 
-  <!-- Registration only-->
+  {% if is_registration or form.show_confirm_email %}
+    <div
+      class="mb-3 form-floating"
+      {% if not is_registration %}
+        id="profile-confirm-email-container"
+      {% endif %}
+    >
+      {{ form.confirm_email }}
+      {% if is_registration %}
+      <label for="{{ form.confirm_email.id_for_label }}" class="form-label">Confirma tu correo electrónico*</label>
+      <div class="invalid-feedback">
+        {% if form.confirm_email.errors %}{{ form.confirm_email.errors|join:", " }}{% else %}Los correos electrónicos no coinciden.{% endif %}
+      </div>
+      {% else %}
+      <label for="{{ form.confirm_email.id_for_label }}" class="form-label">Confirma tu correo electrónico</label>
+      {% if form.confirm_email.errors %}
+      <div class="invalid-feedback d-block">{{ form.confirm_email.errors|join:", " }}</div>
+      {% endif %}
+      {% endif %}
+    </div>
+  {% elif not is_registration %}
+    <div id="profile-confirm-email-container" class="mb-3 form-floating d-none">
+      {{ form.confirm_email }}
+      <label for="{{ form.confirm_email.id_for_label }}" class="form-label">Confirma tu correo electrónico</label>
+    </div>
+  {% endif %}
+  
+  <p class="small text-muted mt-n2 mb-3">
+    {{ email_warning_text }}
+  </p>
+  
   {% if is_registration %}
-    
-    <!-- Password field -->    
     <div class="mb-3 form-floating">
-      <input
-        type="password"
-        class="form-control"
-        id="password"
-        name="password"
-        autocomplete="new-password"
-        autocapitalize="off"
-        autocorrect="off"
-        spellcheck="false"
-        placeholder="Contraseña"
-        minlength="8"    
-        required
-      />
-      <label for="password" class="form-label">Contraseña*</label>
+      {{ form.password }}
+      <label for="{{ form.password.id_for_label }}" class="form-label">Contraseña*</label>
       <div class="invalid-feedback">
-        La contraseña debe tener al menos 8 caracteres.
+        {% if form.password.errors %}{{ form.password.errors|join:", " }}{% else %}La contraseña debe tener al menos 8 caracteres.{% endif %}
       </div>
     </div>
 
-    <!-- Confirm Password field -->
     <div class="mb-3 form-floating">
-      <input
-        type="password"
-        class="form-control"
-        id="confirm_password"
-        name="confirm_password"
-        autocomplete="new-password"
-        autocapitalize="off"
-        autocorrect="off"
-        spellcheck="false"
-        placeholder="Confirma tu contraseña"          
-        required
-      />
-      <label for="confirm_password" class="form-label">Confirma tu contraseña*</label>
+      {{ form.confirm_password }}
+      <label for="{{ form.confirm_password.id_for_label }}" class="form-label">Confirma tu contraseña*</label>
       <div class="invalid-feedback">
-        Las contraseñas no coinciden.
-      </div>
-    </div>  
-      
-    <!-- Gender (required) -->
-    <div class="mb-3 form-floating">
-      <select class="form-select" id="gender" name="gender" required>
-        <option value="" selected>Selecciona género</option>
-        <option value="M">Hombre</option>
-        <option value="F">Mujer</option>
-      </select>
-      <label for="gender">Género*</label>
-      <div class="invalid-feedback">
-        Por favor, selecciona tu género.
+        {% if form.confirm_password.errors %}{{ form.confirm_password.errors|join:", " }}{% else %}Las contraseñas no coinciden.{% endif %}
       </div>
     </div>
 
-    <!-- Link a Player Dropdown  -->  
     <div class="mb-3 form-floating">
-      <select class="form-select"
-        id="player_id"
-        name="player_id">
-        <option value="">No, soy un nuevo jugador</option>
-        {% for player_id, player_name in players %}
-        <option value="{{ player_id }}">{{ player_name }}</option>
-        {% endfor %}
-      </select>
-      <label for="player_id">
+      {{ form.gender }}
+      <label for="{{ form.gender.id_for_label }}">Género*</label>
+      <div class="invalid-feedback">
+        {% if form.gender.errors %}{{ form.gender.errors|join:", " }}{% else %}Por favor, selecciona tu género.{% endif %}
+      </div>
+    </div>
+
+    <div class="mb-3 form-floating">
+      {{ form.player_id }}
+      <label for="{{ form.player_id.id_for_label }}">
         Te han anotado resultados? Qué jugador eres?
       </label>
-    </div>  
-    
-    <!-- Registration Submit Button -->  
-    <button 
-      type="submit" class="btn btn-success w-100">Registrarse</button>    
+      {% if form.player_id.errors %}
+        <div class="invalid-feedback d-block">{{ form.player_id.errors|join:", " }}</div>
+      {% endif %}
+    </div>
 
-  <!-- User profile only-->
+    <button type="submit" id="register-submit-btn" class="btn btn-success w-100">Registrarse</button>
   {% else %}
     <!-- User fields for wins, matches and rate non editable and in the same row-->
     <div class="row g-3">
-      <div class="col-sm-4">
+      <div class="col-4">
         <div class="form-floating">
           <input type="text" class="form-control" id="wins" name="wins" value="{{ wins }}" readonly disabled />
           <label for="wins">Victorias</label>
         </div>
       </div>
-      <div class="col-sm-4">
+      <div class="col-4">
         <div class="form-floating">
           <input type="text" class="form-control" id="matches" name="matches" value="{{ matches }}" readonly disabled />
           <label for="matches">Partidos</label>
         </div>
       </div>
-      <div class="col-sm-4">
+      <div class="col-4">
         <div class="form-floating">
           <input type="text" class="form-control" id="rate" name="rate" value="{{ win_rate|floatformat:0 }}" readonly disabled />
           <label for="rate">Efectividad (%)</label>
@@ -158,14 +124,11 @@
     </div>
     
     <!-- User profile cancel and save buttons -->  
-    
     <div class="d-flex justify-content-between mt-4">
-      <button type="button" id="cancel-btn" class="btn btn-secondary w-50  me-2" disabled>Cancelar</button>
-      <button type="submit" id="save-btn" class="btn btn-success w-50" disabled>Guardar</button>
+      <a href="{% url 'user' user.id %}" class="btn btn-secondary w-50 me-2">Cancelar</a>
+      <button type="submit" id="save-btn" class="btn btn-success w-50">Guardar</button>
     </div>
-  
+
   {% endif %}
 
 </form>
-
-

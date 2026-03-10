@@ -1,6 +1,6 @@
 # AGENTS.md — Spec-Driven Execution Rules
 
-Instruction Set Version: 2.2.8  
+Instruction Set Version: 2.2.9  
 Last Updated: 2026-03-10
 
 ---
@@ -80,6 +80,7 @@ Backend/Frontend separation:
 - No business logic in templates
 - No frontend ranking logic
 - Prefer backend helpers and reuse existing ones
+- Keep deprecated API/DRF policy centralized in governance; do not repeat it in feature specs unless the task directly involves that deprecated surface
 
 Language rules:
 

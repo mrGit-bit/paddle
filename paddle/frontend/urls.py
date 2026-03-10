@@ -12,6 +12,7 @@ from . import views
 # - `/register/`: User registration
 # - `/matches/`: Matches list/add/delete
 # - `/users/<id>/`: Edit user details
+# - `/users/<id>/delete/`: Confirm and delete own account
 # - `/login/`: User login
 # - `/logout/`: User logout
 # - `/about/`: About page
@@ -32,6 +33,7 @@ urlpatterns = [
     path('register/', views.register_view, name='register'),
     path('matches/', views.match_view, name='match'), # Handles listing, adding, deleting      
     path('users/<int:id>/', views.user_view, name='user'),
+    path('users/<int:id>/delete/', views.user_delete_view, name='user_delete'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('about/', views.about_view, name='about'),

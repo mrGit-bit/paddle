@@ -1,15 +1,4 @@
-"""Auth, profile, registration, and about views.
-
-Responsibilities:
-- Register/login/logout handlers.
-- User profile update handler.
-- About page handler and form-data parsing helper.
-
-Integration:
-- Uses shared helpers in `common.py`.
-- In selected paths, resolves helpers via `frontend.views` facade to preserve
-  monkeypatch compatibility expected by existing tests.
-"""
+"""Auth, profile, registration, and about views."""
 
 import json
 from datetime import date
@@ -17,10 +6,12 @@ from datetime import date
 from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.db import transaction
+from django.http import HttpResponseForbidden
 from django.shortcuts import redirect, render
 
 from games.models import Match, Player
+from frontend.forms import EMAIL_WARNING_TEXT, ProfileUpdateForm, RegistrationForm
 
 from .common import fetch_available_players
 
@@ -76,112 +67,86 @@ def process_form_data(request):
 
 
 def register_view(request):
+    _, non_registered_players = fetch_available_players()
+    player_ids = [player["id"] for player in non_registered_players]
+    player_queryset = Player.objects.filter(id__in=player_ids).order_by("name")
+
     if request.method == "POST":
-        form_data, form_error = process_form_data(request)
-        if form_error:
-            messages.error(request, form_error)
-            return redirect("register")
+        form = RegistrationForm(request.POST, player_queryset=player_queryset)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect("match")
+    else:
+        form = RegistrationForm(player_queryset=player_queryset)
 
-        user_exists = User.objects.filter(username__iexact=form_data["username"]).exists()
-        player_exists = (
-            Player.objects.filter(
-                name__iexact=form_data["username"], registered_user__isnull=True
-            )
-            .exclude(id=form_data.get("player_id"))
-            .exists()
-        )
-        if user_exists or player_exists:
-            messages.error(
-                request,
-                (
-                    "Error: Ya existe un usuario o un jugador con el nombre "
-                    f"'{form_data['username']}'. Cambia el nombre del usuario o selecciona "
-                    "el jugador existente en el desplegable de jugadores."
-                ),
-            )
-            return redirect("register")
+    return render(
+        request,
+        "frontend/register.html",
+        {
+            "form": form,
+            "email_warning_text": EMAIL_WARNING_TEXT,
+        },
+    )
 
-        gender = form_data.get("gender")
-        allowed_genders = {Player.GENDER_MALE, Player.GENDER_FEMALE}
-        if gender not in allowed_genders:
-            messages.error(request, "Error: por favor, selecciona un género válido.")
-            return redirect("register")
 
-        user = User(username=form_data["username"], email=form_data["email"])
-        user.set_password(form_data["password"])
-        user.save()
+def _build_user_page_context(request, form):
+    user_player = Player.objects.filter(registered_user=request.user).first()
+    total_players = Player.objects.count()
 
-        player_id = form_data.get("player_id")
-        if player_id:
-            player = Player.objects.filter(id=player_id, registered_user__isnull=True).first()
-            if player:
-                player.registered_user = user
-                player.name = user.username
-                player.gender = gender
-                player.save()
-            else:
-                messages.error(request, "Selected player is already linked or does not exist.")
-                user.delete()
-                return redirect("register")
-        else:
-            Player.objects.create(
-                name=user.username,
-                registered_user=user,
-                gender=gender,
-            )
-
-        login(request, user)
-        return redirect("match")
-
-    registered_players, non_registered_players = fetch_available_players()
-    players = [(p["id"], p["name"]) for p in non_registered_players]
-    return render(request, "frontend/register.html", {"players": players})
+    return {
+        "profile_form": form,
+        "email_warning_text": EMAIL_WARNING_TEXT,
+        "user_player": user_player,
+        "total_players": total_players,
+        "wins": user_player.wins if user_player else 0,
+        "matches": user_player.matches_played if user_player else 0,
+        "win_rate": user_player.win_rate if user_player else 0,
+    }
 
 
 @login_required
 def user_view(request, id):
     if request.user.id != id:
-        return JsonResponse({"error": "You are not authorized to view this profile."}, status=403)
+        return HttpResponseForbidden("No tienes permiso para editar este perfil.")
+
+    if request.method == "POST":
+        form = ProfileUpdateForm(request.POST, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Tus datos se han actualizado correctamente.")
+            return redirect("user", id=request.user.id)
+    else:
+        form = ProfileUpdateForm(user=request.user)
+
+    context = _build_user_page_context(request, form)
+    return render(request, "frontend/user.html", context)
+
+
+@login_required
+def user_delete_view(request, id):
+    if request.user.id != id:
+        return HttpResponseForbidden("No tienes permiso para eliminar esta cuenta.")
 
     user_player = Player.objects.filter(registered_user=request.user).first()
-    total_players = Player.objects.count()
 
-    if request.method == "PATCH":
-        try:
-            json.loads(request.body)
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON in request body."}, status=400)
+    if request.method == "POST":
+        with transaction.atomic():
+            if user_player:
+                user_player.registered_user = None
+                user_player.save(update_fields=["registered_user"])
+            request.user.delete()
+        logout(request)
+        messages.success(request, "Tu cuenta se ha eliminado correctamente. Hasta pronto.")
+        return redirect("hall_of_fame")
 
-        from frontend import views as frontend_views
-
-        form_data, form_error = frontend_views.process_form_data(request)
-        if form_error:
-            return JsonResponse({"error": form_error}, status=400)
-
-        update_data = {k: v for k, v in form_data.items() if v is not None and k == "email"}
-        if update_data.get("email"):
-            request.user.email = update_data["email"]
-            request.user.save()
-            request.user.refresh_from_db()
-            return JsonResponse(
-                {
-                    "success": "Datos actualizados",
-                    "user": {
-                        "id": request.user.id,
-                        "username": request.user.username,
-                        "email": request.user.email,
-                    },
-                },
-                status=200,
-            )
-        return JsonResponse({"error": "No valid fields to update."}, status=400)
-
-    context = {
-        "user": request.user,
-        "user_player": user_player,
-        "total_players": total_players,
-    }
-    return render(request, "frontend/user.html", context)
+    return render(
+        request,
+        "frontend/user_confirm_delete.html",
+        {
+            "user_player": user_player,
+        },
+    )
 
 
 def login_view(request):

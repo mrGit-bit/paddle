@@ -1,6 +1,6 @@
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.2.8  
+Instruction Set Version: 2.2.9  
 Last Updated: 2026-03-10
 
 This file mirrors the ChatGPT Project instructions and must remain explicitly under 8000 characters so it fits within ChatGPT Project instruction limits.
@@ -17,6 +17,7 @@ Padel rankings, matches, and tournament web app with Android/iOS WebView wrapper
 - Staging/Prod DB: Oracle Autonomous Database (TCPS)
 - JavaScript: vanilla only when strictly necessary
 - DRF/API endpoints are deprecated and should not be extended
+- Deprecated API/DRF constraints must be enforced centrally in governance and should not be repeated in feature specs unless the task directly touches that deprecated surface
 
 ## 2. Authority and Governance
 
@@ -42,6 +43,7 @@ Rules:
 - Backend owns business logic; templates render only.
 - No business logic in templates.
 - No frontend ranking logic.
+- Keep deprecated API/DRF policy centralized in governance; do not restate it in feature specs unless the task directly involves that deprecated surface.
 - UI text in Spanish.
 - Code, comments, docs, specs, and plans in English.
 
