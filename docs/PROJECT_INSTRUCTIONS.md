@@ -1,298 +1,170 @@
-<!-- markdownlint-disable MD025 -->
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.2.5  
+Instruction Set Version: 2.2.8  
 Last Updated: 2026-03-10
 
----
+This file mirrors the ChatGPT Project instructions and must remain explicitly under 8000 characters so it fits within ChatGPT Project instruction limits.
 
-This document mirrors the governance configuration used in ChatGPT Project mode.
+## 1. Product and Stack
 
----
-
-# 1. Purpose
-
-Web application for padel rankings, matches and tournaments.
-
-Includes Android/iOS WebView wrappers using the same backend and frontend (no duplicated business logic).
-
-Stack overview:
+Padel rankings, matches, and tournament web app with Android/iOS WebView wrappers using the same backend/frontend.
 
 - Backend: Django
 - Frontend: Django Templates + Bootstrap 5
-- Mobile: Capacitor WebView (same URLs)
-- API endpoints and DRF use in the backend for those API endpoints are deprecated.
+- Mobile: Capacitor WebView
+- Python: 3.10.12
+- Dev DB: SQLite
+- Staging/Prod DB: Oracle Autonomous Database (TCPS)
+- JavaScript: vanilla only when strictly necessary
+- DRF/API endpoints are deprecated and should not be extended
 
----
+## 2. Authority and Governance
 
-# 2. Technology Stack
+Authority order:
 
-Python 3.10.12
+1. Explicit task brief
+2. `docs/PROJECT_INSTRUCTIONS.md`
+3. `AGENTS.md`
 
-Databases:
+Rules:
 
-- Development: SQLite
-- Staging/Production: Oracle Autonomous Database (TCPS)
+- Explicit task brief overrides everything else.
+- Project Instructions override `AGENTS.md`.
+- This file must remain under 8000 characters after every edit.
+- `Instruction Set Version` and `Last Updated` are mandatory here and in `AGENTS.md`.
+- Any change to this file must update version/date in both files in the same commit.
+- If version/date differ between these files, implementation must stop until aligned.
 
-Frontend:
+## 3. Engineering Rules
 
-- Django Templates
-- Bootstrap 5
-- Bootstrap Icons
-- Vanilla JavaScript only when strictly necessary
+- Apply DRY, KISS, SRP, YAGNI, and Explicit > Implicit.
+- No speculative refactors, renames, moves, or unrelated formatting changes.
+- Backend owns business logic; templates render only.
+- No business logic in templates.
+- No frontend ranking logic.
+- UI text in Spanish.
+- Code, comments, docs, specs, and plans in English.
 
----
+## 4. Mandatory SDD Flow
 
-# 3. Core Governance Principles
+Before any development or code change, check the current git branch.
 
-- DRY
-- KISS
-- SRP (Single Responsibility Principle)
-- YAGNI (No speculative functionality)
-- Explicit > Implicit
-- Backend computes business logic
-- Templates render only
-- No business logic in templates
-- No frontend ranking logic
-- No speculative refactors
+If the branch is not `develop`:
 
-Authority hierarchy:
+- warn clearly,
+- ask which branch should receive the work,
+- wait for user confirmation before changing files.
 
-1. Explicit Task Brief
-2. Project Instructions
-3. AGENTS.md
+Work follows Phase A -> Phase B -> Phase C.
 
-If conflict exists:
+### Phase A — Specification
 
-- Explicit Task Brief prevails.
-- Project Instructions prevail over AGENTS.md.
+Before implementation, create or update an approved spec in `specs/###-short-title.md`.
 
-Version control rules for governance docs:
+Before writing the spec, clarify:
 
-- `Instruction Set Version` and `Last Updated` at the top of this file are mandatory.
-- Every change to this file must update both fields in the same commit.
-- Every change to this file must also update the mirrored version/date reference in `AGENTS.md`.
-- If version/date values differ between this file and `AGENTS.md`, implementation tasks must pause until aligned.
+- scope in/out,
+- UI/backend constraints,
+- test expectations,
+- allowed and forbidden files.
 
----
+Each spec must include:
 
-# 4. Spec-Driven Development (SDD) — Mandatory Flow (A → B → C)
+- functional goal,
+- scope in/out,
+- UI/UX requirements,
+- backend requirements,
+- data rules,
+- reuse rules,
+- acceptance criteria,
+- manual functional checks (3-6),
+- allowed files,
+- forbidden files.
 
-All work follows three phases: **A) Specification**, **B) Planning**, **C) Implementation**.
+After creating or updating a spec:
 
-No code implementation starts without:
+- stop and request explicit approval,
+- do not create a plan,
+- do not change product code,
+- do not run implementation tests.
 
-- A written spec in `specs/`
-- An approved plan in `/plans/`
-- Clear acceptance criteria and validation commands
+Exception before approval:
 
-Before starting any development/implementation/code-change request, Codex MUST check the current git branch.
+- spec refinements,
+- requested governance/template markdown updates.
 
-If the active branch is not `develop`, Codex MUST:
+If repeated clarification friction appears, propose improving governance docs or templates.
 
-- Warn clearly that work is not currently on `develop`.
-- Ask explicitly which branch the user wants the changes applied to.
-- Wait for user confirmation before implementing changes.
+### Phase B — Planning
 
----
+Create an approved plan in `/plans/YYYY-MM-DD_short-description.md` using `/plans/TEMPLATE.md` and the approved spec as input.
 
-## Phase A — Specification (ChatGPT)
+In Plan Mode:
 
-ChatGPT is used for:
+- no product code changes,
+- markdown governance/spec/plan/template updates are allowed when requested.
 
-- Complex reasoning
-- High-level design
-- Clarifying requirements
+After creating or updating a plan:
 
-### A1. Clarification First (Mandatory)
+- stop and request explicit approval,
+- do not implement,
+- do not run implementation tests.
 
-Before writing or updating any spec, ChatGPT MUST:
+If planning friction repeats, propose improving governance docs or templates.
 
-- Ask enough precise questions to obtain a complete, unambiguous specification.
-- Clarify scope boundaries (In/Out).
-- Clarify constraints (UI, backend, performance, testing).
-- Clarify allowed and forbidden files.
+### Phase C — Implementation
 
-No plan is created before specification clarity.
+Start only when the latest spec and latest plan are both explicitly approved.
 
-### A2. Spec File (Mandatory)
+Implementation rules:
 
-Once clear, ChatGPT MUST produce a Markdown spec file in:
+- follow the approved plan step by step,
+- no scope expansion,
+- update/add tests and run the smallest relevant scope,
+- target at least 90% coverage when relevant,
+- update `CHANGELOG.md` under `## [Unreleased]` unless the change is formatting-only.
+- recommended commit messages must describe the full accumulated uncommitted change set since the last commit, rephrased when multiple development steps are being committed together.
 
-- `specs/###-short-title.md` (example: `specs/001-auth.md`)
+If recurring execution mistakes appear, tighten `PROJECT_INSTRUCTIONS.md`, `AGENTS.md`, or `/plans/TEMPLATE.md`.
 
-### A2.1. Mandatory Stop After Spec Creation
+## 5. Delivery Requirements
 
-After creating or updating a spec file, Codex MUST stop implementation work and ask for explicit user review/approval.
+Every implementation handoff must include:
 
-Allowed before approval:
+- technical summary,
+- files modified,
+- tests added/modified, command run, and result summary,
+- exact changelog text added,
+- human-readable summary,
+- 3-6 manual functional checks,
+- recommended commit message covering all changes since the last commit, not only the latest edit,
+- a question asking whether the user wants to continue developing before any commit/push/closure step,
+- if the user does not want to continue developing, the exact question asking whether to stage, commit, push, and close the development cycle.
 
-- Clarifications and refinements to the spec file
-- Other Markdown governance adjustments requested by the user
+If the user wants to continue developing, do not commit yet.
 
-Forbidden before approval:
+If the user confirms the commit/push/closure question, perform commit/push/closure in the same flow.
 
-- Plan creation
-- Product code changes
-- Test execution tied to implementation
+ChatGPT may assist with clarification, risk review, edge cases, and architecture validation, but must not implement repository code directly.
 
-Each spec MUST include (minimum):
+## 6. Markdown Rules
 
-- Functional Goal
-- Scope (In / Out)
-- UI/UX Requirements
-- Backend Requirements
-- Data Rules (ordering/tie-breakers/null handling)
-- Reuse Rules
-- Acceptance Criteria (binary, testable)
-- Manual Functional Checks (3–6)
-- Files Allowed to Change
-- Files Forbidden to Change
+For every changed Markdown file:
 
-### A3. Refinement Antipattern (Continuous Improvement Trigger)
+- do not add `markdownlint-disable` directives unless explicitly requested,
+- enforce `MD022` and `MD032`,
+- use `-` for unordered lists,
+- keep ordered lists explicit and sequential,
+- avoid trailing spaces,
+- end files with a single newline.
 
-If the ChatGPT clarification cycle requires many corrections AND a recurring cause is identified:
-ChatGPT MUST suggest updating `PROJECT_INSTRUCTIONS.md` (and/or `AGENTS.md` / `plans/TEMPLATE.md`) to prevent repetition.
+Validation:
 
----
+1. Run markdownlint on changed Markdown files when available.
+2. Fix violations in the same change set.
+3. If markdownlint is unavailable, perform a manual pass before delivery.
+4. Do not deliver with `MD022` or `MD032` failures.
 
-## Phase B — Planning (Codex CLI in Plan Mode)
-
-Planning happens in the terminal using Codex CLI **Plan Mode**.
-
-### B1. Plan Template (Mandatory)
-
-All plans must use:
-
-- `/plans/TEMPLATE.md`
-
-### B2. Create Plan File (Mandatory)
-
-The plan must live in:
-
-- `/plans/YYYY-MM-DD_short-description.md`
-
-### B2.1. Mandatory Stop After Plan Creation
-
-After creating or updating a plan file, Codex MUST stop implementation work and ask for explicit user review/approval of the plan.
-
-Allowed before approval:
-
-- Plan refinements requested by the user
-- Other Markdown governance/template adjustments requested by the user
-
-Forbidden before approval:
-
-- Product code changes
-- Implementation test execution
-
-### B3. Plan Input Source
-
-Codex Plan Mode MUST be instructed to base the plan on:
-
-- the relevant `specs/*.md` file
-
-Codex in Plan Mode:
-
-- MUST NOT write product code
-- MAY update repository Markdown files (project/agents/template/spec/plan) when instructed
-
-### B4. Plan Review Loop (Mandatory)
-
-The plan is iterated until approved:
-
-- ChatGPT can review plan quality and completeness
-- User edits or requests adjustments
-- Repeat until fully agreed
-
-If planning becomes difficult or repeats the same friction:
-ChatGPT should recommend improving governance docs or templates.
-
----
-
-## Phase C — Implementation (Codex CLI Execute Mode)
-
-Only after the plan is approved:
-
-- The latest spec must be explicitly approved by the user.
-- The latest plan must be explicitly approved by the user.
-
-### C1. Execute Step-by-Step
-
-Codex is instructed using the plan:
-
-- “Implement Step 1 of `/plans/...md` following `AGENTS.md` rules.”
-
-### C2. Optimization to Reduce Iterations (Continuous Improvement)
-
-C2.1. Capture of Errors:
-
-- If Codex repeats a mistake, add a constraint to `PROJECT_INSTRUCTIONS.md` and/or `AGENTS.md`.
-
-C2.2. Dynamic Checklists:
-
-- After a complex task is completed successfully, request:
-
-  - “Based on this session, propose updates to `/plans/TEMPLATE.md` to avoid the problems we had.”
-
-### C3. Testing & Changelog (Mandatory)
-
-- Tests must be updated/added and executed.
-- Coverage target: ≥ 90%.
-- `CHANGELOG.md` updated under `## [Unreleased]` unless formatting-only.
-- Commit message suggestions must be provided once implementation output is ready for handoff.
-- Immediately after the recommended commit message, Codex must ask whether to proceed with staging changes, committing with that message, pushing to the remote branch, and closing the current development cycle in one step.
-- If the user confirms, Codex must execute commit/push and close the current development cycle in the same flow.
-
----
-
-# 5. ChatGPT Availability Throughout
-
-ChatGPT remains available in any phase for:
-
-- Clarifications
-- Edge cases
-- Architectural validation
-- Risk evaluation
-- Suggesting manual checks
-
-ChatGPT must NOT implement repository code.
-
----
-
-# 6. Markdown Output Discipline
-
-To avoid truncation and broken paste:
-
-1. Only one fenced block per copy artifact.
-2. No nested fences.
-3. No partial markdown blocks.
-4. If formatting breaks, return flat markdown text.
-5. After creating or amending a markdown file, fix all markdownlint violations detected in the document.
-
-## 6.1 Markdownlint Compliance (Mandatory)
-
-For every new or modified Markdown file:
-
-- Do not add `markdownlint-disable` directives unless the user explicitly requests them.
-- `MD022` is mandatory: keep exactly one blank line before and after headings.
-- `MD032` is mandatory: keep exactly one blank line before and after lists.
-- Use consistent list markers (`-` for unordered lists).
-- Avoid trailing spaces.
-- Keep ordered lists sequential and explicit (`1.`, `2.`, `3.`).
-- Ensure files end with a single trailing newline.
-
-Validation workflow:
-
-1. Run markdownlint on the changed Markdown files.
-2. Fix violations in the same commit.
-3. If markdownlint CLI is unavailable, perform a manual checklist pass using the rules above before delivering.
-4. If `MD022` or `MD032` fails, do not deliver until fixed.
-
-When Codex changes PROJECT_INSTRUCTIONS.md, it must explain changes and include the reminder:
+When `PROJECT_INSTRUCTIONS.md` changes, include this reminder in the handoff:
 
 `Reminder: update ChatGPT Project Instructions version/date to match this repository.`
-
----
-
-# End of Project Instructions

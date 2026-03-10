@@ -16,6 +16,12 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ## [Unreleased]
 
+### Changed
+
+- Simplified `docs/PROJECT_INSTRUCTIONS.md` to fit ChatGPT Project instruction size constraints while preserving the same governance rules and synchronized version metadata with `AGENTS.md`.
+- Clarified in `docs/PROJECT_INSTRUCTIONS.md` that it must remain under 8000 characters and updated `AGENTS.md` and `docs/PROJECT_INSTRUCTIONS.md` so handoff now asks whether to continue developing before any commit/push/closure step.
+- Updated `AGENTS.md` and `docs/PROJECT_INSTRUCTIONS.md` so recommended commit messages must summarize the full accumulated uncommitted change set since the last commit, rephrased when multiple development steps are grouped into one commit.
+
 ### Fixed
 
 - Fixed `.github/workflows/release.yml` release-notes extraction by replacing reserved `awk` variable usage that caused GitHub Actions parser errors.
