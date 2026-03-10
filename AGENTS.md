@@ -1,6 +1,6 @@
 # AGENTS.md — Spec-Driven Execution Rules
 
-Instruction Set Version: 2.2.9  
+Instruction Set Version: 2.2.10  
 Last Updated: 2026-03-10
 
 ---
@@ -15,6 +15,12 @@ Authority:
 
 If version/date mismatch exists between `PROJECT_INSTRUCTIONS.md` and `AGENTS.md`:
 STOP and align first.
+
+Tool roles:
+
+- Codex CLI is the default tool for spec drafting, planning, implementation, tests, and repository changes.
+- ChatGPT is not required in the normal delivery path when Codex CLI can cover the task end to end.
+- Use ChatGPT only for pre-spec clarification of ambiguous work, project-related technology/solution/computer-science questions, design/architecture/governance decisions, development-concept clarification, or screenshot review.
 
 ---
 

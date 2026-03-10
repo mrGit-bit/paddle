@@ -1,9 +1,9 @@
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.2.9  
+Instruction Set Version: 2.2.10  
 Last Updated: 2026-03-10
 
-This file mirrors the ChatGPT Project instructions and must remain explicitly under 8000 characters so it fits within ChatGPT Project instruction limits.
+This file mirrors the repository governance subset kept in ChatGPT Project instructions and must remain explicitly under 8000 characters so it fits within ChatGPT Project instruction limits.
 
 ## 1. Product and Stack
 
@@ -31,6 +31,9 @@ Rules:
 
 - Explicit task brief overrides everything else.
 - Project Instructions override `AGENTS.md`.
+- Codex CLI is the default tool for spec drafting, planning, implementation, tests, and repository changes.
+- ChatGPT is not required in the normal delivery path when Codex CLI can cover the task end to end.
+- Use ChatGPT only for pre-spec clarification of ambiguous work, project-related technology/solution/computer-science questions, design/architecture/governance decisions, development-concept clarification, or screenshot review.
 - This file must remain under 8000 characters after every edit.
 - `Instruction Set Version` and `Last Updated` are mandatory here and in `AGENTS.md`.
 - Any change to this file must update version/date in both files in the same commit.
@@ -147,7 +150,7 @@ If the user wants to continue developing, do not commit yet.
 
 If the user confirms the commit/push/closure question, perform commit/push/closure in the same flow.
 
-ChatGPT may assist with clarification, risk review, edge cases, and architecture validation, but must not implement repository code directly.
+ChatGPT may assist only in the approved advisory cases above and must not implement repository code directly.
 
 ## 6. Markdown Rules
 
