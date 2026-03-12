@@ -28,6 +28,10 @@ Every change should belong to one of the following categories: `added`, `changed
 ### Fixed
 
 - Fixed `.github/workflows/release.yml` release-notes extraction by replacing reserved `awk` variable usage that caused GitHub Actions parser errors.
+### Changed
+
+- Updated `.github/workflows/release.yml` to derive release version/tag from `paddle/config/__init__.py` (`__version__`) instead of changelog header parsing.
+- Updated `RELEASE.md` to document CI jobs in the release flow and clarify when `scripts/tag_release.sh` and `scripts/backmerge_main_to_develop.sh` are manual fallback tools.
 
 ## [1.3.1] - 2026-03-09
 ### Fixed
