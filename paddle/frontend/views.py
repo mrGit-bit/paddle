@@ -11,6 +11,7 @@ from .view_modules.auth_profile import (
     logout_view,
     process_form_data,
     register_view,
+    user_delete_view,
     user_view,
 )
 from .view_modules.common import (
@@ -71,5 +72,6 @@ __all__ = [
     "ranking_home_view",
     "ranking_view",
     "register_view",
+    "user_delete_view",
     "user_view",
 ]

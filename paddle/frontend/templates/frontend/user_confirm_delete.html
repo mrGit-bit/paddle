@@ -1,0 +1,38 @@
+{% extends 'frontend/base.html' %}
+
+{% block title %}Eliminar cuenta{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card border-danger shadow-sm">
+        <div class="card-body p-4">
+          <h1 class="h3 text-danger text-center mb-3">Eliminar cuenta</h1>
+          <p class="mb-3">
+            Vas a eliminar tu cuenta de forma definitiva. Esta acción no se puede deshacer.
+          </p>
+          <p class="mb-3">
+            {% if user_player %}
+              Tu jugador vinculado se conservará, pero dejará de estar asociado a tu cuenta.
+            {% else %}
+              No tienes ningún jugador vinculado, así que solo se eliminará tu cuenta.
+            {% endif %}
+          </p>
+          <p class="mb-4">
+            Tus partidos, rankings e historial seguirán existiendo si están asociados a un jugador conservado.
+          </p>
+
+          <form method="post" action="">
+            {% csrf_token %}
+            <div class="d-flex justify-content-between">
+              <a href="{% url 'user' user.id %}" class="btn btn-secondary w-50 me-2">Cancelar</a>
+              <button type="submit" class="btn btn-danger w-50">Sí, eliminar mi cuenta</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

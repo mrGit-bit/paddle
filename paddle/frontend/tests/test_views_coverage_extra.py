@@ -101,51 +101,50 @@ def test_ranking_view_sets_previous_following_when_user_is_off_page():
 
 
 def test_register_view_form_error_branch_covers_277_278():
-    # Covers lines 277-278: form_error -> messages.error + redirect
-    
+    # Covers invalid registration form re-rendering on missing fields.
+
     url = reverse("register")
 
-    # Missing required fields -> process_form_data returns error
     resp = client.post(url, data={"username": "x"}, follow=False)
-    assert resp.status_code == 302
-    assert resp.url == url
+    assert resp.status_code == 200
+    assert "Este campo es obligatorio" in resp.content.decode("utf-8")
 
 
 def test_register_view_invalid_gender_branch_covers_293_294():
-    # Covers lines 293-294: invalid gender -> messages.error + redirect
+    # Covers invalid registration gender choice re-rendering.
     
     url = reverse("register")
 
     data = {
         "username": "newuser",
         "email": "new@ex.com",
+        "confirm_email": "new@ex.com",
         "password": "12345678",
         "confirm_password": "12345678",
         "gender": "X",  # invalid
     }
     resp = client.post(url, data=data, follow=False)
-    assert resp.status_code == 302
-    assert resp.url == url
+    assert resp.status_code == 200
+    assert "Por favor, selecciona un género válido." in resp.content.decode("utf-8")
 
 
-def test_user_view_form_error_branch_covers_344(monkeypatch):
-    # Covers line 344 by forcing process_form_data to return (None, "err") on PATCH
-    from frontend import views as frontend_views
-
+def test_user_view_post_requires_confirmation_for_changed_email():
     user = User.objects.create_user(username="u_patch", password="pass")
-    
+
     client.login(username="u_patch", password="pass")
 
-    def fake_process_form_data(request):
-        return None, "forced error"
-
-    monkeypatch.setattr(frontend_views, "process_form_data", fake_process_form_data)
-
     url = reverse("user", kwargs={"id": user.id})
-    resp = client.patch(url, data=json.dumps({"email": "x@x.com"}), content_type="application/json")
+    resp = client.post(
+        url,
+        data={
+            "username": "u_patch",
+            "email": "x@x.com",
+            "confirm_email": "",
+        },
+    )
 
-    assert resp.status_code == 400
-    assert "forced error" in resp.content.decode("utf-8")
+    assert resp.status_code == 200
+    assert "Confirma tu correo electrónico si quieres cambiarlo." in resp.content.decode("utf-8")
 
 
 def test_process_matches_converts_string_date_covers_383():

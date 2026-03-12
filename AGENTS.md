@@ -1,7 +1,7 @@
 # AGENTS.md — Spec-Driven Execution Rules
 
-Instruction Set Version: 2.2.3  
-Last Updated: 2026-03-03
+Instruction Set Version: 2.2.11  
+Last Updated: 2026-03-10
 
 ---
 
@@ -16,9 +16,25 @@ Authority:
 If version/date mismatch exists between `PROJECT_INSTRUCTIONS.md` and `AGENTS.md`:
 STOP and align first.
 
+Tool roles:
+
+- Codex CLI is the default tool for spec drafting, planning, implementation, tests, and repository changes.
+- ChatGPT is not required in the normal delivery path when Codex CLI can cover the task end to end.
+- Use ChatGPT only for pre-spec clarification of ambiguous work, project-related technology/solution/computer-science questions, design/architecture/governance decisions, development-concept clarification, or screenshot review.
+
 ---
 
 ## 2. SDD Workflow (Mandatory A → B → C)
+
+## 2.1 Mandatory Branch Check Before Development
+
+Before starting any development/implementation/code-change request, Codex MUST check the current git branch.
+
+If the active branch is not `develop`, Codex MUST:
+
+- Warn clearly that work is not currently on `develop`.
+- Ask explicitly which branch the user wants the changes applied to.
+- Wait for user confirmation before implementing changes.
 
 ### Phase A — Specification
 
@@ -70,6 +86,7 @@ Backend/Frontend separation:
 - No business logic in templates
 - No frontend ranking logic
 - Prefer backend helpers and reuse existing ones
+- Keep deprecated API/DRF policy centralized in governance; do not repeat it in feature specs unless the task directly involves that deprecated surface
 
 Language rules:
 
@@ -92,7 +109,7 @@ Language rules:
 
 - Update `CHANGELOG.md` under `## [Unreleased]` unless formatting-only
 - Changelog entry must match the actual behavior changes
-- Recommend commit message aligned with changelog only after the user confirms the current spec implementation cycle is closed
+- Recommend a commit message aligned with the changelog and covering the full accumulated uncommitted change set since the last commit; if multiple development steps were done before committing, rephrase the message to cover all of them together
 
 ---
 
@@ -117,11 +134,12 @@ C) Tests (added/modified + command + result summary)
 D) Changelog Entry (exact text added)
 E) Human readable summary of changes  
 E) Manual Functional Checks proposed (3–6)  
-F) Recommended Commit Message
-G) Ask: "Do you want me to proceed with staging changes, committing with the recommended commit message, and pushing to the remote branch?"
-H) Ask for confirmation to close the development cycle  
-I) After closure, provide a suggestion of next steps (if relevant)
-J) If required, ammend markdown files to align with suggestions
+F) Recommended Commit Message covering all accumulated changes since the last commit, not just the latest edit
+G) Before any commit/push/closure step, ask whether the user wants to continue developing
+H) If the user does not want to continue developing, ask: "Do you want me to proceed with staging changes, committing with the recommended commit message, pushing to the remote branch, and closing the current development cycle?"
+I) If user confirms Step H, perform commit/push and close the development cycle in the same flow
+J) After closure, provide a suggestion of next steps (if relevant)
+K) If required, ammend markdown files to align with suggestions
 
 ---
 
@@ -136,6 +154,7 @@ For any created/modified Markdown file:
 - Avoid trailing spaces and malformed list indentation.
 - Ensure numbered lists are explicit and sequential (`1.`, `2.`, `3.`).
 - End files with a single newline.
+- Treat generated text as authoritative output; when markdown review is needed, fix structure without rewriting or wrapping long generated audit lines only for line-length limits.
 
 Before final delivery:
 

@@ -2,37 +2,48 @@
 {% extends 'frontend/base.html' %}
 {% load static %}
 
-{% block title %}User Profile{% endblock %}
+{% block title %}Cuenta de usuario{% endblock %}
 
 {% block content %}
 
-<div class="text-center mt-4">
-  <h1 class="display-4"> 🏆 #{{ user_player.ranking_position }} de {{ total_players }} 🏆</h1> 
-</div>
+{% if user_player %}
+  <div class="text-center mt-4">
+    <h1 class="display-4"> 🏆 #{{ user_player.ranking_position }} de {{ total_players }} 🏆</h1> 
+  </div>
+{% endif %}
 
 <div class="container">
   <div class="row justify-content-center">
     <div class="col-md-6">
-      <h2 class="text-center">Cuenta de Usuario</h2>
+      <h2 class="text-center">Cuenta de usuario</h2>
       <p class="text-center mb-4"> Edita tu perfil </p>
 
-      <!-- Display errors if any with Error container for AJAX responses -->
-      <div id="error-container"></div>
+      {% if messages %}
+        <div class="mb-3">
+          {% for message in messages %}
+            <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-danger{% endif %}" role="alert">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
       
       <!-- Include the reusable user form -->
-      {% include "frontend/_user_form.html" with form_action=request.path is_registration=False wins=user_player.wins matches=user_player.matches_played win_rate=user_player.win_rate %}            
+      {% include "frontend/_user_form.html" with form_action=request.path form=profile_form is_registration=False wins=wins matches=matches win_rate=win_rate %}            
 
       <p class="text-center mt-3">
         <a href="{% url 'password_reset' %}" class="small">¿Quieres cambiar tu contraseña?</a>
       </p>
+
+      <div class="text-center mt-5 mb-3">
+        <a href="{% url 'user_delete' user.id %}" class="btn btn-outline-danger"><bi class="bi bi-trash"></bi> Eliminar mi cuenta</a>
+      </div>
 
     </div>
   </div>
 </div>
 {% endblock %}
 
-<!-- Block for additional scripts -->
 {% block scripts %}
-<!-- Include JavaScript to allow editing user Profile-->
-<script src="{% static 'frontend/js/editUserProfile.js' %}"></script>
+<script src="{% static 'frontend/js/profileEmailConfirmationToggle.js' %}"></script>
 {% endblock %}
