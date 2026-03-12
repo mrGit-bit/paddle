@@ -11,19 +11,8 @@
     <div class="col-md-6">
       <h2 class="text-center mb-4">Crea una Cuenta</h2>
 
-      <!-- Display success or error messages -->
-      {% if messages %}
-      <div class="container">
-        {% for message in messages %}
-          <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% endif %}" role="alert">
-            {{ message }}
-          </div>
-        {% endfor %}
-      </div>
-      {% endif %}
-      
       <!-- Include the reusable user form -->     
-      {% include "frontend/_user_form.html" with form_action=request.path is_registration=True players=players submit_label="Register" %}
+      {% include "frontend/_user_form.html" with form_action=request.path form=form is_registration=True submit_label="Register" %}
 
       <p class="text-center mt-3">
         ¿Ya tienes cuenta? <a href="{% url 'login' %}">Accede aquí</a>
@@ -36,6 +25,6 @@
 
 <!-- Block for additional scripts -->
 {% block scripts %}
-<!-- Include JavaScript to check passwords match -->
+<!-- Include JavaScript to validate confirmation fields in registration -->
 <script src="{% static 'frontend/js/passwordValidation.js' %}"></script>
 {% endblock %}

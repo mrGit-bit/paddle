@@ -48,8 +48,9 @@ class TestFrontendViews:
         data = {
             "username": "newuser",
             "email": "new@example.com",
-            "password": "newpass",
-            "confirm_password": "newpass",
+            "confirm_email": "new@example.com",
+            "password": "newpass12",
+            "confirm_password": "newpass12",
             "player_id": "",
             "gender": "F",
         }
@@ -63,6 +64,7 @@ class TestFrontendViews:
         data = {
             "username": "linkeduser",
             "email": "linked@example.com",
+            "confirm_email": "linked@example.com",
             "password": "linkedpass",
             "confirm_password": "linkedpass",
             "player_id": str(player.id),
@@ -86,20 +88,83 @@ class TestFrontendViews:
         url = reverse("user", args=[self.user.id])
         response = self.client.get(url)
         assert response.status_code == 200
-        assert b"User Profile" in response.content
+        assert b"Cuenta de usuario" in response.content
+        assert b'id="profile-confirm-email-container"' in response.content
+        assert b'profile-confirm-email-container" class="mb-3 form-floating d-none"' in response.content
 
-    def test_user_view_patch(self):
+    def test_user_view_post_updates_username_and_email(self):
         self.client.login(username="testuser", password="testpass")
         url = reverse("user", args=[self.user.id])
-        response = self.client.patch(url, data='{"email": "newmail@example.com"}', content_type="application/json")
+        response = self.client.post(
+            url,
+            data={
+                "username": "nuevo_usuario",
+                "email": "newmail@example.com",
+                "confirm_email": "newmail@example.com",
+            },
+            follow=True,
+        )
         assert response.status_code == 200
         self.user.refresh_from_db()
+        self.player.refresh_from_db()
+        assert self.user.username == "nuevo_usuario"
         assert self.user.email == "newmail@example.com"
+        assert self.player.name == "nuevo_usuario"
 
     def test_user_view_forbidden(self):
         other = User.objects.create_user(username="otheruser", password="otherpass")
         self.client.login(username="otheruser", password="otherpass")
         url = reverse("user", args=[self.user.id])
+        response = self.client.get(url)
+        assert response.status_code == 403
+
+    def test_user_view_post_rejects_mismatched_changed_email(self):
+        self.client.login(username="testuser", password="testpass")
+        url = reverse("user", args=[self.user.id])
+        response = self.client.post(
+            url,
+            data={
+                "username": "testuser",
+                "email": "nuevo@example.com",
+                "confirm_email": "distinto@example.com",
+            },
+        )
+        assert response.status_code == 200
+        self.user.refresh_from_db()
+        assert self.user.email == "test@example.com"
+        assert b"Los correos electr" in response.content
+
+    def test_user_view_post_allows_username_change_without_email_confirmation(self):
+        self.client.login(username="testuser", password="testpass")
+        url = reverse("user", args=[self.user.id])
+        response = self.client.post(
+            url,
+            data={
+                "username": "solo_nombre",
+                "email": "test@example.com",
+                "confirm_email": "",
+            },
+            follow=True,
+        )
+        assert response.status_code == 200
+        self.user.refresh_from_db()
+        assert self.user.username == "solo_nombre"
+
+    def test_user_delete_view_unlinks_player_and_logs_out(self):
+        self.client.login(username="testuser", password="testpass")
+        url = reverse("user_delete", args=[self.user.id])
+        response = self.client.post(url, follow=True)
+        assert response.status_code == 200
+        assert not User.objects.filter(id=self.user.id).exists()
+        self.player.refresh_from_db()
+        assert self.player.registered_user is None
+        assert "_auth_user_id" not in self.client.session
+        assert b"Tu cuenta se ha eliminado correctamente" in response.content
+
+    def test_user_delete_view_forbidden_for_other_user(self):
+        other = User.objects.create_user(username="otheruser", password="otherpass")
+        self.client.login(username="otheruser", password="otherpass")
+        url = reverse("user_delete", args=[self.user.id])
         response = self.client.get(url)
         assert response.status_code == 403
 
@@ -230,16 +295,15 @@ class TestFrontendViews:
         data = {
             "username": "dupe",
             "email": "dupe@example.com",
-            "password": "pass",
-            "confirm_password": "pass",
+            "confirm_email": "dupe@example.com",
+            "password": "pass1234",
+            "confirm_password": "pass1234",
             "player_id": "",
             "gender": "M",
         }
         response = self.client.post(url, data, follow=True)
-        messages = list(response.context["messages"])
-        # check error response
         assert response.status_code == 200
-        assert any("error" in str(m).lower() for m in messages)
+        assert b"Ya existe un usuario o un jugador con ese nombre" in response.content
 
     def test_register_view_post_linked_player(self):
         # Covers lines 246-247
@@ -249,28 +313,33 @@ class TestFrontendViews:
         data = {
             "username": "newuser2",
             "email": "new2@example.com",
-            "password": "pass",
-            "confirm_password": "pass",
+            "confirm_email": "new2@example.com",
+            "password": "pass1234",
+            "confirm_password": "pass1234",
             "player_id": str(linked_player.id),
             "gender": "M",
         }
         response = self.client.post(url, data, follow=True)
-        messages = list(response.context["messages"])
-        assert any("already linked" in str(m) for m in messages)
+        assert response.status_code == 200
+        assert not User.objects.filter(username="newuser2").exists()
+        assert b"El jugador seleccionado ya no est" in response.content
 
-    def test_user_view_patch_invalid_json(self):
-        # Covers line 251
-        self.client.login(username="testuser", password="testpass")
-        url = reverse("user", args=[self.user.id])
-        response = self.client.patch(url, data="{invalid", content_type="application/json")
-        assert response.status_code == 400
-
-    def test_user_view_patch_no_valid_fields(self):
-        # Covers line 264
-        self.client.login(username="testuser", password="testpass")
-        url = reverse("user", args=[self.user.id])
-        response = self.client.patch(url, data=json.dumps({}), content_type="application/json")
-        assert response.status_code == 400
+    def test_register_view_post_mismatched_emails(self):
+        url = reverse("register")
+        response = self.client.post(
+            url,
+            data={
+                "username": "newuser3",
+                "email": "one@example.com",
+                "confirm_email": "two@example.com",
+                "password": "12345678",
+                "confirm_password": "12345678",
+                "gender": "M",
+            },
+        )
+        assert response.status_code == 200
+        assert not User.objects.filter(username="newuser3").exists()
+        assert b"Los correos electr" in response.content
 
     def test_process_matches_handles_none(self):
         # Covers lines 288, 290
