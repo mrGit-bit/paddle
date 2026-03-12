@@ -16,6 +16,7 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-03-12
 ### Changed
 
 - Simplified `docs/PROJECT_INSTRUCTIONS.md` to fit ChatGPT Project instruction size constraints while preserving the same governance rules and synchronized version metadata with `AGENTS.md`.
