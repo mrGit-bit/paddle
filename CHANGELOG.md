@@ -16,6 +16,7 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-03-14
 ### Changed
 
 - Refreshed `README.md` so it reflects the latest documented project state and serves as a practical repository guide for Codex CLI agents.
