@@ -39,6 +39,17 @@ If CI is not enforced, manual testing is required before merging.
 
 ---
 
+# 🤖 CI Jobs Used in the Release Flow
+
+- `.github/workflows/ci.yml`:
+  - Validates PR quality gates (tests/coverage) before branch promotions.
+- `.github/workflows/release-prep-no-ai.yml`:
+  - On manual dispatch, prepares `CHANGELOG.md` + `paddle/config/__init__.py` for a target release and opens PR to `develop`.
+- `.github/workflows/release.yml`:
+  - On `push` to `main`, reads version from `paddle/config/__init__.py`, ensures tag `vX.Y.Z` exists, creates GitHub Release notes from `CHANGELOG.md`, and opens back-merge PR `main -> develop`.
+
+---
+
 # 1️⃣ Prepare the Release
 
 Two supported modes:
@@ -238,7 +249,11 @@ Same steps as staging, but on production server.
 
 ---
 
-# 7️⃣ Tag the Release
+# 7️⃣ Tag the Release (Manual Fallback Only)
+
+By default, do not run local tagging scripts after merging to `main`: `.github/workflows/release.yml` handles tag + GitHub Release automatically.
+
+Use the script/manual options below only when CI automation is intentionally bypassed or failed and you need to recover tagging/release creation manually.
 
 ## Install release scripts (one-time)
 
@@ -315,6 +330,10 @@ sudo systemctl reload nginx
 ---
 
 # 🔁 Update IDE Branches After Production Deployment
+
+By default, do not run local back-merge scripts when `.github/workflows/release.yml` has already opened (or confirmed existing) PR `main -> develop`.
+
+Use the script/manual options below only if CI back-merge PR automation is unavailable or a one-off recovery merge is required.
 
 ## A) Automated (scripts)
 
