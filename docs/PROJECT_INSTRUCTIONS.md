@@ -1,7 +1,7 @@
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.2.11  
-Last Updated: 2026-03-10
+Instruction Set Version: 2.2.13  
+Last Updated: 2026-03-14
 
 This file mirrors the repository governance subset kept in ChatGPT Project instructions and must remain explicitly under 8000 characters so it fits within ChatGPT Project instruction limits.
 
@@ -34,6 +34,8 @@ Rules:
 - Codex CLI is the default tool for spec drafting, planning, implementation, tests, and repository changes.
 - ChatGPT is not required in the normal delivery path when Codex CLI can cover the task end to end.
 - Use ChatGPT only for pre-spec clarification of ambiguous work, project-related technology/solution/computer-science questions, design/architecture/governance decisions, development-concept clarification, or screenshot review.
+- Check `README.md` when necessary for current repository context, architecture orientation, or safe repository navigation.
+- Keep `README.md` updated when repository guidance, architecture orientation, or other README-covered project context changes.
 - This file must remain under 8000 characters after every edit.
 - `Instruction Set Version` and `Last Updated` are mandatory here and in `AGENTS.md`.
 - Any change to this file must update version/date in both files in the same commit.
@@ -158,18 +160,17 @@ For every changed Markdown file:
 
 - do not add `markdownlint-disable` directives unless explicitly requested,
 - enforce `MD022` and `MD032`,
+- do not treat long lines (`MD013`) as blocking violations,
 - use `-` for unordered lists,
 - keep ordered lists explicit and sequential,
 - avoid trailing spaces,
 - end files with a single newline,
-- treat generated text as authoritative output; when markdown review is needed,
-  fix structure without rewriting or wrapping long generated audit lines only
-  for line-length limits.
+- treat generated text as authoritative output; when markdown review is needed, fix structure without rewriting or wrapping long lines into multiple lines only for line-length linting.
 
 Validation:
 
 1. Run markdownlint on changed Markdown files when available.
-2. Fix violations in the same change set.
+2. Fix violations in the same change set, except `MD013` line-length findings which are non-blocking.
 3. If markdownlint is unavailable, perform a manual pass before delivery.
 4. Do not deliver with `MD022` or `MD032` failures.
 
