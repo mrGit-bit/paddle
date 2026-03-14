@@ -16,6 +16,10 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed `.github/workflows/release.yml` release tagging on GitHub Actions by configuring a valid Git identity and validating that `paddle/config/__init__.py` matches the latest released version in `CHANGELOG.md` before extracting release notes.
+
 ## [1.4.0] - 2026-03-12
 ### Changed
 
