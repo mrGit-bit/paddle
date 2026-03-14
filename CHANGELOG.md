@@ -16,6 +16,13 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-03-14
+### Changed
+
+- Refreshed `README.md` so it reflects the latest documented project state and serves as a practical repository guide for Codex CLI agents.
+- Updated governance in `AGENTS.md` and `docs/PROJECT_INSTRUCTIONS.md` so Markdown line-length findings (`MD013`) are non-blocking and long lines should not be wrapped only for line-length linting.
+- Updated governance in `AGENTS.md` and `docs/PROJECT_INSTRUCTIONS.md` so contributors check `README.md` when repository context is needed and keep it updated when README-covered guidance or project context changes.
+
 ### Fixed
 
 - Fixed `.github/workflows/release.yml` release tagging on GitHub Actions by configuring a valid Git identity and validating that `paddle/config/__init__.py` matches the latest released version in `CHANGELOG.md` before extracting release notes.
@@ -32,6 +39,7 @@ Every change should belong to one of the following categories: `added`, `changed
 ### Fixed
 
 - Fixed `.github/workflows/release.yml` release-notes extraction by replacing reserved `awk` variable usage that caused GitHub Actions parser errors.
+
 ### Changed
 
 - Updated `.github/workflows/release.yml` to derive release version/tag from `paddle/config/__init__.py` (`__version__`) instead of changelog header parsing.
