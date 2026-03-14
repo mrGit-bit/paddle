@@ -1,7 +1,7 @@
 # AGENTS.md — Spec-Driven Execution Rules
 
-Instruction Set Version: 2.2.11  
-Last Updated: 2026-03-10
+Instruction Set Version: 2.2.14  
+Last Updated: 2026-03-14
 
 ---
 
@@ -21,6 +21,8 @@ Tool roles:
 - Codex CLI is the default tool for spec drafting, planning, implementation, tests, and repository changes.
 - ChatGPT is not required in the normal delivery path when Codex CLI can cover the task end to end.
 - Use ChatGPT only for pre-spec clarification of ambiguous work, project-related technology/solution/computer-science questions, design/architecture/governance decisions, development-concept clarification, or screenshot review.
+- Check `README.md` when necessary for current repository context, architecture orientation, or safe repository navigation.
+- Keep `README.md` updated when repository guidance, architecture orientation, or other README-covered project context changes.
 
 ---
 
@@ -107,7 +109,7 @@ Language rules:
 
 ## 5. Changelog Discipline
 
-- Update `CHANGELOG.md` under `## [Unreleased]` unless formatting-only
+- Update `CHANGELOG.md` under `## [Unreleased]` for every behavior, documentation, governance, workflow, or repository-guidance change unless the change is truly formatting-only
 - Changelog entry must match the actual behavior changes
 - Recommend a commit message aligned with the changelog and covering the full accumulated uncommitted change set since the last commit; if multiple development steps were done before committing, rephrase the message to cover all of them together
 
@@ -150,15 +152,16 @@ For any created/modified Markdown file:
 - Do not add `markdownlint-disable` directives unless explicitly requested by the user.
 - `MD022` is mandatory: keep exactly one blank line before and after every heading.
 - `MD032` is mandatory: keep exactly one blank line before and after every list.
+- Do not treat long lines (`MD013`) as blocking violations.
 - Use consistent unordered list markers (`-`).
 - Avoid trailing spaces and malformed list indentation.
 - Ensure numbered lists are explicit and sequential (`1.`, `2.`, `3.`).
 - End files with a single newline.
-- Treat generated text as authoritative output; when markdown review is needed, fix structure without rewriting or wrapping long generated audit lines only for line-length limits.
+- Treat generated text as authoritative output; when markdown review is needed, fix structure without rewriting or wrapping long lines into multiple lines only for line-length linting.
 
 Before final delivery:
 
 1. Run markdownlint on changed Markdown files when available.
-2. Fix all violations in the same change set.
+2. Fix all violations in the same change set except `MD013` line-length findings, which are non-blocking.
 3. If markdownlint is unavailable, perform a manual pass against this checklist.
 4. If `MD022` or `MD032` fails, do not deliver until fixed.

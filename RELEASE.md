@@ -213,11 +213,11 @@ sudo systemctl reload nginx
 
 Minimum checklist:
 
+- About page shows correct version
 - Login/logout
 - Rankings page loads
 - Match creation/edit
-- Static assets
-- About page shows correct version
+- Static assets load as expected
 
 ---
 

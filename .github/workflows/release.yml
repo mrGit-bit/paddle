@@ -18,19 +18,51 @@ jobs:
         with:
           fetch-depth: 0  # needed for tags
 
-      - name: Extract version from paddle/config/__init__.py
+      - name: Extract and validate release version
         id: ver
         shell: bash
         run: |
-          # Expect: __version__ = "1.2.3"
-          line=$(grep -m 1 -E '^__version__[[:space:]]*=[[:space:]]*"[0-9]+\.[0-9]+\.[0-9]+"' paddle/config/__init__.py || true)
-          if [ -z "$line" ]; then
-            echo "No semantic __version__ assignment found in paddle/config/__init__.py"
+          config_version=$(python - <<'PY'
+          import pathlib
+          import re
+          import sys
+
+          text = pathlib.Path("paddle/config/__init__.py").read_text(encoding="utf-8")
+          match = re.search(r'^__version__ = "([0-9]+\.[0-9]+\.[0-9]+)"$', text, re.MULTILINE)
+          if not match:
+              sys.stderr.write("Could not find __version__ in paddle/config/__init__.py\n")
+              raise SystemExit(1)
+          print(match.group(1))
+          PY
+          )
+
+          changelog_version=$(python - <<'PY'
+          import pathlib
+          import re
+          import sys
+
+          text = pathlib.Path("CHANGELOG.md").read_text(encoding="utf-8")
+          match = re.search(r'^## \[([0-9]+\.[0-9]+\.[0-9]+)\] - ', text, re.MULTILINE)
+          if not match:
+              sys.stderr.write("No released version header found in CHANGELOG.md\n")
+              raise SystemExit(1)
+          print(match.group(1))
+          PY
+          )
+
+          if [ "$config_version" != "$changelog_version" ]; then
+            echo "Version mismatch: paddle/config/__init__.py has $config_version but CHANGELOG.md latest release is $changelog_version"
             exit 1
           fi
-          version=$(echo "$line" | sed -E 's/^__version__[[:space:]]*=[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+)".*/\1/')
-          echo "version=$version" >> $GITHUB_OUTPUT
-          echo "tag=v$version" >> $GITHUB_OUTPUT
+
+          echo "version=$config_version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$config_version" >> "$GITHUB_OUTPUT"
+
+      - name: Configure git identity for tag creation
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Create tag if missing
         shell: bash

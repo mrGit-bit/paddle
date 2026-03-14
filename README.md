@@ -1,287 +1,181 @@
-<!-- markdownlint-disable MD025 -->
+# rankingdepadel.club
 
-# 🏆 Rankin de padel
+Production domain: `rankingdepadel.club`
 
-Production domain: rankingdepadel.club
+## Overview
 
-## Governance & AI Workflow
+This repository contains the full project for `rankingdepadel.club`, a Django
+application for padel rankings, match tracking, player profiles, and Americano
+tournaments. The repo ships two product surfaces:
 
-- See /docs/PROJECT_INSTRUCTIONS.md for governance and workflow rules.
-- See AGENTS.md for agent constraints.
-- See /plans/ for plan-mode task histories and templates.
+- Web app: Django server-rendered application.
+- Mobile app: Capacitor WebView wrapper around the web product.
 
----
+The supported surface is the server-rendered web app plus the mobile WebView
+wrapper. The deprecated DRF/API endpoints are removed and should not be
+reintroduced.
 
-# 1️⃣ Project Purpose
+## Recent Changes
 
-Full-stack Django web application for managing:
+Use [CHANGELOG.md](/workspaces/paddle/CHANGELOG.md) for the full release
+history. The most relevant current changes are:
 
-- Padel match tracking
-- Hall of Fame rankings
-- Player statistics
-- Americano tournaments
+- `Unreleased`: the GitHub release workflow now sets a valid Git identity for
+  tag creation and verifies that `paddle/config/__init__.py` matches the latest
+  released version in `CHANGELOG.md` before extracting release notes.
+- `1.4.0`:
+  - account management now uses standard form submissions for profile editing,
+    confirmed email on registration, and a dedicated account-deletion
+    confirmation flow.
+  - governance rules were tightened around branch checks, spec/plan approval
+    gates, markdownlint compliance, and changelog-aligned commit messaging.
+  - release automation now derives the release version from
+    `paddle/config/__init__.py`.
+- `1.3.1` and `1.3.0`:
+  - player profile pages were expanded with player insights, match history, and
+    navigation from ranking pages.
+  - ranking behavior was consolidated around one canonical policy and shared
+    query helpers.
+  - `frontend.views` was split into internal `view_modules` while keeping the
+    external route surface stable.
 
-This repository contains TWO products:
+## Product Areas
 
-1. Django Web App (primary product)
-2. Android Mobile Wrapper (Capacitor WebView)
+### Rankings
 
-There is no duplicated business logic in the mobile app.
+- Public ranking pages for `all`, `male`, `female`, and `mixed`.
+- Competition-style tie positions (`1224`).
+- Unranked players shown separately.
+- Clickable ranking rows linking to player profiles.
 
----
+### Players
 
-# 2️⃣ Architecture Overview
+- Public player directory and player profile pages.
+- Player trend summaries, frequent partner, and top rival pairs.
+- Authenticated account management with profile edit and account deletion
+  flows.
 
-## Backend
+### Matches
+
+- Authenticated users can create matches.
+- Match correction is handled as delete-and-recreate; match editing is not part
+  of the active surface.
+
+### Americano Tournaments
+
+- Public tournament visibility.
+- Logged-in users can create tournaments.
+- Participants, creators, and staff have scoped edit permissions.
+- Standings are recomputed from persisted match results.
+
+## Architecture
+
+### Backend
 
 - Django
 - Session authentication
-- Oracle Autonomous DB (staging / production)
-- SQLite (development)
+- SQLite in development
+- Oracle Autonomous Database in staging/production
 
-## Frontend
+### Frontend
 
-- Django Templates (NOT React)
+- Django templates
 - Bootstrap 5
-- Minimal vanilla JavaScript
-- No frontend framework
-
-## Mobile
-
-- Capacitor (Android)
-- WebView loads production or staging URL
-- No duplicated backend logic
-
-## Deprecated Components Removed
-
-- Django REST Framework API endpoints (`/api/games/`, `/api/users/`, `/api-auth/`) have been removed.
-- The supported product surface is the server-rendered web app plus the mobile WebView wrapper.
-
----
-
-# 3️⃣ Critical Architectural Rules (FOR AI AGENTS)
-
-These rules must NEVER be violated.
-
-## Version Source of Truth
-
-Runtime version is defined ONLY in:
-
-    paddle/config/__init__.py
-
-Example:
-
-    __version__ = "1.3.0"
-
-Rules:
-
-- CHANGELOG.md is documentation only.
-- `[Unreleased]` must always remain at the top of CHANGELOG.md.
-- The About page reads version from `config.__version__`.
-- Never parse version from CHANGELOG.md.
-- Never infer version from Git tags inside runtime code.
-
----
-
-## Ranking Logic
-
-- All ranking computation lives in:
-
-    paddle/frontend/services/ranking.py
-
-- Main function:
-
-    compute_ranking(scope)
-
-Rules:
-
-- Do NOT move ranking logic into templates.
-- Do NOT duplicate ranking computation.
-- Templates must render precomputed `display_*` fields.
-
----
-
-## Views Rules
-
-- Views must remain thin.
-- No heavy computation inside views.
-- No business logic in templates.
-- Use PRG (Post-Redirect-Get) for POST handling.
-
----
-
-## Templates Rules
-
-- Templates must not compute logic.
-- Only display values passed via context.
-- No ranking calculations in templates.
-
----
-
-# 4️⃣ Branching Model
-
-- develop → integration
-- staging → pre-production
-- main → production
-
-Rules:
-
-- No direct commits to main.
-- Release flow defined in RELEASE.md.
-- CI must pass before merging to staging or main.
-
----
-
-# 5️⃣ Project Structure
-
-High-level structure:
-
-    /workspaces/paddle/
-    ├── mobile/
-    ├── paddle/
-    │   ├── americano/
-    │   ├── config/
-    │   │   ├── __init__.py
-    │   │   └── settings/
-    │   ├── frontend/
-    │   │   ├── services/
-    │   │   ├── templates/
-    │   │   └── views.py
-    │   ├── games/
-    │   ├── users/
-    │   └── staticfiles/
-    ├── CHANGELOG.md
-    ├── RELEASE.md
-    ├── README.md
-    ├── requirements.txt
-    └── .env
-
----
-
-# 6️⃣ Core Functional Areas
-
-## Hall of Fame
-
-- Public ranking
-- Scopes:
-  - all
-  - male
-  - female
-  - mixed
-- Tie style: competition ("1224")
-- Unranked table
-- Clickable ranking rows
-- Scope persistence in session
-
----
-
-## Match Management
-
-- 2 teams per match (2 players each)
-- Authenticated users:
-  - Create matches
-  - Delete own matches
-- Matches are NOT editable
-- Correction = delete + recreate
-
----
-
-## Americano Tournaments
-
-- Public read
-- Authenticated users can create
-- Participants can edit rounds while open
-- Standings recomputed from scratch
-- Tie style: competition format
-
-Models:
-
-- AmericanoTournament
-- AmericanoRound
-- AmericanoMatch
-- AmericanoPlayerStats
-
----
-
-# 7️⃣ Testing & Coverage
-
-Run all tests:
-
-    pytest -q
-
-Check coverage:
-
-    pytest frontend/tests/ --cov=frontend.views --cov-report=term-missing
-    pytest americano/tests/test_americano_views.py --cov=americano.views --cov-report=term-missing
-
-Minimum target coverage: 90%
-
-CI must enforce coverage threshold.
-
----
-
-# 8️⃣ Environment Configuration
-
-Environment variables loaded via:
-
-    python-decouple
-
-Main variable:
-
-    DJANGO_ENVIRONMENT=dev | prod
-
-Never commit secrets.
-
----
-
-# 9️⃣ AI Editing Guardrails
-
-When modifying this repository:
-
-DO:
-
-- Keep edits minimal
-- Respect file boundaries
-- Follow existing style
-- Preserve version rules
-- Preserve ranking logic structure
-
-DO NOT:
-
-- Move business logic into templates
-- Parse version from CHANGELOG.md
-- Refactor project structure without explicit instruction
-- Modify workflows unless requested
-- Change settings architecture
-
----
-
-# 🔟 Release Summary
-
-Release flow is documented in:
-
-    RELEASE.md
-
-Web and Mobile releases are independent.
-
-Repository tags must match:
-
-    config.__version__
-
----
-
-# 1️⃣1️⃣ Production Deployment
-
-Production stack:
-
-- Ubuntu VM
-- Gunicorn
-- Nginx
-- Cloudflare (Full Strict SSL)
-- Oracle Autonomous DB
-
-Deployment commands are described in RELEASE.md.
-
----
-
-End of README.md
+- Minimal vanilla JavaScript when needed
+
+### Mobile
+
+- Capacitor wrapper
+- Shared backend and frontend with the web app
+
+## Important Repository Paths
+
+- [docs/PROJECT_INSTRUCTIONS.md](/workspaces/paddle/docs/PROJECT_INSTRUCTIONS.md):
+  primary repository governance after the explicit task brief.
+- [AGENTS.md](/workspaces/paddle/AGENTS.md): agent workflow and output rules.
+- [CHANGELOG.md](/workspaces/paddle/CHANGELOG.md): release history and recent
+  documented changes.
+- [RELEASE.md](/workspaces/paddle/RELEASE.md): release flow and fallback tools.
+- [paddle/config/__init__.py](/workspaces/paddle/paddle/config/__init__.py):
+  runtime version source.
+- [paddle/frontend/services/ranking.py](/workspaces/paddle/paddle/frontend/services/ranking.py):
+  ranking computation source.
+- [paddle/frontend/view_modules](/workspaces/paddle/paddle/frontend/view_modules):
+  main frontend view implementations.
+- [paddle/frontend/VIEW_MODULES.md](/workspaces/paddle/paddle/frontend/VIEW_MODULES.md):
+  notes about the view-module split.
+- [plans](/workspaces/paddle/plans): approved execution plans.
+- [specs](/workspaces/paddle/specs): approved task specifications.
+
+## Codex CLI Guide
+
+Read this repository in this order when the task touches product behavior:
+
+1. Explicit user task brief.
+2. [docs/PROJECT_INSTRUCTIONS.md](/workspaces/paddle/docs/PROJECT_INSTRUCTIONS.md).
+3. [AGENTS.md](/workspaces/paddle/AGENTS.md).
+4. Relevant spec in [specs](/workspaces/paddle/specs) and plan in
+   [plans](/workspaces/paddle/plans), if the workflow requires them.
+5. The relevant app code and tests.
+
+Key rules for safe edits:
+
+- Check the current git branch before implementation work. Repository workflow
+  expects development work from `develop` unless the user confirms otherwise.
+- Follow the mandatory Spec -> Plan -> Implementation flow for code changes.
+- Keep business logic out of templates.
+- Do not duplicate ranking logic outside
+  [paddle/frontend/services/ranking.py](/workspaces/paddle/paddle/frontend/services/ranking.py).
+- Keep views thin and prefer existing helpers/services over new parallel logic.
+- Do not expand or restore the removed DRF/API surface.
+- UI text stays in Spanish; code, comments, docs, specs, and plans stay in
+  English.
+- Update or add targeted pytest coverage for behavior changes.
+- Update `CHANGELOG.md` for real behavior changes; documentation-only tasks do
+  not need release notes unless explicitly requested.
+
+## Project Structure
+
+```text
+/workspaces/paddle/
+├── mobile/
+├── paddle/
+│   ├── americano/
+│   ├── config/
+│   ├── frontend/
+│   │   ├── services/
+│   │   ├── templates/
+│   │   ├── tests/
+│   │   ├── view_modules/
+│   │   └── views.py
+│   └── users/
+├── docs/
+├── plans/
+├── specs/
+├── CHANGELOG.md
+├── RELEASE.md
+└── README.md
+```
+
+## Testing
+
+Run the smallest relevant pytest scope for the change. Common commands:
+
+```bash
+pytest -q
+pytest paddle/frontend/tests/test_ranking.py -q
+pytest paddle/frontend/tests/test_players_pages.py -q
+pytest paddle/americano/tests/test_americano_views.py -q
+```
+
+The project standard is at least 90% coverage when coverage is relevant to the
+task.
+
+## Environment Notes
+
+- Python: `3.10.12`
+- Development database: SQLite
+- Production/staging database: Oracle Autonomous Database over TCPS
+- Environment selection is controlled through `DJANGO_ENVIRONMENT`
+
+Never commit secrets or local environment values.
