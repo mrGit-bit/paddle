@@ -1,6 +1,6 @@
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.2.13  
+Instruction Set Version: 2.2.14  
 Last Updated: 2026-03-14
 
 This file mirrors the repository governance subset kept in ChatGPT Project instructions and must remain explicitly under 8000 characters so it fits within ChatGPT Project instruction limits.
@@ -129,7 +129,7 @@ Implementation rules:
 - no scope expansion,
 - update/add tests and run the smallest relevant scope,
 - target at least 90% coverage when relevant,
-- update `CHANGELOG.md` under `## [Unreleased]` unless the change is formatting-only.
+- update `CHANGELOG.md` under `## [Unreleased]` for every behavior, documentation, governance, workflow, or repository-guidance change unless the change is truly formatting-only.
 - recommended commit messages must describe the full accumulated uncommitted change set since the last commit, rephrased when multiple development steps are being committed together.
 
 If recurring execution mistakes appear, tighten `PROJECT_INSTRUCTIONS.md`, `AGENTS.md`, or `/plans/TEMPLATE.md`.

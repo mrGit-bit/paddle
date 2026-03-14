@@ -1,6 +1,6 @@
 # AGENTS.md — Spec-Driven Execution Rules
 
-Instruction Set Version: 2.2.13  
+Instruction Set Version: 2.2.14  
 Last Updated: 2026-03-14
 
 ---
@@ -109,7 +109,7 @@ Language rules:
 
 ## 5. Changelog Discipline
 
-- Update `CHANGELOG.md` under `## [Unreleased]` unless formatting-only
+- Update `CHANGELOG.md` under `## [Unreleased]` for every behavior, documentation, governance, workflow, or repository-guidance change unless the change is truly formatting-only
 - Changelog entry must match the actual behavior changes
 - Recommend a commit message aligned with the changelog and covering the full accumulated uncommitted change set since the last commit; if multiple development steps were done before committing, rephrase the message to cover all of them together
 
