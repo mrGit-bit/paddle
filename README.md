@@ -153,6 +153,9 @@ Key rules for safe edits:
 - Update or add targeted pytest coverage for behavior changes.
 - Update `CHANGELOG.md` for behavior, documentation, governance, workflow, and
   repository-guidance changes unless they are truly formatting-only.
+- Treat "close cycle" as complete only after all remaining requested-work
+  changes have been staged, committed, pushed, and `git status --short` is
+  clean.
 
 ## Project Structure
 

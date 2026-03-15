@@ -1,6 +1,6 @@
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.2.17  
+Instruction Set Version: 2.2.18  
 Last Updated: 2026-03-15
 
 This file mirrors the repository governance subset kept in ChatGPT Project instructions and must remain explicitly under 8000 characters so it fits within ChatGPT Project instruction limits.
@@ -145,7 +145,7 @@ Every implementation handoff must include technical summary, files modified, tes
 
 If the user wants to continue developing, do not commit yet.
 
-If the user confirms the commit/push/closure question, perform commit/push/closure in the same flow.
+If the user confirms the commit/push/closure question, perform commit/push/closure in the same flow and keep processing any remaining unstaged or uncommitted changes that belong to the requested work until `git status --short` is clean.
 
 ChatGPT may assist only in the approved advisory cases above and must not implement repository code directly.
 

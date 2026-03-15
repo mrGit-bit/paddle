@@ -22,6 +22,7 @@ Every change should belong to one of the following categories: `added`, `changed
 - Tightened post-release consolidation governance so already-consolidated released deployments cannot leave released per-SDD spec/plan files behind as loose files outside the applicable release-level consolidated files.
 - Added post-release consolidated deployment spec/plan files for traced released batches and removed the superseded per-SDD markdown files they now replace.
 - Updated governance workflow so Codex may suggest spec-focused pre-audits and scoped post-implementation audits only when needed, and must state the reason whenever suggesting either audit.
+- Clarified governance so closing a development cycle requires processing all remaining requested-work changes until `git status --short` is clean after staging, committing, and pushing.
 - Hardened account forms so registration and profile updates reject case-insensitive duplicate emails while preserving the current username-or-email login flow.
 - Removed the inactive PATCH-based profile-edit helper and its unused legacy JavaScript path, keeping `frontend.views` aligned with the active server-rendered profile flow.
 - Added focused auth regressions and query-count visibility tests for registration, profile, and authenticated match-list flows.

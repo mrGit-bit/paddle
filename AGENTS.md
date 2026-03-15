@@ -1,6 +1,6 @@
 # AGENTS.md — Spec-Driven Execution Rules
 
-Instruction Set Version: 2.2.17  
+Instruction Set Version: 2.2.18  
 Last Updated: 2026-03-15
 
 ---
@@ -170,7 +170,7 @@ E) Manual Functional Checks proposed (3–6)
 F) Recommended Commit Message covering all accumulated changes since the last commit, not just the latest edit
 G) Before any commit/push/closure step, ask whether the user wants to continue developing
 H) If the user does not want to continue developing, ask: "Do you want me to proceed with staging changes, committing with the recommended commit message, pushing to the remote branch, and closing the current development cycle?"
-I) If user confirms Step H, perform commit/push and close the development cycle in the same flow
+I) If user confirms Step H, perform commit/push in the same flow and keep processing any remaining unstaged or uncommitted changes that belong to the requested work until `git status --short` is clean before declaring the development cycle closed
 J) After closure, provide a suggestion of next steps (if relevant)
 K) If required, ammend markdown files to align with suggestions
 
