@@ -5,6 +5,32 @@ from django.urls import reverse
 
 User = get_user_model()
 
+
+@pytest.mark.django_db
+def test_login_page_renders_show_password_control(client):
+    response = client.get(reverse("login"))
+
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert 'data-password-toggle' in content
+    assert 'data-password-target="password"' in content
+    assert 'class="btn password-toggle-button"' in content
+    assert 'bi bi-eye' in content
+    assert 'aria-label="Mostrar contraseña"' in content
+
+
+@pytest.mark.django_db
+def test_register_page_renders_show_password_controls(client):
+    response = client.get(reverse("register"))
+
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert content.count("data-password-toggle") == 2
+    assert 'data-password-target="password"' in content
+    assert 'data-password-target="confirm_password"' in content
+    assert content.count('class="btn password-toggle-button"') == 2
+    assert content.count("bi bi-eye") == 2
+
 @pytest.mark.django_db
 def test_login_with_email_or_username_case_insensitive(client):
     user = User.objects.create_user(

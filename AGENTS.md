@@ -48,7 +48,7 @@ After creating/updating a spec file:
 
 - STOP and request user review/approval before creating a plan or implementing.
 
-After spec approval, Codex MAY suggest a spec-focused pre-audit only when it is needed for that approved scope. The suggestion MUST state why the audit is being suggested. If that audit path is used, keep it within spec scope and solve accepted findings before plan approval.
+After spec approval, Codex MAY suggest a spec-focused pre-audit only when it is needed for that approved scope. If suggested, Codex MUST state why the audit is being suggested. If not suggested, Codex MUST briefly state why the audit is not needed for that scope. If that audit path is used, keep it within spec scope and solve accepted findings before plan approval.
 
 ### Phase B — Planning (Plan Mode)
 
@@ -75,7 +75,7 @@ Only after plan approval:
 - No scope expansion.
 - Start only when both latest spec and latest plan are explicitly approved by the user.
 
-After implementation, Codex MAY suggest a scoped post-implementation audit only when it is needed. The suggestion MUST state why the audit is being suggested. If that audit path is used, solve accepted findings before closing the development cycle.
+After implementation, Codex MAY suggest a scoped post-implementation audit only when it is needed. If suggested, Codex MUST state why the audit is being suggested. If not suggested, Codex MUST briefly state why the audit is not needed for that implementation result. If that audit path is used, solve accepted findings before closing the development cycle.
 
 ### Post-Release Consolidation
 

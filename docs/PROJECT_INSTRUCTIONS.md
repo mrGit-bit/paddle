@@ -86,7 +86,7 @@ After creating or updating a spec:
 - do not change product code,
 - do not run implementation tests.
 
-After spec approval, Codex may suggest a spec-focused pre-audit only when it is needed for that approved scope. The suggestion must state why the audit is being suggested. If that audit path is used, keep it within spec scope and solve accepted findings before plan approval.
+After spec approval, Codex may suggest a spec-focused pre-audit only when it is needed for that approved scope. If suggested, the response must state why the audit is being suggested. If not suggested, the response must briefly state why the audit is not needed for that scope. If that audit path is used, keep it within spec scope and solve accepted findings before plan approval.
 
 Exception before approval: spec refinements and requested governance/template markdown updates.
 
@@ -119,7 +119,7 @@ Implementation rules:
 - update `CHANGELOG.md` under `## [Unreleased]` for every behavior, documentation, governance, workflow, or repository-guidance change unless the change is truly formatting-only.
 - recommended commit messages must describe the full accumulated uncommitted change set since the last commit, rephrased when multiple development steps are being committed together.
 
-After implementation, Codex may suggest a scoped post-implementation audit only when it is needed. The suggestion must state why the audit is being suggested. If that audit path is used, solve accepted findings before closing the development cycle.
+After implementation, Codex may suggest a scoped post-implementation audit only when it is needed. If suggested, the response must state why the audit is being suggested. If not suggested, the response must briefly state why the audit is not needed for that implementation result. If that audit path is used, solve accepted findings before closing the development cycle.
 
 If recurring execution mistakes appear, tighten `PROJECT_INSTRUCTIONS.md`, `AGENTS.md`, or `/plans/TEMPLATE.md`.
 

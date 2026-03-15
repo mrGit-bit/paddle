@@ -132,9 +132,9 @@ Key rules for safe edits:
   expects development work from `develop` unless the user confirms otherwise.
 - Follow the mandatory Spec -> Plan -> Implementation flow for code changes.
 - After spec approval, suggest a spec-focused pre-audit only when it is needed
-  for that approved scope, and state the reason when suggesting it.
+  for that approved scope, and briefly state why it is needed or not needed.
 - After implementation, suggest a scoped post-implementation audit only when
-  it is needed, and state the reason when suggesting it.
+  it is needed, and briefly state why it is needed or not needed.
 - Keep one spec and one plan per active SDD. After a successful tagged release
   and back-merge from `main` to `develop`, consolidate that deployment into
   `specs/release-X.Y.Z-consolidated.md` and
