@@ -1,7 +1,7 @@
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.2.14  
-Last Updated: 2026-03-14
+Instruction Set Version: 2.2.16  
+Last Updated: 2026-03-15
 
 This file mirrors the repository governance subset kept in ChatGPT Project instructions and must remain explicitly under 8000 characters so it fits within ChatGPT Project instruction limits.
 
@@ -66,7 +66,7 @@ Work follows Phase A -> Phase B -> Phase C.
 
 ### Phase A — Specification
 
-Before implementation, create or update an approved spec in `specs/###-short-title.md`.
+Before implementation, create or update an approved active-work spec in `specs/###-short-title.md`.
 
 Before writing the spec, clarify:
 
@@ -104,7 +104,7 @@ If repeated clarification friction appears, propose improving governance docs or
 
 ### Phase B — Planning
 
-Create an approved plan in `/plans/YYYY-MM-DD_short-description.md` using `/plans/TEMPLATE.md` and the approved spec as input.
+Create an approved active-work plan in `/plans/YYYY-MM-DD_short-description.md` using `/plans/TEMPLATE.md` and the approved spec as input.
 
 In Plan Mode:
 
@@ -133,6 +133,22 @@ Implementation rules:
 - recommended commit messages must describe the full accumulated uncommitted change set since the last commit, rephrased when multiple development steps are being committed together.
 
 If recurring execution mistakes appear, tighten `PROJECT_INSTRUCTIONS.md`, `AGENTS.md`, or `/plans/TEMPLATE.md`.
+
+### Post-Release Consolidation
+
+After a tagged release has been completed and successfully back-merged from `main` to `develop`, consolidate the completed SDD files that supported that released deployment into:
+
+- `specs/release-X.Y.Z-consolidated.md`
+- `plans/release-X.Y.Z-consolidated.md`
+
+Rules:
+
+- Active development still uses one spec file and one plan file per SDD.
+- The first Codex task after a successful tagged release back-merge must start by performing any pending consolidation for that released deployment before beginning new SDD work.
+- Consolidation happens only after the release/back-merge is complete.
+- Each consolidated file must preserve source-file provenance, approval context, scope, acceptance criteria, validation commands, and execution history for the released deployment.
+- Once a released deployment has been consolidated, released per-SDD spec and plan files for that deployment must not remain as loose files outside the applicable consolidated release files.
+- Unreleased or not-yet-traceable SDD files must remain separate until they belong to a released deployment.
 
 ## 5. Delivery Requirements
 

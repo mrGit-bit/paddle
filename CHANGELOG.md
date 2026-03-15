@@ -16,6 +16,12 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ## [Unreleased]
 
+### Changed
+
+- Updated governance and repository guidance so active development continues using one spec file and one plan file per SDD, while completed released deployments are consolidated only after a successful tagged release back-merge from `main` to `develop`, and the first Codex task after that back-merge must perform any pending consolidation before new SDD work starts.
+- Tightened post-release consolidation governance so already-consolidated released deployments cannot leave released per-SDD spec/plan files behind as loose files outside the applicable release-level consolidated files.
+- Added post-release consolidated deployment spec/plan files for traced released batches and removed the superseded per-SDD markdown files they now replace.
+
 ## [1.4.1] - 2026-03-14
 ### Changed
 

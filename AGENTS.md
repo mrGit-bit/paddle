@@ -1,7 +1,7 @@
 # AGENTS.md — Spec-Driven Execution Rules
 
-Instruction Set Version: 2.2.14  
-Last Updated: 2026-03-14
+Instruction Set Version: 2.2.16  
+Last Updated: 2026-03-15
 
 ---
 
@@ -72,6 +72,33 @@ Only after plan approval:
 - Implement step-by-step, following plan order.
 - No scope expansion.
 - Start only when both latest spec and latest plan are explicitly approved by the user.
+
+### Post-Release Consolidation
+
+After a tagged release has been completed and successfully back-merged from
+`main` to `develop`, Codex MUST consolidate the completed SDD artifacts for
+that released deployment into:
+
+- `specs/release-X.Y.Z-consolidated.md`
+- `plans/release-X.Y.Z-consolidated.md`
+
+Rules:
+
+- Active development MUST continue using one spec file and one plan file per
+  SDD.
+- The first Codex task after a successful tagged release back-merge MUST start
+  by performing any pending consolidation for that released deployment before
+  beginning new SDD work.
+- Consolidation MUST happen only after the tagged release and back-merge are
+  complete.
+- Consolidated files MUST preserve source-file provenance, approval context,
+  scope, acceptance criteria, validation commands, and execution history for
+  the released deployment.
+- Once a released deployment has been consolidated, released per-SDD spec and
+  plan files for that deployment MUST NOT remain as loose files outside the
+  applicable consolidated release files.
+- Unreleased or not-yet-traceable SDD files MUST remain separate until they
+  belong to a released deployment.
 
 ---
 

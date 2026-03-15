@@ -21,8 +21,15 @@ Use [CHANGELOG.md](/workspaces/paddle/CHANGELOG.md) for the full release
 history. The most relevant current changes are:
 
 - `Unreleased`: the GitHub release workflow now sets a valid Git identity for
-  tag creation and verifies that `paddle/config/__init__.py` matches the latest
-  released version in `CHANGELOG.md` before extracting release notes.
+  repository workflow keeps one spec and one plan per active SDD, then
+  consolidates the completed release batch only after a successful tagged
+  release back-merge from `main` to `develop`.
+- `1.4.1`:
+  - the GitHub release workflow now sets a valid Git identity for tag creation
+    and verifies that `paddle/config/__init__.py` matches the latest released
+    version in `CHANGELOG.md` before extracting release notes.
+  - `README.md` and governance docs were refreshed to improve repository
+    guidance, README maintenance expectations, and Markdown line-length rules.
 - `1.4.0`:
   - account management now uses standard form submissions for profile editing,
     confirmed email on registration, and a dedicated account-deletion
@@ -105,7 +112,8 @@ history. The most relevant current changes are:
 - [paddle/frontend/VIEW_MODULES.md](/workspaces/paddle/paddle/frontend/VIEW_MODULES.md):
   notes about the view-module split.
 - [plans](/workspaces/paddle/plans): approved execution plans.
-- [specs](/workspaces/paddle/specs): approved task specifications.
+- [specs](/workspaces/paddle/specs): approved task specifications and
+  post-release consolidated deployment specs.
 
 ## Codex CLI Guide
 
@@ -123,6 +131,14 @@ Key rules for safe edits:
 - Check the current git branch before implementation work. Repository workflow
   expects development work from `develop` unless the user confirms otherwise.
 - Follow the mandatory Spec -> Plan -> Implementation flow for code changes.
+- Keep one spec and one plan per active SDD. After a successful tagged release
+  and back-merge from `main` to `develop`, consolidate that deployment into
+  `specs/release-X.Y.Z-consolidated.md` and
+  `plans/release-X.Y.Z-consolidated.md`.
+- The first Codex task after that successful back-merge must perform any
+  pending consolidation before starting new SDD work.
+- After a deployment has been consolidated, its released per-SDD spec and plan
+  files must no longer remain as separate loose files.
 - Keep business logic out of templates.
 - Do not duplicate ranking logic outside
   [paddle/frontend/services/ranking.py](/workspaces/paddle/paddle/frontend/services/ranking.py).
@@ -131,8 +147,8 @@ Key rules for safe edits:
 - UI text stays in Spanish; code, comments, docs, specs, and plans stay in
   English.
 - Update or add targeted pytest coverage for behavior changes.
-- Update `CHANGELOG.md` for real behavior changes; documentation-only tasks do
-  not need release notes unless explicitly requested.
+- Update `CHANGELOG.md` for behavior, documentation, governance, workflow, and
+  repository-guidance changes unless they are truly formatting-only.
 
 ## Project Structure
 
