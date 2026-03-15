@@ -1,6 +1,6 @@
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.2.16  
+Instruction Set Version: 2.2.17  
 Last Updated: 2026-03-15
 
 This file mirrors the repository governance subset kept in ChatGPT Project instructions and must remain explicitly under 8000 characters so it fits within ChatGPT Project instruction limits.
@@ -31,15 +31,11 @@ Rules:
 
 - Explicit task brief overrides everything else.
 - Project Instructions override `AGENTS.md`.
-- Codex CLI is the default tool for spec drafting, planning, implementation, tests, and repository changes.
-- ChatGPT is not required in the normal delivery path when Codex CLI can cover the task end to end.
-- Use ChatGPT only for pre-spec clarification of ambiguous work, project-related technology/solution/computer-science questions, design/architecture/governance decisions, development-concept clarification, or screenshot review.
-- Check `README.md` when necessary for current repository context, architecture orientation, or safe repository navigation.
-- Keep `README.md` updated when repository guidance, architecture orientation, or other README-covered project context changes.
-- This file must remain under 8000 characters after every edit.
-- `Instruction Set Version` and `Last Updated` are mandatory here and in `AGENTS.md`.
-- Any change to this file must update version/date in both files in the same commit.
-- If version/date differ between these files, implementation must stop until aligned.
+- Codex CLI is the default tool for specs, plans, implementation, tests, and repo changes.
+- Use ChatGPT only for pre-spec clarification, project tech/design/governance questions, concept clarification, or screenshot review.
+- Check `README.md` when needed for repo context and keep it updated when README-covered guidance changes.
+- This file must remain under 8000 characters.
+- `Instruction Set Version` and `Last Updated` are mandatory here and in `AGENTS.md` and must stay aligned.
 
 ## 3. Engineering Rules
 
@@ -68,12 +64,7 @@ Work follows Phase A -> Phase B -> Phase C.
 
 Before implementation, create or update an approved active-work spec in `specs/###-short-title.md`.
 
-Before writing the spec, clarify:
-
-- scope in/out,
-- UI/backend constraints,
-- test expectations,
-- allowed and forbidden files.
+Before writing the spec, clarify scope in/out, UI/backend constraints, test expectations, and allowed/forbidden files.
 
 Each spec must include:
 
@@ -95,10 +86,9 @@ After creating or updating a spec:
 - do not change product code,
 - do not run implementation tests.
 
-Exception before approval:
+After spec approval, Codex may suggest a spec-focused pre-audit only when it is needed for that approved scope. The suggestion must state why the audit is being suggested. If that audit path is used, keep it within spec scope and solve accepted findings before plan approval.
 
-- spec refinements,
-- requested governance/template markdown updates.
+Exception before approval: spec refinements and requested governance/template markdown updates.
 
 If repeated clarification friction appears, propose improving governance docs or templates.
 
@@ -106,10 +96,7 @@ If repeated clarification friction appears, propose improving governance docs or
 
 Create an approved active-work plan in `/plans/YYYY-MM-DD_short-description.md` using `/plans/TEMPLATE.md` and the approved spec as input.
 
-In Plan Mode:
-
-- no product code changes,
-- markdown governance/spec/plan/template updates are allowed when requested.
+In Plan Mode: no product code changes; requested markdown governance/spec/plan/template updates are allowed.
 
 After creating or updating a plan:
 
@@ -132,6 +119,8 @@ Implementation rules:
 - update `CHANGELOG.md` under `## [Unreleased]` for every behavior, documentation, governance, workflow, or repository-guidance change unless the change is truly formatting-only.
 - recommended commit messages must describe the full accumulated uncommitted change set since the last commit, rephrased when multiple development steps are being committed together.
 
+After implementation, Codex may suggest a scoped post-implementation audit only when it is needed. The suggestion must state why the audit is being suggested. If that audit path is used, solve accepted findings before closing the development cycle.
+
 If recurring execution mistakes appear, tighten `PROJECT_INSTRUCTIONS.md`, `AGENTS.md`, or `/plans/TEMPLATE.md`.
 
 ### Post-Release Consolidation
@@ -144,25 +133,15 @@ After a tagged release has been completed and successfully back-merged from `mai
 Rules:
 
 - Active development still uses one spec file and one plan file per SDD.
-- The first Codex task after a successful tagged release back-merge must start by performing any pending consolidation for that released deployment before beginning new SDD work.
+- The first Codex task after a successful tagged release back-merge must perform any pending consolidation before new SDD work.
 - Consolidation happens only after the release/back-merge is complete.
-- Each consolidated file must preserve source-file provenance, approval context, scope, acceptance criteria, validation commands, and execution history for the released deployment.
-- Once a released deployment has been consolidated, released per-SDD spec and plan files for that deployment must not remain as loose files outside the applicable consolidated release files.
-- Unreleased or not-yet-traceable SDD files must remain separate until they belong to a released deployment.
+- Each consolidated file must preserve provenance, approval context, scope, acceptance criteria, validation commands, and execution history.
+- Once a released deployment has been consolidated, its released per-SDD spec and plan files must not remain as loose files outside the applicable consolidated release files.
+- Unreleased or not-yet-traceable SDD files stay separate until they belong to a released deployment.
 
 ## 5. Delivery Requirements
 
-Every implementation handoff must include:
-
-- technical summary,
-- files modified,
-- tests added/modified, command run, and result summary,
-- exact changelog text added,
-- human-readable summary,
-- 3-6 manual functional checks,
-- recommended commit message covering all changes since the last commit, not only the latest edit,
-- a question asking whether the user wants to continue developing before any commit/push/closure step,
-- if the user does not want to continue developing, the exact question asking whether to stage, commit, push, and close the development cycle.
+Every implementation handoff must include technical summary, files modified, tests added/modified with command/result, exact changelog text added, human-readable summary, 3-6 manual functional checks, a recommended commit message for all uncommitted changes since the last commit, and the required continue-developing / commit-push-closure questions.
 
 If the user wants to continue developing, do not commit yet.
 

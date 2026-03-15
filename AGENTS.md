@@ -1,6 +1,6 @@
 # AGENTS.md — Spec-Driven Execution Rules
 
-Instruction Set Version: 2.2.16  
+Instruction Set Version: 2.2.17  
 Last Updated: 2026-03-15
 
 ---
@@ -48,6 +48,8 @@ After creating/updating a spec file:
 
 - STOP and request user review/approval before creating a plan or implementing.
 
+After spec approval, Codex MAY suggest a spec-focused pre-audit only when it is needed for that approved scope. The suggestion MUST state why the audit is being suggested. If that audit path is used, keep it within spec scope and solve accepted findings before plan approval.
+
 ### Phase B — Planning (Plan Mode)
 
 Implementation MUST NOT start unless there is an approved plan file in:
@@ -72,6 +74,8 @@ Only after plan approval:
 - Implement step-by-step, following plan order.
 - No scope expansion.
 - Start only when both latest spec and latest plan are explicitly approved by the user.
+
+After implementation, Codex MAY suggest a scoped post-implementation audit only when it is needed. The suggestion MUST state why the audit is being suggested. If that audit path is used, solve accepted findings before closing the development cycle.
 
 ### Post-Release Consolidation
 

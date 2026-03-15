@@ -21,6 +21,14 @@ Every change should belong to one of the following categories: `added`, `changed
 - Updated governance and repository guidance so active development continues using one spec file and one plan file per SDD, while completed released deployments are consolidated only after a successful tagged release back-merge from `main` to `develop`, and the first Codex task after that back-merge must perform any pending consolidation before new SDD work starts.
 - Tightened post-release consolidation governance so already-consolidated released deployments cannot leave released per-SDD spec/plan files behind as loose files outside the applicable release-level consolidated files.
 - Added post-release consolidated deployment spec/plan files for traced released batches and removed the superseded per-SDD markdown files they now replace.
+- Updated governance workflow so Codex may suggest spec-focused pre-audits and scoped post-implementation audits only when needed, and must state the reason whenever suggesting either audit.
+- Hardened account forms so registration and profile updates reject case-insensitive duplicate emails while preserving the current username-or-email login flow.
+- Removed the inactive PATCH-based profile-edit helper and its unused legacy JavaScript path, keeping `frontend.views` aligned with the active server-rendered profile flow.
+- Added focused auth regressions and query-count visibility tests for registration, profile, and authenticated match-list flows.
+
+### Fixed
+
+- Reduced duplicate query work in registration, profile stats rendering, and authenticated match-list loading by reusing the registration queryset, computing player stats once per request path, and eager-loading related match players for the paginated lists.
 
 ## [1.4.1] - 2026-03-14
 ### Changed
