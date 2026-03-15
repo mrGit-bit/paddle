@@ -1,11 +1,14 @@
 import pytest
-from django.urls import reverse
 from django.contrib.auth import get_user_model
-from games.models import Player, Match
-from datetime import date, timedelta,datetime
+from datetime import date, timedelta
+
+from django.db import connection
 from django.test import Client
-import json
+from django.test.utils import CaptureQueriesContext
+from django.urls import reverse
+
 from frontend import views
+from games.models import Match, Player
 
 User = get_user_model()
 
@@ -261,33 +264,6 @@ class TestFrontendViews:
         assert isinstance(registered, list)
         assert isinstance(non_registered, list)
 
-    def test_process_form_data_post_missing_fields(self):
-        # Covers lines 181-182
-        
-        class DummyRequest:
-            method = "POST"
-            POST = {}
-        data, error = views.process_form_data(DummyRequest())
-        assert error is not None
-
-    def test_process_form_data_post_password_mismatch(self):
-        # Covers lines 196-197
-        
-        class DummyRequest:
-            method = "POST"
-            POST = {"username": "a", "email": "b", "password": "1", "confirm_password": "2", "player_id": "", "gender": "M"}
-        data, error = views.process_form_data(DummyRequest())
-        assert "Passwords do not match" in error
-
-    def test_process_form_data_patch_invalid_json(self):
-        # Covers lines 201-202
-        
-        class DummyRequest:
-            method = "PATCH"
-            body = b"{invalid"
-        data, error = views.process_form_data(DummyRequest())
-        assert "Invalid JSON" in error
-
     def test_register_view_post_existing_username(self):
         # Covers lines 218-220
         url = reverse("register")
@@ -340,6 +316,28 @@ class TestFrontendViews:
         assert response.status_code == 200
         assert not User.objects.filter(username="newuser3").exists()
         assert b"Los correos electr" in response.content
+
+    def test_register_view_post_duplicate_email_case_insensitive(self):
+        url = reverse("register")
+        User.objects.create_user(
+            username="emailowner",
+            password="pass1234",
+            email="EmailOwner@Example.com",
+        )
+        response = self.client.post(
+            url,
+            data={
+                "username": "newuser4",
+                "email": "emailowner@example.com",
+                "confirm_email": "emailowner@example.com",
+                "password": "12345678",
+                "confirm_password": "12345678",
+                "gender": "M",
+            },
+        )
+        assert response.status_code == 200
+        assert b"Ya existe una cuenta con ese correo electr" in response.content
+        assert not User.objects.filter(username="newuser4").exists()
 
     def test_process_matches_handles_none(self):
         # Covers lines 288, 290
@@ -465,3 +463,46 @@ class TestFrontendViews:
         assert "num_users" in ctx
         assert "num_players" in ctx
         assert "num_matches" in ctx
+
+    def test_register_view_get_query_count(self):
+        Player.objects.create(name="free_a", ranking_position=4)
+        Player.objects.create(name="free_b", ranking_position=5)
+        url = reverse("register")
+
+        with CaptureQueriesContext(connection) as ctx:
+            response = self.client.get(url)
+
+        assert response.status_code == 200
+        assert len(ctx) <= 3
+
+    def test_user_view_get_query_count(self):
+        self.client.login(username="testuser", password="testpass")
+        url = reverse("user", args=[self.user.id])
+
+        with CaptureQueriesContext(connection) as ctx:
+            response = self.client.get(url)
+
+        assert response.status_code == 200
+        assert len(ctx) <= 9
+
+    def test_match_view_get_query_count(self):
+        self.client.login(username="testuser", password="testpass")
+        for idx in range(5):
+            p2 = Player.objects.create(name=f"query_p2_{idx}", ranking_position=10 + idx)
+            p3 = Player.objects.create(name=f"query_p3_{idx}", ranking_position=20 + idx)
+            p4 = Player.objects.create(name=f"query_p4_{idx}", ranking_position=30 + idx)
+            Match.objects.create(
+                team1_player1=self.player,
+                team1_player2=p2,
+                team2_player1=p3,
+                team2_player2=p4,
+                winning_team=1,
+                date_played=date.today() - timedelta(days=idx + 1),
+            )
+
+        url = reverse("match")
+        with CaptureQueriesContext(connection) as ctx:
+            response = self.client.get(url)
+
+        assert response.status_code == 200
+        assert len(ctx) <= 16

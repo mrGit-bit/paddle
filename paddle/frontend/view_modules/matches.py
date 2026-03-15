@@ -47,6 +47,15 @@ def process_matches(matches, current_user, user_icon):
     return matches
 
 
+def _with_match_players(queryset):
+    return queryset.select_related(
+        "team1_player1",
+        "team1_player2",
+        "team2_player1",
+        "team2_player2",
+    )
+
+
 @login_required
 def match_view(request, client=None):
     """
@@ -181,10 +190,12 @@ def match_view(request, client=None):
 
     registered_players, non_registered_players, all_players = build_all_players()
 
-    matches_qs = Match.objects.all().order_by("-date_played")
+    matches_qs = _with_match_players(Match.objects.all()).order_by("-date_played")
     matches, pagination = fetch_paginated_data(matches_qs, request)
 
-    user_matches_qs = build_player_participation_queryset(user_player).order_by("-date_played")
+    user_matches_qs = _with_match_players(
+        build_player_participation_queryset(user_player)
+    ).order_by("-date_played")
     user_matches, user_pagination = fetch_paginated_data(user_matches_qs, request)
 
     new_match_ids = get_new_match_ids(request)

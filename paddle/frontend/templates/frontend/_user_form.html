@@ -29,7 +29,7 @@
     {{ form.email }}
     <label for="{{ form.email.id_for_label }}" class="form-label">Correo electrónico*</label>
     {% if form.email.errors %}
-      <div class="invalid-feedback">{{ form.email.errors|join:", " }}</div>
+      <div class="invalid-feedback d-block">{{ form.email.errors|join:", " }}</div>
     {% endif %}
   </div>
 

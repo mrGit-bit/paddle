@@ -11,17 +11,17 @@
 
 ### Finding VA-001
 
-- Status: discarded
+- Status: solved
 - Type: Confirmed issue
 - Severity: high
 - Evidence: Email login in [auth_profile.py](/workspaces/paddle/paddle/frontend/view_modules/auth_profile.py#L157) resolves the first user by `email__iexact`, while registration and profile updates save non-unique emails in [forms.py](/workspaces/paddle/paddle/frontend/forms.py#L210) and [forms.py](/workspaces/paddle/paddle/frontend/forms.py#L291).
-- Recommended minimal fix: Either remove email-based login or enforce unique email at the app/form level before keeping email login.
+- Recommended minimal fix: enforce unique email at the app/form level before keeping email login.
 - Tests to add or update: Add focused login coverage for username login, email login, and duplicate-email behavior.
-- Discard explanation: no unique email requirement, several users can keep same email
+- Discard explanation: 
 
 ### Finding VA-002
 
-- Status: accepted
+- Status: solved
 - Type: Possible risk
 - Severity: medium
 - Evidence: Repository-wide view coverage appears strongest around `frontend/tests/test_views.py`, but the email-login branch in [auth_profile.py](/workspaces/paddle/paddle/frontend/view_modules/auth_profile.py#L152) does not have focused tests visible in the current audit surface.
@@ -33,7 +33,7 @@
 
 ### Finding AR-001
 
-- Status: accepted
+- Status: solved
 - Type: Confirmed issue
 - Severity: medium
 - Evidence: The old AJAX profile-edit path still exists in [editUserProfile.js](/workspaces/paddle/paddle/frontend/static/frontend/js/editUserProfile.js#L58), while the current profile page is server-rendered. The legacy helper also remains in [auth_profile.py](/workspaces/paddle/paddle/frontend/view_modules/auth_profile.py#L21) and is re-exported from [views.py](/workspaces/paddle/paddle/frontend/views.py#L8).
@@ -43,7 +43,7 @@
 
 ### Finding AR-002
 
-- Status: accepted
+- Status: solved
 - Type: Possible risk
 - Severity: low
 - Evidence: The compatibility facade in [views.py](/workspaces/paddle/paddle/frontend/views.py#L8) still exports legacy-only helpers such as `process_form_data`, which increases drift between public exports and the active application flow.
@@ -55,7 +55,7 @@
 
 ### Finding PR-001
 
-- Status: accepted
+- Status: solved
 - Type: Confirmed issue
 - Severity: medium
 - Evidence: Player stats properties in [models.py](/workspaces/paddle/paddle/games/models.py#L131) issue repeated count queries. `win_rate` recomputes `matches_played` and `wins`, which can multiply ORM work in profile and ranking-adjacent views.
@@ -65,7 +65,7 @@
 
 ### Finding PR-002
 
-- Status: accepted
+- Status: solved
 - Type: Confirmed issue
 - Severity: medium
 - Evidence: [register_view()](/workspaces/paddle/paddle/frontend/view_modules/auth_profile.py#L69) calls `fetch_available_players()`, which already queries/materializes players, and then re-queries `Player` by extracted IDs. This duplicates queryset work on the same dataset.
@@ -75,7 +75,7 @@
 
 ### Finding PR-003
 
-- Status: accepted
+- Status: solved
 - Type: Possible risk
 - Severity: medium
 - Evidence: [match_view()](/workspaces/paddle/paddle/frontend/view_modules/matches.py#L169) paginates `Match.objects.all()` and then paginates a second participation queryset for the current user. This may be acceptable, but it is a likely hotspot for future query-count growth as match volume increases.
