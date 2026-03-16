@@ -16,6 +16,9 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-03-16
+- (no notable changes)
+
 ## [1.5.0] - 2026-03-16
 ### Changed
 
