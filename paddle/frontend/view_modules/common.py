@@ -15,6 +15,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm
 from django.core.paginator import Paginator
+from django.db.models import Q
 from django.shortcuts import redirect
 
 from games.models import Match, Player
@@ -40,6 +41,29 @@ class EmailExistsPasswordResetForm(PasswordResetForm):
         if not exists:
             raise forms.ValidationError("No existe ninguna cuenta con este correo electrónico.")
         return email
+
+
+def compute_player_stats(player):
+    if not player or not player.id:
+        return {
+            "wins": 0,
+            "matches": 0,
+            "win_rate": 0.0,
+        }
+
+    matches = player.matches.count()
+    wins = Match.objects.filter(
+        Q(team1_player1=player, winning_team=1)
+        | Q(team1_player2=player, winning_team=1)
+        | Q(team2_player1=player, winning_team=2)
+        | Q(team2_player2=player, winning_team=2)
+    ).count()
+    win_rate = (wins / matches) * 100 if matches else 0.0
+    return {
+        "wins": wins,
+        "matches": matches,
+        "win_rate": win_rate,
+    }
 
 
 def get_player_stats(request, player_id=None):
@@ -68,12 +92,13 @@ def get_player_stats(request, player_id=None):
 
     try:
         player = Player.objects.get(id=player_id)
+        player_stats = compute_player_stats(player)
         stats.update(
             {
                 "player_id": player.id,
-                "wins": player.wins,
-                "matches": player.matches_played,
-                "win_rate": f"{player.win_rate:.2f}%",
+                "wins": player_stats["wins"],
+                "matches": player_stats["matches"],
+                "win_rate": f"{player_stats['win_rate']:.2f}%",
                 "ranking_position": player.ranking_position,
             }
         )

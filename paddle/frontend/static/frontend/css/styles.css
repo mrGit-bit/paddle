@@ -219,6 +219,39 @@ select:invalid:focus ~ .invalid-feedback {
   display: block;
 }
 
+.password-toggle-field {
+  position: relative;
+}
+
+.password-toggle-field .password-toggle-input,
+.password-toggle-field .form-control {
+  padding-right: 2.75rem;
+}
+
+.password-toggle-button {
+  position: absolute;
+  top: 50%;
+  right: 0.75rem;
+  transform: translateY(-50%);
+  z-index: 5;
+  border: 0;
+  padding: 0;
+  color: #6c757d;
+  background: transparent;
+  line-height: 1;
+}
+
+.password-toggle-button:hover,
+.password-toggle-button:focus {
+  color: #144D29;
+}
+
+.password-toggle-button:focus-visible {
+  outline: 2px solid #198754;
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
 /* Ensure valid fields do not show error messages */
 input:valid ~ .invalid-feedback,
 select:valid ~ .invalid-feedback {
@@ -326,5 +359,4 @@ ul.errorlist li {
 .clickable-row:focus-within {
   outline: none;
 }
-
 

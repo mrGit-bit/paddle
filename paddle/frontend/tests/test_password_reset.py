@@ -1,4 +1,3 @@
-import re
 import pytest
 from django.urls import reverse
 from django.contrib.auth import get_user_model
@@ -8,6 +7,50 @@ from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 
 User = get_user_model()
+
+
+@pytest.mark.django_db
+def test_password_reset_confirm_renders_show_password_controls_for_valid_link(client):
+    user = User.objects.create_user(
+        username="toggleuser",
+        email="toggle@example.com",
+        password="OldPass123",
+    )
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+
+    response = client.get(
+        reverse("password_reset_confirm", kwargs={"uidb64": uid, "token": token}),
+        follow=True,
+    )
+
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert content.count("data-password-toggle") == 2
+    assert 'data-password-target="id_new_password1"' in content
+    assert 'data-password-target="id_new_password2"' in content
+    assert content.count('class="btn password-toggle-button"') == 2
+    assert content.count("bi bi-eye") == 2
+
+
+@pytest.mark.django_db
+def test_password_reset_confirm_invalid_link_hides_show_password_controls(client):
+    user = User.objects.create_user(
+        username="invalidtoggle",
+        email="invalidtoggle@example.com",
+        password="OldPass123",
+    )
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+    response = client.get(
+        reverse("password_reset_confirm", kwargs={"uidb64": uid, "token": "set-password"}),
+        follow=True,
+    )
+
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert "El enlace no es válido o ha caducado." in content
+    assert "data-password-toggle" not in content
 
 @pytest.mark.django_db
 def test_password_reset_flow(client):

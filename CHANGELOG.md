@@ -16,6 +16,24 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-03-16
+### Changed
+
+- Updated governance and repository guidance so active development continues using one spec file and one plan file per SDD, while completed released deployments are consolidated only after a successful tagged release back-merge from `main` to `develop`, and the first Codex task after that back-merge must perform any pending consolidation before new SDD work starts.
+- Tightened post-release consolidation governance so already-consolidated released deployments cannot leave released per-SDD spec/plan files behind as loose files outside the applicable release-level consolidated files.
+- Added post-release consolidated deployment spec/plan files for traced released batches and removed the superseded per-SDD markdown files they now replace.
+- Updated governance workflow so Codex may suggest spec-focused pre-audits and scoped post-implementation audits only when needed, and must state the reason whenever suggesting either audit.
+- Updated governance so Codex must also briefly explain when a spec-focused pre-audit or post-implementation audit is not needed, not only when one is suggested.
+- Clarified governance so closing a development cycle requires processing all remaining requested-work changes until `git status --short` is clean after staging, committing, and pushing.
+- Hardened account forms so registration and profile updates reject case-insensitive duplicate emails while preserving the current username-or-email login flow.
+- Removed the inactive PATCH-based profile-edit helper and its unused legacy JavaScript path, keeping `frontend.views` aligned with the active server-rendered profile flow.
+- Added focused auth regressions and query-count visibility tests for registration, profile, and authenticated match-list flows.
+- Added inline Bootstrap eye-icon password visibility controls to auth-form password fields on login, registration, and password reset screens.
+
+### Fixed
+
+- Reduced duplicate query work in registration, profile stats rendering, and authenticated match-list loading by reusing the registration queryset, computing player stats once per request path, and eager-loading related match players for the paginated lists.
+
 ## [1.4.1] - 2026-03-14
 ### Changed
 
