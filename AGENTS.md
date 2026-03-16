@@ -1,7 +1,7 @@
 # AGENTS.md — Spec-Driven Execution Rules
 
-Instruction Set Version: 2.2.14  
-Last Updated: 2026-03-14
+Instruction Set Version: 2.2.18  
+Last Updated: 2026-03-15
 
 ---
 
@@ -48,6 +48,8 @@ After creating/updating a spec file:
 
 - STOP and request user review/approval before creating a plan or implementing.
 
+After spec approval, Codex MAY suggest a spec-focused pre-audit only when it is needed for that approved scope. If suggested, Codex MUST state why the audit is being suggested. If not suggested, Codex MUST briefly state why the audit is not needed for that scope. If that audit path is used, keep it within spec scope and solve accepted findings before plan approval.
+
 ### Phase B — Planning (Plan Mode)
 
 Implementation MUST NOT start unless there is an approved plan file in:
@@ -72,6 +74,35 @@ Only after plan approval:
 - Implement step-by-step, following plan order.
 - No scope expansion.
 - Start only when both latest spec and latest plan are explicitly approved by the user.
+
+After implementation, Codex MAY suggest a scoped post-implementation audit only when it is needed. If suggested, Codex MUST state why the audit is being suggested. If not suggested, Codex MUST briefly state why the audit is not needed for that implementation result. If that audit path is used, solve accepted findings before closing the development cycle.
+
+### Post-Release Consolidation
+
+After a tagged release has been completed and successfully back-merged from
+`main` to `develop`, Codex MUST consolidate the completed SDD artifacts for
+that released deployment into:
+
+- `specs/release-X.Y.Z-consolidated.md`
+- `plans/release-X.Y.Z-consolidated.md`
+
+Rules:
+
+- Active development MUST continue using one spec file and one plan file per
+  SDD.
+- The first Codex task after a successful tagged release back-merge MUST start
+  by performing any pending consolidation for that released deployment before
+  beginning new SDD work.
+- Consolidation MUST happen only after the tagged release and back-merge are
+  complete.
+- Consolidated files MUST preserve source-file provenance, approval context,
+  scope, acceptance criteria, validation commands, and execution history for
+  the released deployment.
+- Once a released deployment has been consolidated, released per-SDD spec and
+  plan files for that deployment MUST NOT remain as loose files outside the
+  applicable consolidated release files.
+- Unreleased or not-yet-traceable SDD files MUST remain separate until they
+  belong to a released deployment.
 
 ---
 
@@ -139,7 +170,7 @@ E) Manual Functional Checks proposed (3–6)
 F) Recommended Commit Message covering all accumulated changes since the last commit, not just the latest edit
 G) Before any commit/push/closure step, ask whether the user wants to continue developing
 H) If the user does not want to continue developing, ask: "Do you want me to proceed with staging changes, committing with the recommended commit message, pushing to the remote branch, and closing the current development cycle?"
-I) If user confirms Step H, perform commit/push and close the development cycle in the same flow
+I) If user confirms Step H, perform commit/push in the same flow and keep processing any remaining unstaged or uncommitted changes that belong to the requested work until `git status --short` is clean before declaring the development cycle closed
 J) After closure, provide a suggestion of next steps (if relevant)
 K) If required, ammend markdown files to align with suggestions
 

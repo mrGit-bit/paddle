@@ -1,6 +1,5 @@
 """Auth, profile, registration, and about views."""
 
-import json
 from datetime import date
 
 from django.contrib import messages
@@ -9,67 +8,17 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http import HttpResponseForbidden
 from django.shortcuts import redirect, render
+from django.db.models.functions import Lower
 
 from games.models import Match, Player
 from frontend.forms import EMAIL_WARNING_TEXT, ProfileUpdateForm, RegistrationForm
 
-from .common import fetch_available_players
+from .common import compute_player_stats
 
 User = get_user_model()
 
-
-def process_form_data(request):
-    """
-    Extract and validate form data from the request.
-    Supports both POST (for registration) and PATCH (for user profile updates).
-    Ensures non-editable fields are set to None in PATCH requests.
-    """
-    form_data = {}
-
-    if request.method == "POST":
-        form_data = {
-            "username": request.POST.get("username", "").strip(),
-            "email": request.POST.get("email", "").strip(),
-            "password": request.POST.get("password"),
-            "confirm_password": request.POST.get("confirm_password"),
-            "player_id": request.POST.get("player_id") or None,
-            "gender": (request.POST.get("gender") or "").strip().upper() or None,
-        }
-
-        required_fields = ["username", "email", "password", "confirm_password", "gender"]
-        for field in required_fields:
-            if not form_data.get(field):
-                return None, f"The field '{field}' is required."
-        if form_data["password"] != form_data["confirm_password"]:
-            return None, "Passwords do not match."
-        form_data.pop("confirm_password", None)
-
-    elif request.method == "PATCH":
-        try:
-            data = json.loads(request.body)
-            form_data = {
-                "username": None,
-                "password": None,
-                "player_id": None,
-                "email": data.get("email", "").strip() or None,
-            }
-        except json.JSONDecodeError:
-            return None, "Invalid JSON in request body."
-
-    cleaned_data = {
-        "username": form_data.get("username"),
-        "email": form_data.get("email"),
-        "password": form_data.get("password"),
-        "player_id": form_data.get("player_id"),
-        "gender": form_data.get("gender"),
-    }
-    return cleaned_data, None
-
-
 def register_view(request):
-    _, non_registered_players = fetch_available_players()
-    player_ids = [player["id"] for player in non_registered_players]
-    player_queryset = Player.objects.filter(id__in=player_ids).order_by("name")
+    player_queryset = Player.objects.filter(registered_user__isnull=True).order_by(Lower("name"))
 
     if request.method == "POST":
         form = RegistrationForm(request.POST, player_queryset=player_queryset)
@@ -93,15 +42,16 @@ def register_view(request):
 def _build_user_page_context(request, form):
     user_player = Player.objects.filter(registered_user=request.user).first()
     total_players = Player.objects.count()
+    player_stats = compute_player_stats(user_player)
 
     return {
         "profile_form": form,
         "email_warning_text": EMAIL_WARNING_TEXT,
         "user_player": user_player,
         "total_players": total_players,
-        "wins": user_player.wins if user_player else 0,
-        "matches": user_player.matches_played if user_player else 0,
-        "win_rate": user_player.win_rate if user_player else 0,
+        "wins": player_stats["wins"],
+        "matches": player_stats["matches"],
+        "win_rate": player_stats["win_rate"],
     }
 
 

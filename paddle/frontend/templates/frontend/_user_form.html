@@ -29,7 +29,7 @@
     {{ form.email }}
     <label for="{{ form.email.id_for_label }}" class="form-label">Correo electrónico*</label>
     {% if form.email.errors %}
-      <div class="invalid-feedback">{{ form.email.errors|join:", " }}</div>
+      <div class="invalid-feedback d-block">{{ form.email.errors|join:", " }}</div>
     {% endif %}
   </div>
 
@@ -65,19 +65,47 @@
   </p>
   
   {% if is_registration %}
-    <div class="mb-3 form-floating">
-      {{ form.password }}
-      <label for="{{ form.password.id_for_label }}" class="form-label">Contraseña*</label>
-      <div class="invalid-feedback">
-        {% if form.password.errors %}{{ form.password.errors|join:", " }}{% else %}La contraseña debe tener al menos 8 caracteres.{% endif %}
+    <div class="mb-3">
+      <div class="form-floating password-toggle-field">
+        {{ form.password }}
+        <label for="{{ form.password.id_for_label }}" class="form-label">Contraseña*</label>
+        <button
+          type="button"
+          class="btn password-toggle-button"
+          data-password-toggle
+          data-password-target="{{ form.password.id_for_label }}"
+          aria-controls="{{ form.password.id_for_label }}"
+          aria-label="Mostrar contraseña"
+          aria-pressed="false"
+        >
+          <i class="bi bi-eye" aria-hidden="true"></i>
+          <span class="visually-hidden">Mostrar contraseña</span>
+        </button>
+        <div class="invalid-feedback">
+          {% if form.password.errors %}{{ form.password.errors|join:", " }}{% else %}La contraseña debe tener al menos 8 caracteres.{% endif %}
+        </div>
       </div>
     </div>
 
-    <div class="mb-3 form-floating">
-      {{ form.confirm_password }}
-      <label for="{{ form.confirm_password.id_for_label }}" class="form-label">Confirma tu contraseña*</label>
-      <div class="invalid-feedback">
-        {% if form.confirm_password.errors %}{{ form.confirm_password.errors|join:", " }}{% else %}Las contraseñas no coinciden.{% endif %}
+    <div class="mb-3">
+      <div class="form-floating password-toggle-field">
+        {{ form.confirm_password }}
+        <label for="{{ form.confirm_password.id_for_label }}" class="form-label">Confirma tu contraseña*</label>
+        <button
+          type="button"
+          class="btn password-toggle-button"
+          data-password-toggle
+          data-password-target="{{ form.confirm_password.id_for_label }}"
+          aria-controls="{{ form.confirm_password.id_for_label }}"
+          aria-label="Mostrar contraseña"
+          aria-pressed="false"
+        >
+          <i class="bi bi-eye" aria-hidden="true"></i>
+          <span class="visually-hidden">Mostrar contraseña</span>
+        </button>
+        <div class="invalid-feedback">
+          {% if form.confirm_password.errors %}{{ form.confirm_password.errors|join:", " }}{% else %}Las contraseñas no coinciden.{% endif %}
+        </div>
       </div>
     </div>
 

@@ -16,6 +16,21 @@ def normalize_email_for_match(value):
     return (value or "").strip().lower()
 
 
+def validate_unique_email(email, *, exclude_user=None):
+    normalized_email = normalize_email_for_match(email)
+    if not normalized_email:
+        return email
+
+    existing_users = User.objects.filter(email__iexact=normalized_email)
+    if exclude_user is not None:
+        existing_users = existing_users.exclude(pk=exclude_user.pk)
+
+    if existing_users.exists():
+        raise forms.ValidationError("Ya existe una cuenta con ese correo electrónico.")
+
+    return (email or "").strip()
+
+
 class StyledFormMixin:
     def _mark_invalid_fields(self):
         for field_name in self.errors:
@@ -190,6 +205,10 @@ class RegistrationForm(StyledFormMixin, forms.Form):
             )
         return username
 
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        return validate_unique_email(email)
+
     def clean(self):
         cleaned_data = super().clean()
         email = cleaned_data.get("email")
@@ -322,13 +341,26 @@ class ProfileUpdateForm(StyledFormMixin, forms.Form):
             )
         return username
 
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        if normalize_email_for_match(email) == normalize_email_for_match(self.user.email):
+            return (email or "").strip()
+        return validate_unique_email(email, exclude_user=self.user)
+
     def clean(self):
         cleaned_data = super().clean()
         email = cleaned_data.get("email")
         confirm_email = cleaned_data.get("confirm_email")
+        email_errors = self.errors.get("email")
 
         if normalize_email_for_match(email) != normalize_email_for_match(self.user.email):
             self.show_confirm_email = True
+            if email_errors:
+                self.add_error(
+                    "confirm_email",
+                    "Ya existe una cuenta con ese correo electrónico.",
+                )
+                return cleaned_data
             if not confirm_email:
                 self.add_error(
                     "confirm_email",
