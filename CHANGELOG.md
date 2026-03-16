@@ -16,6 +16,7 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-03-16
 ### Changed
 
 - Updated governance and repository guidance so active development continues using one spec file and one plan file per SDD, while completed released deployments are consolidated only after a successful tagged release back-merge from `main` to `develop`, and the first Codex task after that back-merge must perform any pending consolidation before new SDD work starts.
