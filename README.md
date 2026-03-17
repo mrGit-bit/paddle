@@ -1,6 +1,7 @@
 # rankingdepadel.club
 
-Production domains: `rankingdepadel.club` and `staging.rankingdepadel.club`
+Production domain: `rankingdepadel.club`
+Staging domain: `staging.rankingdepadel.club`
 
 ## Overview
 
