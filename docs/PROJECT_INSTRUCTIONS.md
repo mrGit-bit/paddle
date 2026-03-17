@@ -1,7 +1,7 @@
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.2.18  
-Last Updated: 2026-03-15
+Instruction Set Version: 2.2.19  
+Last Updated: 2026-03-17
 
 This file mirrors the repository governance subset kept in ChatGPT Project instructions and must remain explicitly under 8000 characters so it fits within ChatGPT Project instruction limits.
 
@@ -58,11 +58,27 @@ If the branch is not `develop`:
 - ask which branch should receive the work,
 - wait for user confirmation before changing files.
 
-Work follows Phase A -> Phase B -> Phase C.
+Work follows this default sequence:
+
+1. Branch check
+2. Spec definition
+3. Optional `/plan` support for spec shaping when useful
+4. Spec approval
+5. Optional spec-focused `audit` and/or `/review` strategy when useful
+6. Plan creation in Plan Mode
+7. Plan approval
+8. Implementation
+9. Optional post-implementation `audit` and/or `/review` strategy when useful
+10. Correct accepted findings before closure
 
 ### Phase A — Specification
 
 Before implementation, create or update an approved active-work spec in `specs/###-short-title.md`.
+
+`/plan` may be used before spec approval as input for spec definition when it
+helps structure ambiguous work, compare options, or refine Markdown artifacts.
+This does not bypass the requirement for an approved spec file before
+implementation.
 
 Before writing the spec, clarify scope in/out, UI/backend constraints, test expectations, and allowed/forbidden files.
 
@@ -88,6 +104,16 @@ After creating or updating a spec:
 
 After spec approval, Codex may suggest a spec-focused pre-audit only when it is needed for that approved scope. If suggested, the response must state why the audit is being suggested. If not suggested, the response must briefly state why the audit is not needed for that scope. If that audit path is used, keep it within spec scope and solve accepted findings before plan approval.
 
+After spec approval, Codex may also suggest or perform a `/review` strategy
+when a targeted review pass would improve the approved scope before planning.
+`/review` is for fast targeted findings on the relevant draft, diff, or scoped
+artifact. `audit` is for deeper governance, security, reuse, and
+maintainability inspection using the relevant audit skill or audit mindset.
+They may be used independently or together. When both are used, prefer
+`/review` first for quick targeted corrections and `audit` for deeper scoped
+inspection. Accepted findings from either path must be corrected before plan
+approval.
+
 Exception before approval: spec refinements and requested governance/template markdown updates.
 
 If repeated clarification friction appears, propose improving governance docs or templates.
@@ -96,7 +122,9 @@ If repeated clarification friction appears, propose improving governance docs or
 
 Create an approved active-work plan in `/plans/YYYY-MM-DD_short-description.md` using `/plans/TEMPLATE.md` and the approved spec as input.
 
-In Plan Mode: no product code changes; requested markdown governance/spec/plan/template updates are allowed.
+In Plan Mode: no product code changes; `/plan` may help shape or refine a spec
+request; requested Markdown governance/spec/plan/template/README/changelog
+updates are allowed.
 
 After creating or updating a plan:
 
@@ -120,6 +148,12 @@ Implementation rules:
 - recommended commit messages must describe the full accumulated uncommitted change set since the last commit, rephrased when multiple development steps are being committed together.
 
 After implementation, Codex may suggest a scoped post-implementation audit only when it is needed. If suggested, the response must state why the audit is being suggested. If not suggested, the response must briefly state why the audit is not needed for that implementation result. If that audit path is used, solve accepted findings before closing the development cycle.
+
+After implementation, Codex may also suggest or perform a `/review` strategy
+when a targeted review of the change set would reduce release risk or verify
+the result before closure. Accepted `/review` findings and accepted `audit`
+findings that belong to the requested scope must be corrected before closing
+the development cycle.
 
 If recurring execution mistakes appear, tighten `PROJECT_INSTRUCTIONS.md`, `AGENTS.md`, or `/plans/TEMPLATE.md`.
 

@@ -1,7 +1,7 @@
 # AGENTS.md — Spec-Driven Execution Rules
 
-Instruction Set Version: 2.2.18  
-Last Updated: 2026-03-15
+Instruction Set Version: 2.2.19  
+Last Updated: 2026-03-17
 
 ---
 
@@ -28,6 +28,19 @@ Tool roles:
 
 ## 2. SDD Workflow (Mandatory A → B → C)
 
+Default workflow sequence:
+
+1. Branch check
+2. Spec definition
+3. Optional `/plan` use as input for spec shaping when useful
+4. Spec approval
+5. Optional spec-focused `audit` and/or `/review` strategy when useful
+6. Plan creation in Plan Mode
+7. Plan approval
+8. Implementation
+9. Optional post-implementation `audit` and/or `/review` strategy when useful
+10. Correct accepted findings before closure
+
 ## 2.1 Mandatory Branch Check Before Development
 
 Before starting any development/implementation/code-change request, Codex MUST check the current git branch.
@@ -44,11 +57,26 @@ Implementation MUST NOT start unless there is an approved spec file in:
 
 - `specs/###-short-title.md`
 
+`/plan` MAY be used before spec approval as an input for spec definition when
+it helps structure ambiguous work, surface scope/options, or refine Markdown
+artifacts. This MUST NOT bypass the requirement to create and approve a spec
+file before implementation.
+
 After creating/updating a spec file:
 
 - STOP and request user review/approval before creating a plan or implementing.
 
 After spec approval, Codex MAY suggest a spec-focused pre-audit only when it is needed for that approved scope. If suggested, Codex MUST state why the audit is being suggested. If not suggested, Codex MUST briefly state why the audit is not needed for that scope. If that audit path is used, keep it within spec scope and solve accepted findings before plan approval.
+
+After spec approval, Codex MAY also suggest or perform a `/review` strategy
+when a targeted review pass would improve the approved scope before planning.
+`/review` is for fast targeted findings on the relevant draft, diff, or scoped
+change set. `audit` is for deeper governance, security, reuse, and
+maintainability inspection using the relevant audit skill or audit mindset.
+They MAY be used independently or together. When both are used, prefer
+`/review` first for quick targeted corrections and `audit` for deeper scoped
+inspection. Accepted findings from either path MUST be corrected before plan
+approval.
 
 ### Phase B — Planning (Plan Mode)
 
@@ -61,7 +89,9 @@ Plan must be based on the spec (`specs/*.md`) and follow `/plans/TEMPLATE.md`.
 In Plan Mode, the agent:
 
 - MUST NOT write product code
-- MAY update Markdown files when instructed
+- MAY use `/plan` as input while shaping or refining a spec request
+- MAY create or update Markdown files when instructed, including spec, plan,
+  governance, README, changelog, and template Markdown files
 
 After creating/updating a plan file:
 
@@ -76,6 +106,12 @@ Only after plan approval:
 - Start only when both latest spec and latest plan are explicitly approved by the user.
 
 After implementation, Codex MAY suggest a scoped post-implementation audit only when it is needed. If suggested, Codex MUST state why the audit is being suggested. If not suggested, Codex MUST briefly state why the audit is not needed for that implementation result. If that audit path is used, solve accepted findings before closing the development cycle.
+
+After implementation, Codex MAY also suggest or perform a `/review` strategy
+when a targeted review of the change set would reduce release risk or verify
+behavior before closure. Accepted `/review` findings and accepted `audit`
+findings that belong to the requested scope MUST be corrected before closing
+the development cycle.
 
 ### Post-Release Consolidation
 

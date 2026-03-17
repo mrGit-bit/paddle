@@ -42,7 +42,7 @@ No priority assigned yet. These represent potential large-scale or long-term enh
 
 - Video reel at app start  
 - Support multiple groups of friends with separate rankings  
-- Personalized news feed based on user activity, including AI-generated notifications 
+- Personalized news feed based on user activity, including AI-generated notifications po
 - AI-generated player profile tag based on results  
 - Bet mode: AI prediction of match results based on past performance  
 

@@ -16,7 +16,44 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ## [Unreleased]
 
+### Added
+
+- Added a repository-local Codex `/release` slash command that orchestrates the
+  documented release flow for `X.Y.Z` and `vX.Y.Z`, including GitHub workflow
+  dispatch, PR promotion gates, staging approval, deployment handoff, and a
+  final human-readable report.
+- Added a repo-local `governance-markdown-auditor` Codex skill for reviewing
+  governance markdown as one system, with prioritized findings and a
+  consolidation-first rewrite plan focused on duplication, boundary clarity,
+  coordination gaps, prose-only rules, and low-value spec/plan overhead.
+
+### Changed
+
+- Updated release operations to use repo-local SSH configuration and ignored key
+  files under `.codex/private/release_ssh/` instead of a Windows-only user SSH
+  profile.
+- Rewrote `RELEASE.md` around the command-driven workflow and documented the
+  existing GitHub Actions and fallback scripts used in the release cycle.
+- Updated governance to place `/review` explicitly in the SDD workflow, define
+  how it complements the `audit` skill, and require accepted review/audit
+  findings to be corrected before advancing past the relevant gate or closing
+  the cycle.
+- Updated governance so `/plan` may be used as input for spec definition
+  without bypassing the approved-spec requirement, and clarified that Plan Mode
+  may modify requested Markdown files.
+
+### Fixed
+
+- Fixed `/release` post-release consolidation so it only folds release-specific
+  loose spec/plan files into the current release artifact and leaves unrelated
+  unreleased SDD files untouched.
+- Fixed `/release` failure handling so aborted runs still print the partial
+  step report before exiting.
+- Fixed `/release` workflow polling so release-prep runs are matched with
+  release-specific identifiers instead of timestamp-only selection.
+
 ## [1.5.1] - 2026-03-16
+
 - (no notable changes)
 
 ## [1.5.0] - 2026-03-16

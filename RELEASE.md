@@ -1,384 +1,98 @@
-<!-- markdownlint-disable MD025 -->
-<!-- markdownlint-disable MD024 -->
-
-# 🚀 Release Process
-
-This repository contains:
-
-- A **Django web application**
-- A **Capacitor Android mobile app**
-
-Releases may be performed either:
-
-- ✅ With automation (CI + Release Prep workflow)
-- 🧾 Fully manually
-
-Both flows are supported and documented below.
-
----
-
-# 🌳 Branching Model
-
-- 🧰 **develop** → daily development
-- 🚊 **staging** → pre-production testing
-- 🏭 **main** → production-ready code
-
-All promotions must go through Pull Requests.
-
----
-
-# 🔐 CI Enforcement (If Enabled)
-
-If CI and branch protection are enabled:
-
-- All PRs into `develop`, `staging`, and `main` must pass:
-  - pytest
-  - coverage ≥ 90%
-
-If CI is not enforced, manual testing is required before merging.
-
----
-
-# 🤖 CI Jobs Used in the Release Flow
-
-- `.github/workflows/ci.yml`:
-  - Validates PR quality gates (tests/coverage) before branch promotions.
-- `.github/workflows/release-prep-no-ai.yml`:
-  - On manual dispatch, prepares `CHANGELOG.md` + `paddle/config/__init__.py` for a target release and opens PR to `develop`.
-- `.github/workflows/release.yml`:
-  - On `push` to `main`, reads version from `paddle/config/__init__.py`, ensures tag `vX.Y.Z` exists, creates GitHub Release notes from `CHANGELOG.md`, and opens back-merge PR `main -> develop`.
-
----
-
-# 1️⃣ Prepare the Release
-
-Two supported modes:
-
-- 🅰️ Automated Preparation (Recommended)
-- 🅱️ Manual Preparation
-
----
-
-# 🅰️ OPTION A — Automated Preparation (Recommended)
-
-Uses GitHub Action: **Release Prep (no-AI)**
-
-## Step A1 — Trigger Workflow
-
-GitHub → Actions → **Release Prep (no-AI)**
-
-Inputs:
-
-- `version`: `X.Y.Z`
-- `target_branch`: `develop`
-
-The workflow will:
-
-- Move `## [Unreleased]` → `## [X.Y.Z] - YYYY-MM-DD` in `CHANGELOG.md`
-- Update `paddle/config/__init__.py`:
-
-  ```python
-  __version__ = "X.Y.Z"
-  ```
-
-- Create branch `chore/release-vX.Y.Z`
-- Open PR into `develop`
-
-## Step A2 — Review and Merge
-
-- Review CHANGELOG section
-- Review version bump
-- Ensure CI is green (if enabled)
-- Merge PR into `develop`
-
----
-
-# 🅱️ OPTION B — Manual Preparation
-
-## Step B1 — Run Tests Locally
-
-```bash
-cd paddle
-pytest frontend/tests/ --cov=frontend.views --cov-report=term-missing
-pytest paddle/americano/tests/test_americano_views.py --cov=americano.views --cov-report=term-missing
-```
-
-Coverage must be ≥ 90%.
-
-## Step B2 — Update Files Manually
-
-### Update CHANGELOG.md
-
-- Move content under `## [Unreleased]` into `## [X.Y.Z] - YYYY-MM-DD` and leave an empty `## [Unreleased]` section at the top.
-  
-### Update Version Source
-
-- Edit: `paddle/config/__init__.py`, ensure `__version__` is set to `X.Y.Z`:
-
-### Update Documentation
-
-- `BACKLOG.md`
-- `README.md` (if required)
-
-## Step B3 — Commit
-
-```bash
-git add --all
-git commit -m "version(release): prepare release vX.Y.Z"
-git push origin develop
-```
-
----
-
-# 2️⃣ Promote to Staging
-
-Open PR `develop → staging` with title `Release X.Y.Z — short summary`. If CI is enabled: Wait for green checks before merging and merge PR.
-
----
-
-# 3️⃣ Deploy to Staging
-
-Two methods supported.
-
----
-
-## 🅰️ Semi-Automated Deploy
-
-From local machine:
-
-```bash
-ssh staging-update
-```
-
-If fast-forward fails:
-
-```bash
-cd ~/paddle
-git reset --hard origin/staging
-```
-
-If migrations pending:
-
-```bash
-cd ~/paddle/paddle
-python manage.py migrate --settings=config.settings.prod
-```
-
-If nginx config changed:
-
-```bash
-sudo systemctl restart nginx
-```
-
----
-
-## 🅱️ Manual Deploy
-
-```bash
-git fetch origin
-git checkout staging
-git pull --ff-only
-source ~/venv/bin/activate
-```
-
-If dependencies changed:
-
-```bash
-pip install -r requirements.txt
-```
-
-If static files changed:
-
-```bash
-python manage.py collectstatic --noinput
-```
-
-If migrations changed:
-
-```bash
-python manage.py migrate --noinput
-```
-
-Restart services:
-
-```bash
-sudo systemctl restart paddle
-sudo nginx -t
-sudo systemctl reload nginx
-```
-
----
-
-# 4️⃣ Test on Staging
-
-Minimum checklist:
-
-- About page shows correct version
-- Login/logout
-- Rankings page loads
-- Match creation/edit
-- Static assets load as expected
-
----
-
-# 5️⃣ Promote to Production
-
-Open PR:
-
-```bash
-staging → main
-```
-
-Wait for CI if enforced.
-
-Merge PR.
-
----
-
-# 6️⃣ Deploy to Production
-
-## Semi-Automated
-
-```bash
-ssh prod-update
-```
-
-## Manual
-
-Same steps as staging, but on production server.
-
----
-
-# 7️⃣ Tag the Release (Manual Fallback Only)
-
-By default, do not run local tagging scripts after merging to `main`: `.github/workflows/release.yml` handles tag + GitHub Release automatically.
-
-Use the script/manual options below only when CI automation is intentionally bypassed or failed and you need to recover tagging/release creation manually.
-
-## Install release scripts (one-time)
-
-Scripts live in:
-
-```bash
-scripts/
-```
-
-Make them executable:
-
-```bash
-chmod +x scripts/tag_release.sh \
-  scripts/backmerge_main_to_develop.sh
-```
-
-## A) Automated (scripts)
-
-```bash
-./scripts/tag_release.sh X.Y.Z "Release vX.Y.Z"
-```
-
-## B) Manual (CLI commands)
-
-```bash
-git checkout main
-git fetch origin
-git pull --ff-only
-git tag -a vX.Y.Z -m "Release vX.Y.Z"
-git push origin vX.Y.Z
-```
-
----
-
-# 8️⃣ Mobile App Release (Independent Flow)
-
-Rebuild only if:
-
-- Capacitor config changed
-- Native plugins changed
-- Play Store version bump required
-
-Update:
-
-```bash
-mobile/android/app/build.gradle
-```
-
-Bump:
-
-- `versionCode`
-- `versionName`
-
-Artifacts:
-
-- `.apk` → testing
-- `.aab` → Play Console upload
-
-Upload `.aab` manually to Play Console.
-
----
-
-# 9️⃣ Rollback (Web Only)
-
-On server:
-
-```bash
-git fetch --all --tags
-git checkout <previous-tag> -B main
-sudo systemctl restart paddle
-sudo systemctl reload nginx
-```
-
----
-
-# 🔁 Update IDE Branches After Production Deployment
-
-By default, do not run local back-merge scripts when `.github/workflows/release.yml` has already opened (or confirmed existing) PR `main -> develop`.
-
-Use the script/manual options below only if CI back-merge PR automation is unavailable or a one-off recovery merge is required.
-
-## A) Automated (scripts)
-
-```bash
-./scripts/backmerge_main_to_develop.sh X.Y.Z
-```
-
-## B) Manual (CLI commands)
-
-```bash
-git checkout develop
-git fetch origin
-git pull --ff-only origin develop
-git merge origin/main \
-  -m "merge(release): backmerge main into develop after vX.Y.Z"
-git push origin develop
-```
-
----
-
-# 🔎 Version Source of Truth
-
-Application version is defined exclusively in:
-
-```bash
-paddle/config/__init__.py
-```
-
-```python
-__version__ = "X.Y.Z"
-```
-
-Rules:
-
-- `CHANGELOG.md` is documentation only.
-- `## [Unreleased]` must remain permanently.
-- The About page reads from `config.__version__`.
-- Never derive runtime version from CHANGELOG.
-
----
-
-# 🧠 Automation Philosophy
-
-- Version is defined in one place.
-- CHANGELOG documents releases.
-- All promotions occur via PR.
-- CI blocks broken merges (if enabled).
-- Deployment may remain manual for safety.
+# Release Process
+
+This repository supports a command-first release flow through the repository
+local Codex slash command `/release`.
+
+## Command
+
+- `/release 1.6.0`
+- `/release v1.6.0`
+
+The command delegates to `python scripts/release_orchestrator.py <version>` and
+automates the GitHub workflow, branch-promotion, deployment, back-merge, and
+post-release consolidation steps described below.
+
+## Prerequisites
+
+- Current branch is `develop`.
+- `git status --short` is clean.
+- Local `develop` is synchronized with `origin/develop`.
+- `gh` is installed and authenticated.
+- `ssh` is installed.
+- Repo-local SSH config exists at `.codex/private/release_ssh/config`.
+- Repo-local staging key exists at
+  `.codex/private/release_ssh/staging-oracle-key.pem`.
+- Repo-local production key exists at
+  `.codex/private/release_ssh/production-oracle-key.pem`.
+
+## Repo-local SSH Setup
+
+1. Copy `.codex/templates/release_ssh_config.example` to
+   `.codex/private/release_ssh/config`.
+2. Copy the real staging key to
+   `.codex/private/release_ssh/staging-oracle-key.pem`.
+3. Copy the real production key to
+   `.codex/private/release_ssh/production-oracle-key.pem`.
+4. Keep those files untracked. The repository ignores the config and `.pem`
+   files automatically.
+
+The command always uses `ssh -F .codex/private/release_ssh/config` and never
+depends on a Windows user profile SSH config.
+
+## GitHub Actions Used
+
+- `.github/workflows/release-prep-no-ai.yml`: manual dispatch workflow used to
+  prepare `CHANGELOG.md` and `paddle/config/__init__.py`, create
+  `chore/release-vX.Y.Z`, and open the release-prep PR.
+- `.github/workflows/ci.yml`: required PR checks for `develop`, `staging`, and
+  `main` promotions.
+- `.github/workflows/release.yml`: runs on `main` after production promotion,
+  creates or confirms the release tag and GitHub Release, and may open the
+  `main -> develop` back-merge PR.
+
+## Automated Flow
+
+1. Validate branch, clean git state, sync state, GitHub auth, and repo-local
+   SSH assets.
+2. Dispatch `Release Prep (no-AI)` for `X.Y.Z` from `develop`.
+3. Wait for the workflow run and locate PR
+   `version(release): prepare release vX.Y.Z`.
+4. Wait for required checks, squash-merge the release-prep PR, and delete
+   `chore/release-vX.Y.Z`.
+5. Create PR `develop -> staging`, wait for required checks from
+   `.github/workflows/ci.yml`, and merge it.
+6. Deploy staging with `ssh -F .codex/private/release_ssh/config
+   staging-update`.
+7. Print 3-6 manual functional checks for staging and wait for explicit user
+   approval.
+8. If approved, create PR `staging -> main`, wait for CI, and merge it.
+9. Deploy production with `ssh -F .codex/private/release_ssh/config
+   prod-update`.
+10. Back-merge `origin/main` into local `develop`.
+11. Consolidate loose release spec files into
+    `specs/release-X.Y.Z-consolidated.md`.
+12. Consolidate loose release plan files into
+    `plans/release-X.Y.Z-consolidated.md`.
+13. Print a human-readable release report.
+
+If the user declines at the staging approval gate, the command stops after the
+staging deploy and reports the paused release state.
+
+## Manual Functional Checks for Staging
+
+The command prints a release-specific staging checklist, but the baseline checks
+should cover:
+
+1. Iniciar sesion y cerrar sesion sin errores.
+2. Abrir rankings y confirmar que la paginacion funciona.
+3. Abrir la lista de partidos y confirmar que la paginacion funciona.
+4. Crear un partido y confirmar que ranking y estadisticas se actualizan.
+5. Abrir Americano y confirmar que la vista carga correctamente.
+6. Validar los cambios especificos de la version liberada.
+
+## Fallback Scripts
+
+- `scripts/backmerge_main_to_develop.sh <version>`: manual fallback for the
+  local back-merge if the automated flow stops after production.
+- `scripts/tag_release.sh <version> "<summary>"`: manual fallback only when
+  `.github/workflows/release.yml` is intentionally bypassed or needs recovery.

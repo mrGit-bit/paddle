@@ -131,10 +131,21 @@ Key rules for safe edits:
 - Check the current git branch before implementation work. Repository workflow
   expects development work from `develop` unless the user confirms otherwise.
 - Follow the mandatory Spec -> Plan -> Implementation flow for code changes.
+- `/plan` may be used before spec approval to help shape a spec request, but
+  it does not bypass the requirement for an approved spec file before
+  implementation.
 - After spec approval, suggest a spec-focused pre-audit only when it is needed
   for that approved scope, and briefly state why it is needed or not needed.
+- Use `/review` as a targeted review checkpoint when useful, and use the
+  `audit` skill for deeper scoped governance/security/reuse/maintainability
+  inspection when useful. If findings from either path are accepted for
+  correction, resolve them before moving past the relevant gate or closing the
+  cycle.
 - After implementation, suggest a scoped post-implementation audit only when
   it is needed, and briefly state why it is needed or not needed.
+- In Plan Mode, product code stays frozen, but requested Markdown updates are
+  allowed for specs, plans, governance docs, README, templates, and changelog
+  files.
 - Keep one spec and one plan per active SDD. After a successful tagged release
   and back-merge from `main` to `develop`, consolidate that deployment into
   `specs/release-X.Y.Z-consolidated.md` and
@@ -146,6 +157,10 @@ Key rules for safe edits:
 - Keep business logic out of templates.
 - Do not duplicate ranking logic outside
   [paddle/frontend/services/ranking.py](/workspaces/paddle/paddle/frontend/services/ranking.py).
+- Repository-local Codex slash commands live under
+  [.codex/commands](/workspaces/paddle/.codex/commands); the release flow is
+  exposed as `/release` and uses repo-local SSH assets documented in
+  [RELEASE.md](/workspaces/paddle/RELEASE.md).
 - Keep views thin and prefer existing helpers/services over new parallel logic.
 - Do not expand or restore the removed DRF/API surface.
 - UI text stays in Spanish; code, comments, docs, specs, and plans stay in
