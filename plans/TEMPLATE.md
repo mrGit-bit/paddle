@@ -5,33 +5,19 @@ Use this template for active SDD work only. Active plans use
 back-merge from `main` to `develop`, consolidate the completed deployment into
 `plans/release-X.Y.Z-consolidated.md`.
 
-## Context
-
-- Current state and why this task is needed.
-- Files/components that will be read first (discovery list).
-
 ## Spec Reference
 
-- Link the exact active spec file:
-  - `specs/###-short-title.md`
+- `specs/###-short-title.md`
 
-## Objectives
+## Summary
 
-- Intended outcomes (measurable).
+- Current state and why this task is needed.
+- Intended outcomes.
 
-## Scope
+## Key Changes
 
-### In
-
-- Explicitly included items.
-
-### Out
-
-- Explicit exclusions.
-
-## Risks
-
-- Key risks and mitigations.
+- Group the intended implementation by subsystem or behavior.
+- Keep this task-specific; do not restate global governance.
 
 ## Files Allowed to Change
 
@@ -41,17 +27,10 @@ back-merge from `main` to `develop`, consolidate the completed deployment into
 
 - List explicitly.
 
-## Proposed Changes (Step-by-Step by File)
+## Proposed Changes
 
-For each file, describe the intended change at a high level. Do not include
-product code in Plan Mode.
-
-Example structure:
-
-- `path/to/file.py`
-  - Change:
-  - Why:
-  - Notes:
+- Summarize the intended changes at a high level.
+- Mention files only when needed to avoid ambiguity.
 
 ## Plan Steps (Execution Order)
 
@@ -65,33 +44,12 @@ Example structure:
 - [ ] AC2
 - [ ] AC3
 
-## Validation Commands
+## Risks and Constraints
 
-- `pytest <targeted-scope>`
-- Add other commands only if required.
+- Key risks and mitigations.
+- Relevant allowed/forbidden-file constraints.
 
-## Manual Functional Checks
+## Validation
 
-1. Check 1
-2. Check 2
-3. Check 3
-
-## Execution Log
-
-- YYYY-MM-DD HH:MM — Spec created.
-- YYYY-MM-DD HH:MM — Spec approved.
-- YYYY-MM-DD HH:MM — Plan created.
-- YYYY-MM-DD HH:MM — Plan approved.
-- YYYY-MM-DD HH:MM — Implementation started.
-- YYYY-MM-DD HH:MM — Tests executed.
-- YYYY-MM-DD HH:MM — Implementation approved.
-- YYYY-MM-DD HH:MM — Governance changed (if needed).
-
-## Post-Mortem / Improvements
-
-- What worked well
-- What caused friction
-- Suggested updates to:
-  - `/docs/PROJECT_INSTRUCTIONS.md`
-  - `/AGENTS.md`
-  - `/plans/TEMPLATE.md`
+- Commands to run, for example `pytest <targeted-scope>`.
+- 3-6 manual functional checks.

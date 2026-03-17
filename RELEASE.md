@@ -9,7 +9,7 @@ local Codex slash command `/release`.
 - `/release v1.6.0`
 
 The command delegates to `python scripts/release_orchestrator.py <version>` and
-automates the GitHub workflow, branch-promotion, deployment, back-merge, and
+automates the GitHub workflow, branch promotion, deployment, back-merge, and
 post-release consolidation steps described below.
 
 ## Prerequisites
@@ -73,7 +73,9 @@ depends on a Windows user profile SSH config.
     `specs/release-X.Y.Z-consolidated.md`.
 12. Consolidate loose release plan files into
     `plans/release-X.Y.Z-consolidated.md`.
-13. Print a human-readable release report.
+13. Reconcile any completed `BACKLOG.md` items included in the released scope
+    and ensure the released outcome is reflected in `CHANGELOG.md`.
+14. Print a human-readable release report.
 
 If the user declines at the staging approval gate, the command stops after the
 staging deploy and reports the paused release state.

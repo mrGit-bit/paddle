@@ -1,6 +1,6 @@
 ---
 name: governance-markdown-auditor
-description: Audit governance markdown for duplication, unclear ownership, coordination gaps, prose-only rules, and low-value spec/plan overhead; produce prioritized findings plus a consolidation-first rewrite plan.
+description: Audit governance markdown for duplication, unclear ownership, coordination gaps, prose-only rules, and low-value spec/plan overhead; export a reviewable governance audit report with prioritized findings and a consolidation-first rewrite plan.
 ---
 
 # Governance Markdown Auditor
@@ -63,6 +63,8 @@ shrinking existing files before proposing new governance files.
 
 Read `references/review-rubric.md` when you need the compact severity and
 category rubric.
+Read `references/report-template.md` when you need to export or update a
+reviewable governance audit report.
 
 ## Default Review Heuristics
 
@@ -86,45 +88,42 @@ or section is high-friction and low-value, say so explicitly.
 
 ## Required Output Format
 
-Use exactly these top-level sections:
+Export a reviewable governance audit report under `.codex/audits/` by default
+unless the user explicitly asks for inline-only results or a different
+repository-local location.
 
-### `Summary`
+Use predictable file names:
 
-State the requested scope, the files reviewed, and the overall governance
-quality in 2-4 sentences.
+- `YYYY-MM-DD_repository-governance_audit.md`
+- `YYYY-MM-DD_<target>_governance_audit.md`
 
-### `Findings`
+Convert spaces and path separators to `-` and keep names short and stable
+enough for later updates.
 
-List findings in priority order. For each finding include:
+Use the structure from `references/report-template.md`.
 
+The exported report must include these top-level sections:
+
+- `Summary`
+- `Governance Findings`
+- `Ownership Map`
+- `Coordination Gaps`
+- `Rewrite Plan`
+- `Open Questions`
+
+For each governance finding include:
+
+- `Status:` pending, accepted, discarded, or solved
+- `Type:` Confirmed issue, Possible risk, or Suggestion
 - `Severity:` critical, major, or minor
 - `Category:` duplication, boundary, coordination, operationalization,
   verbosity, or artifact-value
-- `Evidence:` concrete file references and the specific overlap or gap
+- `Evidence:`
 - `Why it matters:`
 - `Recommended minimal fix:`
+- `Discard explanation:`
 
-### `Ownership Map`
-
-State the current or recommended responsibility of each reviewed file in one
-short line per file. Call out files whose current scope is ambiguous.
-
-### `Coordination Gaps`
-
-List the workflows that rely on manual memory, hidden assumptions, or
-unimplemented automation. If none exist, state `None.`
-
-### `Rewrite Plan`
-
-Provide a concrete consolidation-first rewrite plan. Group by behavior or file
-role, not by sentence-level edits. Prefer deleting duplicated guidance over
-rewriting it in multiple places.
-
-### `Open Questions`
-
-Only include this section if a key recommendation depends on a product or team
-preference that cannot be inferred from repository context. Otherwise write
-`None.`
+Use stable finding IDs with the `GF-###` pattern.
 
 ## Review Rules
 
@@ -135,3 +134,20 @@ preference that cannot be inferred from repository context. Otherwise write
 - Recommend new files only when no existing file has a clean ownership fit.
 - Keep recommendations agent-readable and concise.
 - Avoid generic markdown style advice unless it affects governance usability.
+
+## Markdown Export Rules
+
+When exporting or updating a governance audit:
+
+- Write the report under `.codex/audits/` by default.
+- Reuse the existing audit file for the same target when the filename still
+  fits the current scope.
+- Preserve stable finding IDs across later revisions.
+- Start new findings as `pending` unless the user explicitly says otherwise.
+- Mark findings `accepted` or `discarded` only when the user explicitly chooses
+  that review outcome.
+- Mark a finding `solved` only after the related repository change has been
+  implemented and verified.
+- Keep evidence concrete and repository-specific.
+- Keep ownership-map, coordination-gap, and rewrite-plan sections concise and
+  update-friendly.
