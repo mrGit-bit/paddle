@@ -36,6 +36,9 @@ Every change should belong to one of the following categories: `added`, `changed
   profile.
 - Rewrote `RELEASE.md` around the command-driven workflow and documented the
   existing GitHub Actions and fallback scripts used in the release cycle.
+- Updated `RELEASE.md` to document the required `gh` authentication setup for
+  GitHub Codespaces, including the preferred `GH_TOKEN` secret path and local
+  verification commands before running `/release`.
 - Updated governance to place `/review` explicitly in the SDD workflow, define
   how it complements the `audit` skill, and require accepted review/audit
   findings to be corrected before advancing past the relevant gate or closing
@@ -48,6 +51,9 @@ Every change should belong to one of the following categories: `added`, `changed
   behavior, `README.md` now routes to owner docs, `plans/TEMPLATE.md` is
   shorter, and backlog/changelog reconciliation is now an explicit closure and
   release checkpoint.
+- Updated governance to allow a user-approved reduced-process path for small,
+  low-risk documentation or governance edits, so Codex CLI can skip spec/plan
+  file creation when the scope stays narrow.
 
 ### Fixed
 

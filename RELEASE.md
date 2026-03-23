@@ -25,6 +25,24 @@ post-release consolidation steps described below.
 - Repo-local production key exists at
   `.codex/private/release_ssh/production-oracle-key.pem`.
 
+## GitHub CLI Authentication in Codespaces
+
+Creating a GitHub token is not sufficient by itself. The token must be
+available to `gh` inside the active Codespace where `/release` runs.
+
+Preferred setup:
+
+1. Store the token as a GitHub Codespaces secret named `GH_TOKEN`.
+2. Restart the Codespace so the secret is available in the terminal session.
+3. Verify the session before running `/release`:
+   - `gh auth status`
+   - `gh repo view`
+   - `gh workflow list`
+4. If git HTTPS operations also need the same GitHub CLI session, run
+   `gh auth setup-git`.
+
+Do not commit tokens or paste secret values into tracked repository files.
+
 ## Repo-local SSH Setup
 
 1. Copy `.codex/templates/release_ssh_config.example` to

@@ -45,6 +45,16 @@ Execution rules:
 4. Do not implement before both current active-work artifacts are approved.
 5. Keep implementation aligned with the approved scope; no scope expansion.
 
+Simple-change exception:
+
+- For small, low-risk changes with narrow scope, such as straightforward
+  documentation, governance, or repository-guidance edits, Codex CLI may skip
+  creating spec and plan files.
+- Codex must first ask a confirmation question and receive approval for that
+  reduced-process path before editing files.
+- If the task grows beyond that narrow change set, stop using the exception and
+  return to the normal approved spec and plan workflow.
+
 Quality checkpoints:
 
 - `/review` is a fast targeted review checkpoint on the relevant draft, diff, or

@@ -98,6 +98,8 @@ Read this repository in this order when the task touches product behavior:
 4. The active-work spec and plan for the task:
    the latest approved non-release files in [specs](/workspaces/paddle/specs)
    and [plans](/workspaces/paddle/plans) created for that task.
+   For small, low-risk documentation or governance updates, this may be skipped
+   only when the user has explicitly approved the reduced-process path first.
 5. The relevant app code and tests.
 
 Quick routing:

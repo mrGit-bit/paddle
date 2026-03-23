@@ -59,6 +59,17 @@ Before any development or code change:
 5. Start implementation only after both the current spec and current plan are
    explicitly approved.
 
+Simple-change exception:
+
+- For small, low-risk changes with narrow scope, such as straightforward
+  documentation, governance, or repository-guidance edits, Codex CLI may skip
+  creating spec and plan files.
+- In those cases, Codex must first confirm the reduced-process path with the
+  user, then proceed directly with the requested Markdown or repository-doc
+  edits.
+- If the scope expands beyond that narrow change set, return to the standard
+  approved spec and plan flow before continuing implementation.
+
 Active-work rule:
 
 - The active spec and plan for a task are the latest approved non-release files
