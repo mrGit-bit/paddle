@@ -1,16 +1,39 @@
 # Release Process
 
-This repository supports a command-first release flow through the repository
-local Codex slash command `/release`.
+This repository supports a command-first release flow through a user-level
+Codex custom prompt `/release` when it is installed in the current Codespace.
 
 ## Command
 
 - `/release 1.6.0`
 - `/release v1.6.0`
 
-The command delegates to `python scripts/release_orchestrator.py <version>` and
-automates the GitHub workflow, branch promotion, deployment, back-merge, and
-post-release consolidation steps described below.
+Current Codex CLI behavior in this repository:
+
+- The working custom-prompt discovery path is
+  `~/.codex/prompts/release.md`.
+- The checked-in file `.codex/commands/release.md` is a repository copy of the
+  prompt content, but current Codex CLI builds in this environment do not
+  auto-discover it as a repo-local slash command.
+- If the user-level prompt is not installed, run the orchestrator directly:
+  `python scripts/release_orchestrator.py <version>`.
+
+Whether invoked through the user-level `/release` prompt or the direct Python
+entrypoint, the same orchestrator automates the GitHub workflow, branch
+promotion, deployment, back-merge, and post-release consolidation steps
+described below.
+
+## Custom Prompt Setup
+
+1. Create the user prompt directory if it does not exist:
+   `mkdir -p ~/.codex/prompts`
+2. Copy the checked-in prompt content to the user-level discovery path:
+   `cp .codex/commands/release.md ~/.codex/prompts/release.md`
+3. Start a fresh Codex session in the repository.
+4. Run `/release 1.6.0` or `/release v1.6.0`.
+
+If Codex still does not recognize `/release`, use the direct script fallback:
+`python scripts/release_orchestrator.py 1.6.0`.
 
 ## Prerequisites
 
@@ -28,13 +51,13 @@ post-release consolidation steps described below.
 ## GitHub CLI Authentication in Codespaces
 
 Creating a GitHub token is not sufficient by itself. The token must be
-available to `gh` inside the active Codespace where `/release` runs.
+available to `gh` inside the active Codespace where the release command runs.
 
 Preferred setup:
 
 1. Store the token as a GitHub Codespaces secret named `GH_TOKEN`.
 2. Restart the Codespace so the secret is available in the terminal session.
-3. Verify the session before running `/release`:
+3. Verify the session before running the release command:
    - `gh auth status`
    - `gh repo view`
    - `gh workflow list`

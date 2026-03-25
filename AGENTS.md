@@ -1,7 +1,7 @@
 # AGENTS.md — Codex Execution Rules
 
-Instruction Set Version: 2.2.20  
-Last Updated: 2026-03-17
+Instruction Set Version: 2.2.21  
+Last Updated: 2026-03-25
 
 ## 1. Authority and File Roles
 
@@ -30,6 +30,17 @@ If version/date mismatch exists between `PROJECT_INSTRUCTIONS.md` and
 - Use ChatGPT only for pre-spec clarification of ambiguous work, project
   technology or design questions, governance decisions, development-concept
   clarification, or screenshot review.
+- For external-tool or integration features that depend on current support,
+  discovery rules, authentication behavior, configuration paths, or versioned
+  capabilities, verify the live tool behavior or current official
+  documentation before relying on them in specs, plans, automation, or user
+  guidance.
+- This applies to Codex CLI, GitHub CLI, GitHub Actions behavior, SSH tooling,
+  Codespaces integration, MCP wiring, and any similar dependency needed to
+  complete the requested work.
+- Do not assume a discovery path, config path, auth flow, or checked-in
+  integration file works just because it appears in a draft spec or repository
+  file. Validate the active tool version and the current environment first.
 
 ## 3. Execution Workflow
 

@@ -1,7 +1,7 @@
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.2.20  
-Last Updated: 2026-03-17
+Instruction Set Version: 2.2.21  
+Last Updated: 2026-03-25
 
 This file mirrors the repository governance subset kept in ChatGPT Project
 instructions and must remain under 8000 characters.
@@ -45,6 +45,9 @@ Rules:
 - Code, comments, docs, specs, and plans in English.
 - Keep deprecated API/DRF policy centralized in governance; do not restate it
   in feature specs unless the task directly touches that surface.
+- For external-tool or integration-dependent features, verify the supported
+  behavior in the current tool or current official docs before relying on it in
+  repository guidance or automation.
 
 ## 4. Mandatory SDD Gates
 
@@ -87,6 +90,8 @@ Additional rules:
   allowed.
 - Use `/review` and `audit` only when useful for the approved scope, and fix
   accepted findings before advancing past the relevant gate or closing the work.
+- Do not treat a checked-in integration file as proof that the current tool
+  auto-discovers or supports it. Verify the current environment first.
 - After a successful tagged release and back-merge from `main` to `develop`,
   consolidate the released SDD files into `specs/release-X.Y.Z-consolidated.md`
   and `plans/release-X.Y.Z-consolidated.md` before new SDD work begins.

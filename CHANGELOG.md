@@ -17,10 +17,9 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ### Added
 
-- Added a repository-local Codex `/release` slash command that orchestrates the
-  documented release flow for `X.Y.Z` and `vX.Y.Z`, including GitHub workflow
-  dispatch, PR promotion gates, staging approval, deployment handoff, and a
-  final human-readable report.
+- Added a release orchestrator and checked-in `/release` prompt content for
+  `X.Y.Z` and `vX.Y.Z`, covering GitHub workflow dispatch, PR promotion gates,
+  staging approval, deployment handoff, and a final human-readable report.
 - Added a repo-local `governance-markdown-auditor` Codex skill for reviewing
   governance markdown as one system, with prioritized findings and a
   consolidation-first rewrite plan focused on duplication, boundary clarity,
@@ -54,6 +53,12 @@ Every change should belong to one of the following categories: `added`, `changed
 - Updated governance to allow a user-approved reduced-process path for small,
   low-risk documentation or governance edits, so Codex CLI can skip spec/plan
   file creation when the scope stays narrow.
+- Updated governance to require live verification of external tool support,
+  discovery paths, auth behavior, and integration details before relying on
+  them in specs, docs, or automation.
+- Corrected the release guidance so it documents the working user-level Codex
+  prompt path `~/.codex/prompts/release.md` and the direct Python fallback
+  instead of claiming unsupported repo-local slash-command discovery.
 
 ### Fixed
 
