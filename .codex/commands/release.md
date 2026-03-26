@@ -1,9 +1,11 @@
+# Release
+
 Run the repository release automation for the supplied version argument.
 
 Usage:
 
-- `/release 1.6.0`
-- `/release v1.6.0`
+- `/prompts:release 1.6.0`
+- `/prompts:release v1.6.0`
 
 Execution rules:
 

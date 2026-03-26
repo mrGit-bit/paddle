@@ -1,12 +1,13 @@
 # Release Process
 
 This repository supports a command-first release flow through a user-level
-Codex custom prompt `/release` when it is installed in the current Codespace.
+Codex custom prompt invoked as `/prompts:release` when it is installed in the
+current Codespace.
 
 ## Command
 
-- `/release 1.6.0`
-- `/release v1.6.0`
+- `/prompts:release 1.6.0`
+- `/prompts:release v1.6.0`
 
 Current Codex CLI behavior in this repository:
 
@@ -18,9 +19,9 @@ Current Codex CLI behavior in this repository:
 - If the user-level prompt is not installed, run the orchestrator directly:
   `python scripts/release_orchestrator.py <version>`.
 
-Whether invoked through the user-level `/release` prompt or the direct Python
-entrypoint, the same orchestrator automates the GitHub workflow, branch
-promotion, deployment, back-merge, and post-release consolidation steps
+Whether invoked through the user-level `/prompts:release` custom prompt or the
+direct Python entrypoint, the same orchestrator automates the GitHub workflow,
+branch promotion, deployment, back-merge, and post-release consolidation steps
 described below.
 
 ## Custom Prompt Setup
@@ -30,10 +31,10 @@ described below.
 2. Copy the checked-in prompt content to the user-level discovery path:
    `cp .codex/commands/release.md ~/.codex/prompts/release.md`
 3. Start a fresh Codex session in the repository.
-4. Run `/release 1.6.0` or `/release v1.6.0`.
+4. Run `/prompts:release 1.6.0` or `/prompts:release v1.6.0`.
 
-If Codex still does not recognize `/release`, use the direct script fallback:
-`python scripts/release_orchestrator.py 1.6.0`.
+If Codex still does not recognize `/prompts:release`, use the direct script
+fallback: `python scripts/release_orchestrator.py 1.6.0`.
 
 ## Prerequisites
 

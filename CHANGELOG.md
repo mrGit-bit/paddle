@@ -59,6 +59,8 @@ Every change should belong to one of the following categories: `added`, `changed
 - Corrected the release guidance so it documents the working user-level Codex
   prompt path `~/.codex/prompts/release.md` and the direct Python fallback
   instead of claiming unsupported repo-local slash-command discovery.
+- Corrected the release-command invocation syntax to use the working custom
+  prompt form `/prompts:release ...` instead of `/release ...`.
 
 ### Fixed
 
