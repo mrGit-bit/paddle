@@ -75,6 +75,8 @@ reintroduced.
   unreleased documented changes.
 - [BACKLOG.md](/workspaces/paddle/BACKLOG.md): pending work inventory.
 - [RELEASE.md](/workspaces/paddle/RELEASE.md): release flow and fallback tools.
+  The release custom prompt command is `/prompts:release`, and the version
+  argument should be passed as `x.y.z` or `vx.y.z`.
 - [paddle/config/__init__.py](/workspaces/paddle/paddle/config/__init__.py):
   runtime version source.
 - [paddle/frontend/services/ranking.py](/workspaces/paddle/paddle/frontend/services/ranking.py):
@@ -97,7 +99,8 @@ Read this repository in this order when the task touches product behavior:
 3. [AGENTS.md](/workspaces/paddle/AGENTS.md).
 4. The active-work spec and plan for the task:
    the latest approved non-release files in [specs](/workspaces/paddle/specs)
-   and [plans](/workspaces/paddle/plans) created for that task.
+   and [plans](/workspaces/paddle/plans) created for that task, paired by
+   shared `Task ID` tracking metadata and explicit `Plan` / `Spec` references.
    For small, low-risk documentation or governance updates, this may be skipped
    only when the user has explicitly approved the reduced-process path first.
 5. The relevant app code and tests.

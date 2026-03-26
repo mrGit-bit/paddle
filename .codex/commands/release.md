@@ -2,7 +2,11 @@
 
 Run the repository release automation for the supplied version argument.
 
-Usage:
+Command:
+
+- `/prompts:release`
+
+Version argument examples:
 
 - `/prompts:release 1.6.0`
 - `/prompts:release v1.6.0`

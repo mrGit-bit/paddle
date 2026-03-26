@@ -5,9 +5,11 @@ Use this template for active SDD work only. Active plans use
 back-merge from `main` to `develop`, consolidate the completed deployment into
 `plans/release-X.Y.Z-consolidated.md`.
 
-## Spec Reference
+## Tracking
 
-- `specs/###-short-title.md`
+- Task ID: `short-task-id`
+- Spec: `specs/###-short-title.md`
+- Release tag: `unreleased`
 
 ## Summary
 

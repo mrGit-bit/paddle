@@ -1,5 +1,11 @@
 # Governance Review Strategy and Plan-Input Workflow
 
+## Tracking
+
+- Task ID: `governance-review-and-plan-input`
+- Plan: `plans/2026-03-17_governance-review-and-plan-input.md`
+- Release tag: `v1.6.0`
+
 ## Functional Goal
 
 Update repository governance so the documented SDD process explicitly includes

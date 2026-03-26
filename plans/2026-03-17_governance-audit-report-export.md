@@ -1,5 +1,11 @@
 # Governance Audit Report Export Plan
 
+## Tracking
+
+- Task ID: `governance-audit-report-export`
+- Spec: `specs/024-governance-audit-report-export.md`
+- Release tag: `v1.6.0`
+
 ## Context
 
 - The approved spec is

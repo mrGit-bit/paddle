@@ -1,5 +1,11 @@
 # Solve Accepted Initial Audit Findings
 
+## Tracking
+
+- Task ID: `solve-accepted-initial-audit-findings`
+- Spec: `specs/018-solve-accepted-initial-audit-findings.md`
+- Release tag: `v1.5.0`
+
 ## Context
 
 - The accepted findings in `.codex/audits/2026-03-10_repository-initial_audit.md` identify six concrete issues in the auth/profile flow, frontend view facade, and a small set of request-path ORM patterns.

@@ -1,5 +1,11 @@
 # Spec 020: Add Show Password Control to Auth Forms
 
+## Tracking
+
+- Task ID: `add-show-password-to-auth-forms`
+- Plan: `plans/2026-03-15_add-show-password-to-auth-forms.md`
+- Release tag: `v1.5.0`
+
 ## Functional Goal
 
 Add a visible show/hide password control to all auth-form password inputs so users can reveal or hide the entered value while logging in, registering, or setting a new password through the reset flow, using an inline Bootstrap icon inside each password field instead of a separate text link/button below the field.

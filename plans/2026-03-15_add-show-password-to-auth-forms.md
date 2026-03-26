@@ -1,5 +1,11 @@
 # Add Inline Password Toggle Icons to Auth Forms
 
+## Tracking
+
+- Task ID: `add-show-password-to-auth-forms`
+- Spec: `specs/020-add-show-password-to-auth-forms.md`
+- Release tag: `v1.5.0`
+
 ## Context
 
 - The approved scope is defined in `specs/020-add-show-password-to-auth-forms.md`.

@@ -51,10 +51,15 @@ Execution rules:
 1. Verify the current branch before development or implementation work.
 2. Use the latest approved non-release spec and plan for the current task as
    the active-work artifacts.
-3. Treat `specs/release-*.md` and `plans/release-*.md` as historical release
+3. Pair loose specs and plans by shared `Task ID` tracking metadata and
+   explicit `Plan` / `Spec` references instead of filename similarity alone.
+4. Treat `specs/release-*.md` and `plans/release-*.md` as historical release
    records only.
-4. Do not implement before both current active-work artifacts are approved.
-5. Keep implementation aligned with the approved scope; no scope expansion.
+5. Do not implement before both current active-work artifacts are approved.
+6. Keep implementation aligned with the approved scope; no scope expansion.
+7. Loose non-release specs and plans must carry explicit `Release tag`
+   tracking metadata. Post-release consolidation includes only files whose
+   `Release tag` matches the released version.
 
 Simple-change exception:
 
@@ -79,7 +84,8 @@ Post-release:
 
 - After a successful tagged release and back-merge from `main` to `develop`,
   perform any pending spec/plan consolidation for that release before starting
-  new SDD work.
+  new SDD work, using only loose spec/plan files explicitly marked with that
+  release tag.
 
 ## 4. Handoff Requirements
 
@@ -107,6 +113,8 @@ If the user confirms closure:
 - Reconcile any completed backlog items in `BACKLOG.md` that belong to the
   requested scope by removing them from backlog and ensuring the implemented
   outcome is reflected in `CHANGELOG.md`.
+- Backlog reconciliation is owned by development-cycle closure, not by release
+  automation unless a release workflow explicitly says otherwise.
 - Keep processing remaining requested-work changes until `git status --short`
   is clean.
 - After closure, suggest next steps if relevant.

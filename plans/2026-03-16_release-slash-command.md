@@ -1,5 +1,11 @@
 # Release Slash Command Automation Plan
 
+## Tracking
+
+- Task ID: `release-slash-command`
+- Spec: `specs/022-release-slash-command.md`
+- Release tag: `v1.6.0`
+
 ## Context
 
 - The repository already has release workflows, release docs, and a manual
@@ -18,8 +24,9 @@
 
 ## Objectives
 
-- Add a repo-local `/release` command that automates the documented GitHub and
-  SSH release flow for `X.Y.Z` and `vX.Y.Z`.
+- Add the checked-in prompt content and orchestrator support for the user-level
+  command `/prompts:release`, which runs with one version argument in `X.Y.Z`
+  or `vX.Y.Z` form.
 - Move SSH setup from a Windows-only local path to a documented repo-local
   config and ignored key layout.
 - Produce deterministic release reports and post-release consolidation output.
@@ -76,8 +83,9 @@
 ## Proposed Changes (Step-by-Step by File)
 
 - `.codex/commands/release.md`
-  - Change: Add the repository-local slash command entrypoint.
-  - Why: Give Codex a stable `/release` command contract.
+  - Change: Add the checked-in prompt content for the user-level custom prompt
+    command `/prompts:release`.
+  - Why: Give Codex a stable release-command contract.
   - Notes: Keep it thin and delegate to the script.
 - `scripts/release_orchestrator.py`
   - Change: Add the full release orchestration flow, reporting, approval gate,
@@ -120,7 +128,7 @@
 
 ## Acceptance Criteria (Testable)
 
-- [ ] `/release` accepts `X.Y.Z` and `vX.Y.Z`.
+- [ ] `/prompts:release` accepts `X.Y.Z` and `vX.Y.Z` as its single argument.
 - [ ] The script enforces clean synced `develop` before starting.
 - [ ] The script uses existing workflows and waits for required PR checks.
 - [ ] The script uses repo-local SSH config and fails clearly when assets are
@@ -136,11 +144,12 @@
 
 ## Manual Functional Checks
 
-1. Run `/release 1.6.0` and confirm the release-prep workflow dispatch starts.
-2. Run `/release v1.6.0` and confirm the normalized release branch and PR title
-   still use `v1.6.0`.
-3. Run `/release 1.6.0` with missing repo-local SSH assets and confirm the
-   command stops before deploy steps.
+1. Run `/prompts:release 1.6.0` and confirm the release-prep workflow dispatch
+   starts.
+2. Run `/prompts:release v1.6.0` and confirm the normalized release branch and
+   PR title still use `v1.6.0`.
+3. Run `/prompts:release 1.6.0` with missing repo-local SSH assets and confirm
+   the command stops before deploy steps.
 4. Decline the staging approval prompt and confirm the command reports a paused
    release after staging.
 5. Complete a full release and confirm the report includes prep, promotion,

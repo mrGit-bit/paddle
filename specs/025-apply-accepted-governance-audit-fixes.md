@@ -1,5 +1,11 @@
 # Apply Accepted Governance Audit Fixes
 
+## Tracking
+
+- Task ID: `apply-accepted-governance-audit-fixes`
+- Plan: `plans/2026-03-17_apply-accepted-governance-audit-fixes.md`
+- Release tag: `v1.6.0`
+
 ## Functional Goal
 
 Implement the accepted findings from

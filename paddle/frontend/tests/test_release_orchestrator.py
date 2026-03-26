@@ -85,22 +85,139 @@ def test_render_report_lists_step_statuses():
     assert "- [paused] Staging Approval: User declined production." in report
 
 
-def test_collect_release_sources_only_matches_current_release_version(tmp_path):
+def test_parse_tracking_metadata_reads_task_and_release_fields(tmp_path):
+    source = tmp_path / "022-release-slash-command.md"
+    source.write_text(
+        "# Example\n\n"
+        "## Tracking\n\n"
+        "- Task ID: `release-slash-command`\n"
+        "- Plan: `plans/2026-03-16_release-slash-command.md`\n"
+        "- Release tag: `v1.6.0`\n",
+        encoding="utf-8",
+    )
+
+    metadata = release_orchestrator.parse_tracking_metadata(source)
+
+    assert metadata == {
+        "Task ID": "release-slash-command",
+        "Plan": "plans/2026-03-16_release-slash-command.md",
+        "Release tag": "v1.6.0",
+    }
+
+
+def test_collect_release_sources_only_includes_requested_release_tag(tmp_path):
     matching = tmp_path / "022-release-slash-command.md"
-    matching.write_text("Release checks for 1.6.0 and v1.6.0.\n", encoding="utf-8")
-    unrelated = tmp_path / "023-future-scope.md"
-    unrelated.write_text("Approved for a later release.\n", encoding="utf-8")
+    matching.write_text(
+        "# Matching\n\n"
+        "## Tracking\n\n"
+        "- Task ID: `release-slash-command`\n"
+        "- Plan: `plans/2026-03-16_release-slash-command.md`\n"
+        "- Release tag: `v1.6.0`\n",
+        encoding="utf-8",
+    )
+    second = tmp_path / "023-future-scope.md"
+    second.write_text(
+        "# Other\n\n"
+        "## Tracking\n\n"
+        "- Task ID: `future-scope`\n"
+        "- Plan: `plans/2026-03-17_future-scope.md`\n"
+        "- Release tag: `v1.7.0`\n",
+        encoding="utf-8",
+    )
+    consolidated = tmp_path / "release-1.6.0-consolidated.md"
+    consolidated.write_text("# Consolidated\n", encoding="utf-8")
 
     selection = release_orchestrator.collect_release_sources(
         tmp_path,
         "[0-9][0-9][0-9]-*.md",
         set(),
-        version="1.6.0",
-        version_tag="v1.6.0",
+        release_tag="v1.6.0",
     )
 
     assert selection.matched == [matching]
-    assert selection.skipped == [unrelated]
+    assert selection.skipped == [second]
+
+
+def test_collect_release_sources_excludes_named_template_files(tmp_path):
+    included = tmp_path / "2026-03-17_release-fix.md"
+    included.write_text(
+        "# Plan\n\n"
+        "## Tracking\n\n"
+        "- Task ID: `release-fix`\n"
+        "- Spec: `specs/099-release-fix.md`\n"
+        "- Release tag: `v1.6.0`\n",
+        encoding="utf-8",
+    )
+    template = tmp_path / "TEMPLATE.md"
+    template.write_text("# Template\n", encoding="utf-8")
+
+    selection = release_orchestrator.collect_release_sources(
+        tmp_path,
+        "*.md",
+        {"TEMPLATE.md"},
+        release_tag="v1.6.0",
+    )
+
+    assert selection.matched == [included]
+    assert selection.skipped == []
+
+
+def test_run_command_retries_gh_without_invalid_env_tokens(monkeypatch):
+    calls = []
+
+    def fake_run(args, **kwargs):
+        calls.append(kwargs)
+        if len(calls) == 1:
+            raise subprocess.CalledProcessError(
+                1,
+                args,
+                stderr=(
+                    "Failed to log in to github.com using token (GH_TOKEN)\n"
+                    "The token in GH_TOKEN is invalid."
+                ),
+            )
+        return subprocess.CompletedProcess(args, 0, stdout="ok\n", stderr="")
+
+    monkeypatch.setenv("GH_TOKEN", "invalid")
+    monkeypatch.setattr(release_orchestrator.subprocess, "run", fake_run)
+
+    completed = release_orchestrator.run_command(["gh", "auth", "status"], cwd=Path("/tmp/repo"))
+
+    assert completed.stdout == "ok\n"
+    assert calls[0]["env"] is None
+    assert "GH_TOKEN" not in calls[1]["env"]
+
+
+def test_run_command_raises_when_gh_auth_retry_still_fails(monkeypatch):
+    calls = []
+
+    def fake_run(args, **kwargs):
+        calls.append(kwargs)
+        if len(calls) == 1:
+            raise subprocess.CalledProcessError(
+                1,
+                args,
+                stderr=(
+                    "Failed to log in to github.com using token (GH_TOKEN)\n"
+                    "The token in GH_TOKEN is invalid."
+                ),
+            )
+        raise subprocess.CalledProcessError(
+            1,
+            args,
+            stderr=(
+                "Failed to log in to github.com account mrcorreoweb\n"
+                "The token in /home/codespace/.config/gh/hosts.yml is invalid."
+            ),
+        )
+
+    monkeypatch.setenv("GH_TOKEN", "invalid")
+    monkeypatch.setattr(release_orchestrator.subprocess, "run", fake_run)
+
+    with pytest.raises(subprocess.CalledProcessError):
+        release_orchestrator.run_command(["gh", "auth", "status"], cwd=Path("/tmp/repo"))
+
+    assert len(calls) == 2
 
 
 def test_wait_for_workflow_run_prefers_exact_release_identifier(monkeypatch):
@@ -131,11 +248,49 @@ def test_wait_for_workflow_run_prefers_exact_release_identifier(monkeypatch):
         "release-prep-no-ai.yml",
         started_at,
         cwd=Path("/tmp/repo"),
-        expected_head_branch="develop",
         expected_identifiers=("1.6.0", "v1.6.0", "version(release): prepare release v1.6.0"),
     )
 
     assert run["databaseId"] == 11
+
+
+def test_wait_for_workflow_run_accepts_single_dispatch_candidate_without_branch_match(monkeypatch):
+    started_at = release_orchestrator.datetime(2026, 3, 26, 18, 32, 55, tzinfo=release_orchestrator.timezone.utc)
+    runs = [
+        {
+            "databaseId": 23611535777,
+            "createdAt": "2026-03-26T18:32:57Z",
+            "event": "workflow_dispatch",
+            "headBranch": "main",
+            "displayTitle": "Release Prep (no-AI)",
+            "url": "https://example.test/runs/23611535777",
+        }
+    ]
+
+    monkeypatch.setattr(release_orchestrator, "run_json", lambda args, cwd: runs)
+    monkeypatch.setattr(release_orchestrator.time, "sleep", lambda seconds: None)
+
+    run = release_orchestrator.wait_for_workflow_run(
+        "release-prep-no-ai.yml",
+        started_at,
+        cwd=Path("/tmp/repo"),
+        expected_identifiers=("1.6.0", "v1.6.0", "version(release): prepare release v1.6.0"),
+    )
+
+    assert run["databaseId"] == 23611535777
+
+
+def test_wait_for_required_checks_ignores_no_checks_reported(monkeypatch):
+    def fake_run_command(args, *, cwd, capture_output=True, input_text=None):
+        raise subprocess.CalledProcessError(
+            1,
+            args,
+            output="no checks reported on the 'chore/release-v1.6.0' branch\n",
+        )
+
+    monkeypatch.setattr(release_orchestrator, "run_command", fake_run_command)
+
+    release_orchestrator.wait_for_required_checks(83, cwd=Path("/tmp/repo"))
 
 
 def test_main_prints_partial_report_when_subprocess_fails(monkeypatch, capsys):

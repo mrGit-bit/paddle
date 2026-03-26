@@ -77,10 +77,15 @@ Active-work rule:
 
 - The active spec and plan for a task are the latest approved non-release files
   created for that task.
+- Pair loose specs and plans by shared `Task ID` tracking metadata and explicit
+  `Plan` / `Spec` references instead of filename similarity alone.
 - `specs/release-*.md` and `plans/release-*.md` are historical release
   artifacts, not active-work inputs.
 - When repository context is needed, README should point to this lookup rule
   instead of requiring generic manual discovery.
+- Loose non-release specs and plans must carry explicit `Release tag` tracking
+  metadata. Post-release consolidation includes only files whose `Release tag`
+  matches the released version.
 
 Additional rules:
 
@@ -88,7 +93,7 @@ Additional rules:
   the approved-spec requirement.
 - In Plan Mode, product code stays frozen; requested Markdown updates are
   allowed.
-- Use `/review` and `audit` only when useful for the approved scope, and fix
+- Use `/review` and `$audit` only when useful for the approved scope, and fix
   accepted findings before advancing past the relevant gate or closing the work.
 - Do not treat a checked-in integration file as proof that the current tool
   auto-discovers or supports it. Verify the current environment first.
@@ -104,6 +109,8 @@ Additional rules:
 - Before closing a development cycle, reconcile any completed backlog items in
   `BACKLOG.md` that belong to the requested scope: remove them from backlog and
   ensure the implemented outcome is reflected in `CHANGELOG.md`.
+- Backlog reconciliation is owned by development-cycle closure. Release
+  automation does not perform it unless the release workflow explicitly says so.
 - Closure is complete only after all requested-work changes are staged,
   committed, pushed, and `git status --short` is clean.
 - If the user wants to continue developing, do not commit yet.

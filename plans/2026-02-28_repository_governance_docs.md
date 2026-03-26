@@ -2,6 +2,12 @@
 <!-- markdownlint-disable MD022 -->
 # Repository Governance Docs
 
+## Tracking
+
+- Task ID: `repository-governance-docs`
+- Spec: `none`
+- Release tag: `v1.4.0`
+
 ## Context
 - Governance rules were split across chat context and repository docs.
 - Agents need an in-repo source of truth and clear pointers for when to consult it.

@@ -1,5 +1,11 @@
 # Governance Review Strategy and Plan-Input Workflow Plan
 
+## Tracking
+
+- Task ID: `governance-review-and-plan-input`
+- Spec: `specs/023-governance-review-and-plan-input.md`
+- Release tag: `v1.6.0`
+
 ## Context
 
 - The approved spec is
