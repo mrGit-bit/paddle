@@ -16,9 +16,18 @@ Every change should belong to one of the following categories: `added`, `changed
 ## [Unreleased]
 
 ## [1.6.1] - 2026-03-26
+### Fixed
+
+- Fixed `/prompts:release` SSH deployment preflight so repo-local shared
+  private keys with unsafe permissions are normalized to `0600` before `ssh`
+  runs, instead of failing later with an OpenSSH key-permission error.
+
+## [1.6.1] - 2026-03-26
+
 - (no notable changes)
 
 ## [1.6.0] - 2026-03-26
+
 ### Added
 
 - Added a release orchestrator and checked-in `/prompts:release` prompt
