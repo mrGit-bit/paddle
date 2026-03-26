@@ -15,6 +15,7 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-03-26
 ### Fixed
 
 - Fixed `/prompts:release` SSH deployment preflight so repo-local shared
