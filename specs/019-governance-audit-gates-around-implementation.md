@@ -1,5 +1,11 @@
 # Spec 019: Add Governance Audit Gates Around Implementation
 
+## Tracking
+
+- Task ID: `governance-audit-gates-around-implementation`
+- Plan: `plans/2026-03-15_governance-audit-gates-around-implementation.md`
+- Release tag: `v1.5.0`
+
 ## Functional Goal
 
 Update repository governance so the standard delivery workflow explicitly allows a spec-focused pre-audit after spec approval and before implementation planning when an audit is deemed necessary, followed by an optional scoped post-implementation audit when needed before closing the development cycle.

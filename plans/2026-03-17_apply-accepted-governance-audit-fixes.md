@@ -1,5 +1,11 @@
 # Apply Accepted Governance Audit Fixes Plan
 
+## Tracking
+
+- Task ID: `apply-accepted-governance-audit-fixes`
+- Spec: `specs/025-apply-accepted-governance-audit-fixes.md`
+- Release tag: `v1.6.0`
+
 ## Context
 
 - The approved scope is defined in

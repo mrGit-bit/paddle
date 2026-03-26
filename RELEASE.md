@@ -6,8 +6,10 @@ current Codespace.
 
 ## Command
 
-- `/prompts:release 1.6.0`
-- `/prompts:release v1.6.0`
+- Command: `/prompts:release`
+- Version argument examples:
+  - `/prompts:release 1.6.0`
+  - `/prompts:release v1.6.0`
 
 Current Codex CLI behavior in this repository:
 
@@ -31,7 +33,8 @@ described below.
 2. Copy the checked-in prompt content to the user-level discovery path:
    `cp .codex/commands/release.md ~/.codex/prompts/release.md`
 3. Start a fresh Codex session in the repository.
-4. Run `/prompts:release 1.6.0` or `/prompts:release v1.6.0`.
+4. Run the command `/prompts:release` with one version argument, for example
+   `1.6.0` or `v1.6.0`.
 
 If Codex still does not recognize `/prompts:release`, use the direct script
 fallback: `python scripts/release_orchestrator.py 1.6.0`.
@@ -41,6 +44,8 @@ fallback: `python scripts/release_orchestrator.py 1.6.0`.
 - Current branch is `develop`.
 - `git status --short` is clean.
 - Local `develop` is synchronized with `origin/develop`.
+- Every loose non-release spec/plan intended for the release is marked with
+  `Release tag: \`vX.Y.Z\`` matching the requested version.
 - `gh` is installed and authenticated.
 - `ssh` is installed.
 - Repo-local SSH config exists at `.codex/private/release_ssh/config`.
@@ -64,6 +69,15 @@ Preferred setup:
    - `gh workflow list`
 4. If git HTTPS operations also need the same GitHub CLI session, run
    `gh auth setup-git`.
+
+Current orchestrator behavior:
+
+- If `GH_TOKEN` or `GITHUB_TOKEN` are present but invalid, the orchestrator
+  retries `gh` commands without those env-token overrides and uses the stored
+  `gh` login if it is valid.
+- This fallback only applies inside the orchestrator. Plain shell `gh`
+  commands in the same Codespace will still fail until the bad env vars are
+  corrected or removed.
 
 Do not commit tokens or paste secret values into tracked repository files.
 
@@ -99,8 +113,8 @@ depends on a Windows user profile SSH config.
 2. Dispatch `Release Prep (no-AI)` for `X.Y.Z` from `develop`.
 3. Wait for the workflow run and locate PR
    `version(release): prepare release vX.Y.Z`.
-4. Wait for required checks, squash-merge the release-prep PR, and delete
-   `chore/release-vX.Y.Z`.
+4. Wait for required checks when they exist, squash-merge the release-prep PR,
+   and delete `chore/release-vX.Y.Z`.
 5. Create PR `develop -> staging`, wait for required checks from
    `.github/workflows/ci.yml`, and merge it.
 6. Deploy staging with `ssh -F .codex/private/release_ssh/config
@@ -111,16 +125,18 @@ depends on a Windows user profile SSH config.
 9. Deploy production with `ssh -F .codex/private/release_ssh/config
    prod-update`.
 10. Back-merge `origin/main` into local `develop`.
-11. Consolidate loose release spec files into
-    `specs/release-X.Y.Z-consolidated.md`.
-12. Consolidate loose release plan files into
-    `plans/release-X.Y.Z-consolidated.md`.
-13. Reconcile any completed `BACKLOG.md` items included in the released scope
-    and ensure the released outcome is reflected in `CHANGELOG.md`.
-14. Print a human-readable release report.
+11. Consolidate only the loose spec files explicitly marked with
+    `Release tag: vX.Y.Z` into `specs/release-X.Y.Z-consolidated.md`.
+12. Consolidate only the loose plan files explicitly marked with
+    `Release tag: vX.Y.Z` into `plans/release-X.Y.Z-consolidated.md`.
+13. Print a human-readable release report.
 
 If the user declines at the staging approval gate, the command stops after the
 staging deploy and reports the paused release state.
+
+`BACKLOG.md` reconciliation is not owned by this command. It remains part of
+development-cycle closure unless a future release workflow explicitly
+implements it.
 
 ## Manual Functional Checks for Staging
 

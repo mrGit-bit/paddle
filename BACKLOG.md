@@ -21,10 +21,11 @@ Rules:
 - Order tasks by `priority` (**PRI**) from highest to lowest.
 - For equal `priority`, sort by `simplicity` (**SIMP**) so easier work comes
   first.
-- Before closing a development cycle or preparing a release, reconcile any
-  completed backlog items that belong to the requested scope: remove them from
-  this list and ensure the implemented result is reflected in
-  [CHANGELOG.md](CHANGELOG.md).
+- Before closing a development cycle, reconcile any completed backlog items
+  that belong to the requested scope: remove them from this list and ensure the
+  implemented result is reflected in [CHANGELOG.md](CHANGELOG.md).
+- This reconciliation is owned by development-cycle closure, not by
+  `/prompts:release` unless the release workflow explicitly says otherwise.
 
 | Requirement | IMP. | SIMP. | PRI. |
 | --- | --- | --- | --- |

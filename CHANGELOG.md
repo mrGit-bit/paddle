@@ -18,8 +18,9 @@ Every change should belong to one of the following categories: `added`, `changed
 ## [1.6.0] - 2026-03-26
 ### Added
 
-- Added a release orchestrator and checked-in `/release` prompt content for
-  `X.Y.Z` and `vX.Y.Z`, covering GitHub workflow dispatch, PR promotion gates,
+- Added a release orchestrator and checked-in `/prompts:release` prompt
+  content, where the command takes one version argument in `X.Y.Z` or
+  `vX.Y.Z` form, covering GitHub workflow dispatch, PR promotion gates,
   staging approval, deployment handoff, and a final human-readable report.
 - Added a repo-local `governance-markdown-auditor` Codex skill for reviewing
   governance markdown as one system, with prioritized findings and a
@@ -49,8 +50,8 @@ Every change should belong to one of the following categories: `added`, `changed
 - Simplified governance ownership so `docs/PROJECT_INSTRUCTIONS.md` now holds
   compact repository constraints, `AGENTS.md` now focuses on Codex execution
   behavior, `README.md` now routes to owner docs, `plans/TEMPLATE.md` is
-  shorter, and backlog/changelog reconciliation is now an explicit closure and
-  release checkpoint.
+  shorter, backlog reconciliation is now owned by development-cycle closure,
+  and loose specs/plans now carry explicit task and release tracking metadata.
 - Updated governance to allow a user-approved reduced-process path for small,
   low-risk documentation or governance edits, so Codex CLI can skip spec/plan
   file creation when the scope stays narrow.
@@ -62,6 +63,8 @@ Every change should belong to one of the following categories: `added`, `changed
   instead of claiming unsupported repo-local slash-command discovery.
 - Corrected the release-command invocation syntax to use the working custom
   prompt form `/prompts:release ...` instead of `/release ...`.
+- Clarified the release command syntax so `/prompts:release` is the command and
+  the version is passed as a separate argument such as `1.6.0` or `v1.6.0`.
 
 ### Fixed
 
@@ -72,6 +75,16 @@ Every change should belong to one of the following categories: `added`, `changed
   step report before exiting.
 - Fixed `/release` workflow polling so release-prep runs are matched with
   release-specific identifiers instead of timestamp-only selection.
+- Fixed `/prompts:release` GitHub CLI handling so invalid `GH_TOKEN` or
+  `GITHUB_TOKEN` env overrides no longer block a valid stored `gh` login, and
+  release-prep PRs with no reported required checks no longer fail the
+  automation.
+- Fixed release-orchestrator regression coverage so the repository’s default
+  pytest configuration now uses `config.test_settings` instead of the
+  development SQLite database.
+- Fixed post-release spec/plan consolidation so it collects all loose
+  spec/plan files explicitly tagged for the requested release instead of
+  depending on body-text heuristics or sweeping all loose non-release files.
 
 ## [1.5.1] - 2026-03-16
 

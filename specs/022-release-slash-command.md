@@ -1,9 +1,15 @@
 # Release Slash Command Automation
 
+## Tracking
+
+- Task ID: `release-slash-command`
+- Plan: `plans/2026-03-16_release-slash-command.md`
+- Release tag: `v1.6.0`
+
 ## Functional Goal
 
-Create a repository-local Codex slash command `/release` that accepts a single
-version parameter in either `X.Y.Z` or `vX.Y.Z` form and automates the
+Create a user-level Codex custom prompt command `/prompts:release` that accepts
+a single version parameter in either `X.Y.Z` or `vX.Y.Z` form and automates the
 documented release flow currently described in `RELEASE.md`, including GitHub
 workflow dispatch, PR creation and merge, staging and production deployment
 handoff through repo-local SSH configuration, post-release consolidation, and a
@@ -14,6 +20,8 @@ final human-readable report.
 ### In
 
 - Add a repository-local Codex slash command with canonical name `/release`.
+- Add the checked-in prompt content for the user-level custom prompt command
+  `/prompts:release`.
 - Accept version input as `X.Y.Z` or `vX.Y.Z`.
 - Enforce release preflight checks on `develop`, clean git state, and
   synchronization with `origin/develop`.
@@ -39,7 +47,9 @@ final human-readable report.
 
 ## UI / UX Requirements
 
-- The command is invoked as `/release 1.6.0` or `/release v1.6.0`.
+- The command is `/prompts:release`.
+- The command is invoked with one version argument, for example
+  `/prompts:release 1.6.0` or `/prompts:release v1.6.0`.
 - User-facing output stays concise and action-oriented.
 - The staging gate is interactive and requires explicit approval before the
   production promotion starts.
@@ -79,7 +89,8 @@ final human-readable report.
 
 ## Acceptance Criteria
 
-1. `/release X.Y.Z` dispatches `release-prep-no-ai.yml` with the expected
+1. `/prompts:release X.Y.Z` dispatches `release-prep-no-ai.yml` with the
+   expected
    inputs from clean synced `develop`.
 2. The automation finds, checks, squash-merges, and deletes the release prep
    branch `chore/release-vX.Y.Z`.
@@ -96,9 +107,10 @@ final human-readable report.
 
 ## Manual Functional Checks
 
-1. Run `/release 1.6.0` and confirm the command normalizes the version and
-   dispatches the release prep workflow.
-2. Run `/release v1.6.0` and confirm it behaves identically to `1.6.0`.
+1. Run `/prompts:release 1.6.0` and confirm the command normalizes the version
+   and dispatches the release prep workflow.
+2. Run `/prompts:release v1.6.0` and confirm it behaves identically to
+   `1.6.0`.
 3. Run the command with a dirty worktree and confirm it aborts before any
    workflow or SSH action.
 4. Run the command with missing repo-local SSH assets and confirm it fails with

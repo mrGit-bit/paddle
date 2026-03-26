@@ -1,5 +1,11 @@
 # Governance Audit Report Export
 
+## Tracking
+
+- Task ID: `governance-audit-report-export`
+- Plan: `plans/2026-03-17_governance-audit-report-export.md`
+- Release tag: `v1.6.0`
+
 ## Functional Goal
 
 Update the `governance-markdown-auditor` skill so it exports governance review

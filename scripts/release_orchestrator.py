@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -16,6 +17,8 @@ from pathlib import Path
 
 VERSION_PATTERN = re.compile(r"^v?(?P<version>\d+\.\d+\.\d+)$")
 CHECKLIST_ITEM_RE = re.compile(r"^-\s+(.*\S)\s*$", re.MULTILINE)
+NO_CHECKS_REPORTED_RE = re.compile(r"no checks reported on the .+ branch", re.IGNORECASE)
+TRACKING_LINE_RE = re.compile(r"^- (?P<field>Task ID|Plan|Spec|Release tag):\s*`(?P<value>[^`]+)`\s*$")
 
 
 class ReleaseError(RuntimeError):
@@ -91,6 +94,13 @@ def run_command(
     capture_output: bool = True,
     input_text: str | None = None,
 ) -> subprocess.CompletedProcess[str]:
+    if args and args[0] == "gh":
+        return run_gh_command(
+            args,
+            cwd=cwd,
+            capture_output=capture_output,
+            input_text=input_text,
+        )
     return subprocess.run(
         args,
         cwd=cwd,
@@ -99,6 +109,90 @@ def run_command(
         capture_output=capture_output,
         input=input_text,
     )
+
+
+def run_subprocess(
+    args: list[str],
+    *,
+    cwd: Path,
+    capture_output: bool,
+    input_text: str | None,
+    env: dict[str, str] | None = None,
+) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        args,
+        cwd=cwd,
+        check=True,
+        text=True,
+        capture_output=capture_output,
+        input=input_text,
+        env=env,
+    )
+
+
+def command_output(stdout: str | None, stderr: str | None) -> str:
+    parts = [part.strip() for part in (stdout, stderr) if part and part.strip()]
+    return "\n".join(parts)
+
+
+def command_error_output(exc: subprocess.CalledProcessError) -> str:
+    return command_output(exc.stdout, exc.stderr) or "Command failed."
+
+
+def build_env_without_gh_token_overrides() -> dict[str, str] | None:
+    env = os.environ.copy()
+    removed = False
+    for name in ("GH_TOKEN", "GITHUB_TOKEN"):
+        if name in env:
+            env.pop(name, None)
+            removed = True
+    return env if removed else None
+
+
+def should_retry_gh_without_env_tokens(exc: subprocess.CalledProcessError) -> bool:
+    output = command_error_output(exc)
+    return bool(
+        re.search(r"Failed to log in to github\.com using token \((GH_TOKEN|GITHUB_TOKEN)\)", output)
+        and re.search(r"The token in (GH_TOKEN|GITHUB_TOKEN) is invalid\.", output)
+    )
+
+
+def replay_output(completed: subprocess.CompletedProcess[str]) -> None:
+    if completed.stdout:
+        print(completed.stdout, end="")
+    if completed.stderr:
+        print(completed.stderr, end="", file=sys.stderr)
+
+
+def run_gh_command(
+    args: list[str],
+    *,
+    cwd: Path,
+    capture_output: bool,
+    input_text: str | None,
+) -> subprocess.CompletedProcess[str]:
+    effective_capture = True if not capture_output else capture_output
+    try:
+        completed = run_subprocess(
+            args,
+            cwd=cwd,
+            capture_output=effective_capture,
+            input_text=input_text,
+        )
+    except subprocess.CalledProcessError as exc:
+        retry_env = build_env_without_gh_token_overrides()
+        if retry_env is None or not should_retry_gh_without_env_tokens(exc):
+            raise
+        completed = run_subprocess(
+            args,
+            cwd=cwd,
+            capture_output=effective_capture,
+            input_text=input_text,
+            env=retry_env,
+        )
+    if not capture_output:
+        replay_output(completed)
+    return completed
 
 
 def run_json(args: list[str], *, cwd: Path) -> object:
@@ -193,15 +287,12 @@ def matches_workflow_run(
     run: dict[str, object],
     *,
     started_at: datetime,
-    expected_head_branch: str,
     expected_identifiers: tuple[str, ...],
 ) -> bool:
     created_at = datetime.fromisoformat(str(run["createdAt"]).replace("Z", "+00:00"))
     if created_at < started_at - timedelta(seconds=5):
         return False
     if str(run.get("event", "")) != "workflow_dispatch":
-        return False
-    if str(run.get("headBranch", "")) != expected_head_branch:
         return False
     display_title = str(run.get("displayTitle", ""))
     return any(identifier and identifier in display_title for identifier in expected_identifiers)
@@ -212,7 +303,6 @@ def wait_for_workflow_run(
     started_at: datetime,
     *,
     cwd: Path,
-    expected_head_branch: str,
     expected_identifiers: tuple[str, ...],
 ) -> dict[str, object]:
     for _ in range(60):
@@ -235,7 +325,6 @@ def wait_for_workflow_run(
             run
             for run in runs
             if str(run.get("event", "")) == "workflow_dispatch"
-            and str(run.get("headBranch", "")) == expected_head_branch
             and datetime.fromisoformat(str(run["createdAt"]).replace("Z", "+00:00"))
             >= started_at - timedelta(seconds=5)
         ]
@@ -245,7 +334,6 @@ def wait_for_workflow_run(
             if matches_workflow_run(
                 run,
                 started_at=started_at,
-                expected_head_branch=expected_head_branch,
                 expected_identifiers=expected_identifiers,
             )
         ]
@@ -334,11 +422,16 @@ def create_or_reuse_promotion_pr(base: str, head: str, version_tag: str, *, cwd:
 
 
 def wait_for_required_checks(pr_number: int, *, cwd: Path) -> None:
-    run_command(
-        ["gh", "pr", "checks", str(pr_number), "--watch", "--required"],
-        cwd=cwd,
-        capture_output=False,
-    )
+    try:
+        run_command(
+            ["gh", "pr", "checks", str(pr_number), "--watch", "--required"],
+            cwd=cwd,
+            capture_output=False,
+        )
+    except subprocess.CalledProcessError as exc:
+        if NO_CHECKS_REPORTED_RE.search(command_error_output(exc)):
+            return
+        raise
 
 
 def merge_pr(pr_number: int, strategy: str, *, cwd: Path, delete_branch: bool) -> None:
@@ -360,12 +453,13 @@ def prompt_continue(checks: list[str]) -> bool:
     return response in {"y", "yes"}
 
 
-def source_mentions_release(source: Path, version: str, version_tag: str) -> bool:
-    text = source.read_text(encoding="utf-8")
-    return bool(
-        re.search(rf"(?<!\d){re.escape(version)}(?!\d)", text)
-        or re.search(rf"(?<!\w){re.escape(version_tag)}(?!\w)", text)
-    )
+def parse_tracking_metadata(source: Path) -> dict[str, str]:
+    metadata: dict[str, str] = {}
+    for line in source.read_text(encoding="utf-8").splitlines():
+        match = TRACKING_LINE_RE.match(line)
+        if match:
+            metadata[match.group("field")] = match.group("value")
+    return metadata
 
 
 def collect_release_sources(
@@ -373,8 +467,7 @@ def collect_release_sources(
     pattern: str,
     excluded_names: set[str],
     *,
-    version: str,
-    version_tag: str,
+    release_tag: str,
 ) -> ReleaseSourceSelection:
     matched: list[Path] = []
     skipped: list[Path] = []
@@ -383,7 +476,8 @@ def collect_release_sources(
             continue
         if path.name.startswith("release-"):
             continue
-        if source_mentions_release(path, version, version_tag):
+        metadata = parse_tracking_metadata(path)
+        if metadata.get("Release tag") == release_tag:
             matched.append(path)
         else:
             skipped.append(path)
@@ -446,7 +540,7 @@ def commit_consolidation(
             record_success(
                 context,
                 "Consolidation",
-                f"No release-specific spec or plan files matched {context.version_tag}; left unrelated loose files untouched ({skipped_names}).",
+                f"No loose spec or plan files were tagged for {context.version_tag}; left other loose files untouched ({skipped_names}).",
             )
             return
         record_success(context, "Consolidation", "No loose spec or plan files required consolidation.")
@@ -578,7 +672,6 @@ def run_release_flow(context: ReleaseContext) -> None:
         "release-prep-no-ai.yml",
         started_at,
         cwd=context.repo_root,
-        expected_head_branch="develop",
         expected_identifiers=(context.version, context.version_tag, context.prep_pr_title, context.release_branch),
     )
     wait_for_run_completion(int(workflow_run["databaseId"]), cwd=context.repo_root)
@@ -638,15 +731,13 @@ def run_release_flow(context: ReleaseContext) -> None:
         context.paths.specs_dir,
         "[0-9][0-9][0-9]-*.md",
         set(),
-        version=context.version,
-        version_tag=context.version_tag,
+        release_tag=context.version_tag,
     )
     plan_sources = collect_release_sources(
         context.paths.plans_dir,
         "20[0-9][0-9]-*.md",
         {"TEMPLATE.md"},
-        version=context.version,
-        version_tag=context.version_tag,
+        release_tag=context.version_tag,
     )
     commit_consolidation(context, spec_sources, plan_sources)
     print(render_report(context))
