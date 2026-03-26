@@ -1,5 +1,4 @@
 <!-- markdownlint-disable MD024 -->
-<!-- markdownlint-disable MD022 -->
 
 # Changelog
 
@@ -16,7 +15,69 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ## [Unreleased]
 
+### Added
+
+- Added a release orchestrator and checked-in `/release` prompt content for
+  `X.Y.Z` and `vX.Y.Z`, covering GitHub workflow dispatch, PR promotion gates,
+  staging approval, deployment handoff, and a final human-readable report.
+- Added a repo-local `governance-markdown-auditor` Codex skill for reviewing
+  governance markdown as one system, with prioritized findings and a
+  consolidation-first rewrite plan focused on duplication, boundary clarity,
+  coordination gaps, prose-only rules, and low-value spec/plan overhead.
+- Added reviewable governance audit report export support for the
+  `governance-markdown-auditor` skill, plus the initial repository governance
+  audit baseline under `.codex/audits/`.
+
+### Changed
+
+- Updated release operations to use repo-local SSH configuration and ignored key
+  files under `.codex/private/release_ssh/` instead of a Windows-only user SSH
+  profile.
+- Rewrote `RELEASE.md` around the command-driven workflow and documented the
+  existing GitHub Actions and fallback scripts used in the release cycle.
+- Updated `RELEASE.md` to document the required `gh` authentication setup for
+  GitHub Codespaces, including the preferred `GH_TOKEN` secret path and local
+  verification commands before running `/release`.
+- Updated governance to place `/review` explicitly in the SDD workflow, define
+  how it complements the `audit` skill, and require accepted review/audit
+  findings to be corrected before advancing past the relevant gate or closing
+  the cycle.
+- Updated governance so `/plan` may be used as input for spec definition
+  without bypassing the approved-spec requirement, and clarified that Plan Mode
+  may modify requested Markdown files.
+- Simplified governance ownership so `docs/PROJECT_INSTRUCTIONS.md` now holds
+  compact repository constraints, `AGENTS.md` now focuses on Codex execution
+  behavior, `README.md` now routes to owner docs, `plans/TEMPLATE.md` is
+  shorter, and backlog/changelog reconciliation is now an explicit closure and
+  release checkpoint.
+- Updated governance to allow a user-approved reduced-process path for small,
+  low-risk documentation or governance edits, so Codex CLI can skip spec/plan
+  file creation when the scope stays narrow.
+- Updated governance to require live verification of external tool support,
+  discovery paths, auth behavior, and integration details before relying on
+  them in specs, docs, or automation.
+- Corrected the release guidance so it documents the working user-level Codex
+  prompt path `~/.codex/prompts/release.md` and the direct Python fallback
+  instead of claiming unsupported repo-local slash-command discovery.
+- Corrected the release-command invocation syntax to use the working custom
+  prompt form `/prompts:release ...` instead of `/release ...`.
+
+### Fixed
+
+- Fixed `/release` post-release consolidation so it only folds release-specific
+  loose spec/plan files into the current release artifact and leaves unrelated
+  unreleased SDD files untouched.
+- Fixed `/release` failure handling so aborted runs still print the partial
+  step report before exiting.
+- Fixed `/release` workflow polling so release-prep runs are matched with
+  release-specific identifiers instead of timestamp-only selection.
+
+## [1.5.1] - 2026-03-16
+
+- (no notable changes)
+
 ## [1.5.0] - 2026-03-16
+
 ### Changed
 
 - Updated governance and repository guidance so active development continues using one spec file and one plan file per SDD, while completed released deployments are consolidated only after a successful tagged release back-merge from `main` to `develop`, and the first Codex task after that back-merge must perform any pending consolidation before new SDD work starts.
@@ -35,6 +96,7 @@ Every change should belong to one of the following categories: `added`, `changed
 - Reduced duplicate query work in registration, profile stats rendering, and authenticated match-list loading by reusing the registration queryset, computing player stats once per request path, and eager-loading related match players for the paginated lists.
 
 ## [1.4.1] - 2026-03-14
+
 ### Changed
 
 - Refreshed `README.md` so it reflects the latest documented project state and serves as a practical repository guide for Codex CLI agents.
@@ -46,6 +108,7 @@ Every change should belong to one of the following categories: `added`, `changed
 - Fixed `.github/workflows/release.yml` release tagging on GitHub Actions by configuring a valid Git identity and validating that `paddle/config/__init__.py` matches the latest released version in `CHANGELOG.md` before extracting release notes.
 
 ## [1.4.0] - 2026-03-12
+
 ### Changed
 
 - Simplified `docs/PROJECT_INSTRUCTIONS.md` to fit ChatGPT Project instruction size constraints while preserving the same governance rules and synchronized version metadata with `AGENTS.md`.
@@ -64,6 +127,7 @@ Every change should belong to one of the following categories: `added`, `changed
 - Updated `RELEASE.md` to document CI jobs in the release flow and clarify when `scripts/tag_release.sh` and `scripts/backmerge_main_to_develop.sh` are manual fallback tools.
 
 ## [1.3.1] - 2026-03-09
+
 ### Fixed
 
 - Fixed `.github/workflows/release.yml` release-notes extraction by replacing reserved `awk` variable usage that caused GitHub Actions parser errors.

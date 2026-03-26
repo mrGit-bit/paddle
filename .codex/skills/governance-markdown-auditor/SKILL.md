@@ -1,0 +1,153 @@
+---
+name: governance-markdown-auditor
+description: Audit governance markdown for duplication, unclear ownership, coordination gaps, prose-only rules, and low-value spec/plan overhead; export a reviewable governance audit report with prioritized findings and a consolidation-first rewrite plan.
+---
+
+# Governance Markdown Auditor
+
+Use this skill when the user wants to review repository governance markdown as
+one coordinated system instead of as isolated files.
+
+Default review scope:
+
+- `AGENTS.md`
+- `docs/PROJECT_INSTRUCTIONS.md`
+- `README.md`
+- `CHANGELOG.md`
+- `BACKLOG.md`
+- `RELEASE.md`
+- `specs/`
+- `plans/`
+- `plans/TEMPLATE.md`
+- `.codex/commands/`
+
+If the user gives a narrower scope, stay inside it.
+
+## Review Goal
+
+Find and explain:
+
+- duplicated or overlapping instructions
+- unclear ownership or authority boundaries between files
+- verbosity that reduces agent readability
+- coordination gaps between related markdown artifacts
+- rules that exist only in prose and are not operationalized anywhere
+- spec/plan detail that does not create clear execution value
+- release-consolidation or workflow rules that appear inconsistently enforced
+
+Bias toward simplifying the current governance set. Prefer clarifying or
+shrinking existing files before proposing new governance files.
+
+## Review Workflow
+
+1. Read the governance files most likely to define authority first:
+   - `docs/PROJECT_INSTRUCTIONS.md`
+   - `AGENTS.md`
+   - `README.md`
+2. Read only the additional markdown files needed for the requested scope.
+3. Build a file-ownership map before judging wording. State what each file
+   currently appears to own.
+4. Compare files for repeated rules, conflicting instructions, or responsibility
+   leakage.
+5. Check whether important coordination rules have an operational hook:
+   - slash commands
+   - templates
+   - automation scripts
+   - release workflow docs
+   - repository conventions actually visible in the tree
+6. For `specs/` and `plans/`, assess both:
+   - governance intent
+   - practical value in the observed workflow
+7. Recommend consolidation-first fixes that make each file easier for agents to
+   consult quickly.
+
+Read `references/review-rubric.md` when you need the compact severity and
+category rubric.
+Read `references/report-template.md` when you need to export or update a
+reviewable governance audit report.
+
+## Default Review Heuristics
+
+Treat these as strong signals of governance debt:
+
+- `AGENTS.md` and `docs/PROJECT_INSTRUCTIONS.md` restating the same workflow
+  instead of splitting long-form vs compact authority cleanly
+- `README.md` carrying release-history or changelog-style summaries instead of
+  current-state repository orientation
+- `CHANGELOG.md` and `BACKLOG.md` depending on manual coordination with no clear
+  trigger, checklist, or automation support
+- specs or plans required by governance but not reliably retrieved, referenced,
+  or enforced during execution
+- consolidation rules that exist in governance but are only partially reflected
+  in commands or current repository state
+- templates or commands that preserve obsolete process detail after governance
+  changed
+
+Do not preserve detail by default just because it already exists. If a document
+or section is high-friction and low-value, say so explicitly.
+
+## Required Output Format
+
+Export a reviewable governance audit report under `.codex/audits/` by default
+unless the user explicitly asks for inline-only results or a different
+repository-local location.
+
+Use predictable file names:
+
+- `YYYY-MM-DD_repository-governance_audit.md`
+- `YYYY-MM-DD_<target>_governance_audit.md`
+
+Convert spaces and path separators to `-` and keep names short and stable
+enough for later updates.
+
+Use the structure from `references/report-template.md`.
+
+The exported report must include these top-level sections:
+
+- `Summary`
+- `Governance Findings`
+- `Ownership Map`
+- `Coordination Gaps`
+- `Rewrite Plan`
+- `Open Questions`
+
+For each governance finding include:
+
+- `Status:` pending, accepted, discarded, or solved
+- `Type:` Confirmed issue, Possible risk, or Suggestion
+- `Severity:` critical, major, or minor
+- `Category:` duplication, boundary, coordination, operationalization,
+  verbosity, or artifact-value
+- `Evidence:`
+- `Why it matters:`
+- `Recommended minimal fix:`
+- `Discard explanation:`
+
+Use stable finding IDs with the `GF-###` pattern.
+
+## Review Rules
+
+- Distinguish repository facts from recommendations.
+- Do not invent automation that does not exist; call it a recommendation.
+- Mark prose-only rules as defects when the workflow depends on them.
+- Prefer fewer governance files with clearer roles over more coordination docs.
+- Recommend new files only when no existing file has a clean ownership fit.
+- Keep recommendations agent-readable and concise.
+- Avoid generic markdown style advice unless it affects governance usability.
+
+## Markdown Export Rules
+
+When exporting or updating a governance audit:
+
+- Write the report under `.codex/audits/` by default.
+- Reuse the existing audit file for the same target when the filename still
+  fits the current scope.
+- Preserve stable finding IDs across later revisions.
+- Start new findings as `pending` unless the user explicitly says otherwise.
+- Mark findings `accepted` or `discarded` only when the user explicitly chooses
+  that review outcome.
+- Mark a finding `solved` only after the related repository change has been
+  implemented and verified.
+- Keep evidence concrete and repository-specific.
+- Keep ownership-map, coordination-gap, and rewrite-plan sections concise and
+  update-friendly.

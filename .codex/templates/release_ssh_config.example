@@ -1,0 +1,26 @@
+# Copy this file to .codex/private/release_ssh/config and replace the placeholder
+# key filenames with your real local files.
+
+Host prod
+    HostName 143.47.38.168
+    User ubuntu
+    IdentityFile .codex/private/release_ssh/production-oracle-key.pem
+
+Host staging
+    HostName 158.179.218.204
+    User ubuntu
+    IdentityFile .codex/private/release_ssh/staging-oracle-key.pem
+
+Host prod-update staging-update
+    User ubuntu
+    RequestTTY yes
+
+Host prod-update
+    HostName 143.47.38.168
+    IdentityFile .codex/private/release_ssh/production-oracle-key.pem
+    RemoteCommand source ~/venv/bin/activate && cd ~/paddle && clear && ./deploy_update.sh; exec bash
+
+Host staging-update
+    HostName 158.179.218.204
+    IdentityFile .codex/private/release_ssh/staging-oracle-key.pem
+    RemoteCommand source ~/venv/bin/activate && cd ~/paddle && clear && ./deploy_update.sh; exec bash
