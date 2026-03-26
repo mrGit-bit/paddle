@@ -53,6 +53,9 @@ fallback: `python scripts/release_orchestrator.py 1.6.0`.
   `.codex/private/release_ssh/staging-oracle-key.pem`.
 - Repo-local production key exists at
   `.codex/private/release_ssh/production-oracle-key.pem`.
+- Repo-local private keys must be owner-only files. `0600` is the expected
+  mode, and the orchestrator repairs unsafe group/world-readable modes to
+  `0600` before deployment when it can.
 
 ## GitHub CLI Authentication in Codespaces
 
@@ -89,7 +92,9 @@ Do not commit tokens or paste secret values into tracked repository files.
    `.codex/private/release_ssh/staging-oracle-key.pem`.
 3. Copy the real production key to
    `.codex/private/release_ssh/production-oracle-key.pem`.
-4. Keep those files untracked. The repository ignores the config and `.pem`
+4. Set owner-only permissions on both key files:
+   `chmod 600 .codex/private/release_ssh/staging-oracle-key.pem .codex/private/release_ssh/production-oracle-key.pem`
+5. Keep those files untracked. The repository ignores the config and `.pem`
    files automatically.
 
 The command always uses `ssh -F .codex/private/release_ssh/config` and never
@@ -109,7 +114,7 @@ depends on a Windows user profile SSH config.
 ## Automated Flow
 
 1. Validate branch, clean git state, sync state, GitHub auth, and repo-local
-   SSH assets.
+   SSH assets, and normalize unsafe private-key modes before deployment.
 2. Dispatch `Release Prep (no-AI)` for `X.Y.Z` from `develop`.
 3. Wait for the workflow run and locate PR
    `version(release): prepare release vX.Y.Z`.

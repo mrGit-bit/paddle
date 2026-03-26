@@ -35,6 +35,46 @@ def test_validate_ssh_assets_reports_missing_config_and_keys(tmp_path):
     assert "production-oracle-key.pem" in errors[2]
 
 
+def test_validate_ssh_assets_repairs_unsafe_private_key_modes(tmp_path):
+    paths = release_orchestrator.ReleasePaths(tmp_path)
+    paths.ssh_config.parent.mkdir(parents=True, exist_ok=True)
+    paths.ssh_config.write_text("Host staging-update\n", encoding="utf-8")
+    paths.staging_key.write_text("staging\n", encoding="utf-8")
+    paths.prod_key.write_text("production\n", encoding="utf-8")
+    paths.staging_key.chmod(0o666)
+    paths.prod_key.chmod(0o640)
+
+    errors = release_orchestrator.validate_ssh_assets(paths)
+
+    assert errors == []
+    assert paths.staging_key.stat().st_mode & 0o777 == 0o600
+    assert paths.prod_key.stat().st_mode & 0o777 == 0o600
+
+
+def test_validate_ssh_assets_reports_unfixable_private_key_mode(monkeypatch, tmp_path):
+    paths = release_orchestrator.ReleasePaths(tmp_path)
+    paths.ssh_config.parent.mkdir(parents=True, exist_ok=True)
+    paths.ssh_config.write_text("Host staging-update\n", encoding="utf-8")
+    paths.staging_key.write_text("staging\n", encoding="utf-8")
+    paths.prod_key.write_text("production\n", encoding="utf-8")
+    paths.staging_key.chmod(0o666)
+
+    original_chmod = release_orchestrator.Path.chmod
+
+    def fake_chmod(self, mode):
+        if self == paths.staging_key:
+            raise PermissionError("chmod blocked")
+        return original_chmod(self, mode)
+
+    monkeypatch.setattr(release_orchestrator.Path, "chmod", fake_chmod)
+
+    errors = release_orchestrator.validate_ssh_assets(paths)
+
+    assert len(errors) == 1
+    assert ".codex/private/release_ssh/staging-oracle-key.pem has unsafe permissions 0666" in errors[0]
+    assert "could not be set to 0600" in errors[0]
+
+
 def test_build_staging_checks_includes_release_specific_items():
     changelog = """## [Unreleased]
 

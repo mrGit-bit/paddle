@@ -19,6 +19,8 @@ VERSION_PATTERN = re.compile(r"^v?(?P<version>\d+\.\d+\.\d+)$")
 CHECKLIST_ITEM_RE = re.compile(r"^-\s+(.*\S)\s*$", re.MULTILINE)
 NO_CHECKS_REPORTED_RE = re.compile(r"no checks reported on the .+ branch", re.IGNORECASE)
 TRACKING_LINE_RE = re.compile(r"^- (?P<field>Task ID|Plan|Spec|Release tag):\s*`(?P<value>[^`]+)`\s*$")
+SAFE_PRIVATE_KEY_GROUP_OR_WORLD_MASK = 0o077
+DEFAULT_PRIVATE_KEY_MODE = 0o600
 
 
 class ReleaseError(RuntimeError):
@@ -247,6 +249,41 @@ def ensure_clean_synced_develop(context: ReleaseContext) -> None:
         )
 
 
+def display_path(path: Path, *, repo_root: Path) -> str:
+    try:
+        return path.relative_to(repo_root).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
+def private_key_mode_is_safe(mode: int) -> bool:
+    return bool(mode & 0o400) and not bool(mode & SAFE_PRIVATE_KEY_GROUP_OR_WORLD_MASK)
+
+
+def normalize_private_key_permissions(path: Path, *, repo_root: Path) -> str | None:
+    current_mode = path.stat().st_mode & 0o777
+    if private_key_mode_is_safe(current_mode):
+        return None
+
+    try:
+        path.chmod(DEFAULT_PRIVATE_KEY_MODE)
+    except OSError as exc:
+        return (
+            f"{display_path(path, repo_root=repo_root)} has unsafe permissions "
+            f"{current_mode:04o} and could not be set to {DEFAULT_PRIVATE_KEY_MODE:04o}: {exc}"
+        )
+
+    repaired_mode = path.stat().st_mode & 0o777
+    if private_key_mode_is_safe(repaired_mode):
+        return None
+
+    return (
+        f"{display_path(path, repo_root=repo_root)} has unsafe permissions "
+        f"{current_mode:04o}; expected owner-only private-key permissions such as "
+        f"{DEFAULT_PRIVATE_KEY_MODE:04o}, but the mode is still {repaired_mode:04o}."
+    )
+
+
 def validate_ssh_assets(paths: ReleasePaths) -> list[str]:
     errors: list[str] = []
     if not paths.ssh_config.exists():
@@ -257,6 +294,11 @@ def validate_ssh_assets(paths: ReleasePaths) -> list[str]:
         errors.append("Missing .codex/private/release_ssh/staging-oracle-key.pem.")
     if not paths.prod_key.exists():
         errors.append("Missing .codex/private/release_ssh/production-oracle-key.pem.")
+    for key_path in (paths.staging_key, paths.prod_key):
+        if key_path.exists():
+            permission_error = normalize_private_key_permissions(key_path, repo_root=paths.repo_root)
+            if permission_error:
+                errors.append(permission_error)
     return errors
 
 
