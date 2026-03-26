@@ -15,6 +15,7 @@ Every change should belong to one of the following categories: `added`, `changed
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-03-26
 ### Added
 
 - Added a release orchestrator and checked-in `/release` prompt content for
