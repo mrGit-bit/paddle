@@ -1,3 +1,23 @@
+# Release 1.6.1 Consolidated Spec
+
+
+## Release
+
+- Release tag: `1.6.1`
+- Release date: `2026-03-27`
+- Consolidation status: post-release back-merge complete
+
+## Source Provenance
+
+- `/workspaces/paddle/specs/028-harden-release-ssh-key-permissions.md`
+
+## Source Snapshots
+
+The following approved source files were consolidated for this release.
+
+### `/workspaces/paddle/specs/028-harden-release-ssh-key-permissions.md`
+
+```md
 # Harden Release SSH Key Permissions
 
 ## Tracking
@@ -99,3 +119,4 @@ OpenSSH refuses to use.
 - `.github/workflows/*`
 - `.codex/private/release_ssh/*` key material or SSH config contents
 - Product app code unrelated to release automation
+```
