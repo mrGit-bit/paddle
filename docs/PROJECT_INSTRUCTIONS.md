@@ -1,6 +1,6 @@
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.2.23  
+Instruction Set Version: 2.2.26  
 Last Updated: 2026-03-27
 
 This file mirrors the repository governance subset kept in ChatGPT Project
@@ -67,9 +67,9 @@ Simple-change exception:
 - For small, low-risk changes with narrow scope, such as straightforward
   documentation, governance, or repository-guidance edits, Codex CLI may skip
   creating spec and plan files.
-- In those cases, Codex must first confirm the reduced-process path with the
-  user, then proceed directly with the requested Markdown or repository-doc
-  edits.
+- In those cases, if the request is clearly minor, Codex may proceed directly
+  with the requested Markdown or repository-doc edits without an extra
+  confirmation turn.
 - If the scope expands beyond that narrow change set, return to the standard
   approved spec and plan flow before continuing implementation.
 
@@ -84,11 +84,13 @@ Active-work rule:
 - When repository context is needed, README should point to this lookup rule
   instead of requiring generic manual discovery.
 - Loose non-release specs and plans must carry explicit `Release tag` tracking
-  metadata. Post-release consolidation normally uses the matching shipped
-  production release tag. If a planned release never reaches production, do
-  not keep a standalone release record for it; roll its unshipped loose files
-  and changelog notes into the next production release that actually ships
-  them.
+  metadata and default to `unreleased` while work is still pending release.
+  During release consolidation, `/prompts:release <version>` assigns the
+  shipped `vX.Y.Z` to the matched loose files, reviews the changelog section
+  for that release, and keeps that section as a light summary of shipped
+  changes. If a planned release never reaches production, do not keep a
+  standalone release record for it; roll its unshipped loose files and
+  changelog notes into the next production release that actually ships them.
 
 Additional rules:
 
@@ -102,7 +104,8 @@ Additional rules:
   auto-discovers or supports it. Verify the current environment first.
 - After a successful tagged release and back-merge from `main` to `develop`,
   consolidate the released SDD files into `specs/release-X.Y.Z-consolidated.md`
-  and `plans/release-X.Y.Z-consolidated.md` before new SDD work begins.
+  and `plans/release-X.Y.Z-consolidated.md` before new SDD work begins. Review
+  the release changelog section in the same step and keep it simple and light.
 
 ## 5. Delivery and Coordination
 
@@ -118,6 +121,9 @@ Additional rules:
   committed, pushed, and `git status --short` is clean.
 - If the user wants to continue developing, do not commit yet.
 - If the user confirms commit/push/closure, perform that flow in the same turn.
+- Treat direct user commands such as `close cycle`, `close specification`, or
+  equivalent explicit closure wording as commit/push/closure confirmation; do
+  not ask the extra confirmation question in that case.
 
 ## 6. Markdown Rules
 

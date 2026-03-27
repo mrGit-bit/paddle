@@ -92,6 +92,8 @@ reintroduced.
 - Consolidated release files represent shipped production history only. If a
   planned version never ships, its loose historical artifacts roll into the
   next production release that actually shipped them.
+- Loose active specs/plans should keep `Release tag: unreleased` until the
+  release command stamps the shipped version.
 - Specs, plans, and consolidated release files are intentionally schematic;
   keep them compact instead of using them as long-form narrative docs.
 

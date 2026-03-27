@@ -40,8 +40,8 @@ fallback: `python scripts/release_orchestrator.py 1.6.0`.
 - Current branch is `develop`.
 - `git status --short` is clean.
 - Local `develop` is synchronized with `origin/develop`.
-- Every loose non-release spec/plan intended for the release is marked with
-  `Release tag: \`vX.Y.Z\`` matching the requested version.
+- Loose non-release spec/plan files pending release should normally still be
+  marked `Release tag: \`unreleased\``.
 - `gh` is installed and authenticated.
 - `ssh` is installed.
 - Repo-local SSH config exists at `.codex/private/release_ssh/config`.
@@ -125,13 +125,15 @@ The command always uses `ssh -F .codex/private/release_ssh/config`.
 9. Deploy production with `ssh -F .codex/private/release_ssh/config
    prod-update`.
 10. Back-merge `origin/main` into local `develop`.
-11. Consolidate the loose spec files that actually shipped in that production
-    release, normally the files explicitly marked with `Release tag: vX.Y.Z`,
-    into `specs/release-X.Y.Z-consolidated.md`.
-12. Consolidate the loose plan files that actually shipped in that production
-    release, normally the files explicitly marked with `Release tag: vX.Y.Z`,
-    into `plans/release-X.Y.Z-consolidated.md`.
-13. Print a human-readable release report.
+11. Stamp the matched loose spec files from `Release tag: unreleased` to the
+    shipped `vX.Y.Z`, then consolidate them into
+    `specs/release-X.Y.Z-consolidated.md`.
+12. Stamp the matched loose plan files from `Release tag: unreleased` to the
+    shipped `vX.Y.Z`, then consolidate them into
+    `plans/release-X.Y.Z-consolidated.md`.
+13. Review `CHANGELOG.md` for `## [X.Y.Z]` and keep that section as a simple,
+    light summary of shipped changes.
+14. Print a human-readable release report.
 
 If the user declines at the staging gate, the command stops after staging and
 reports the paused state.
@@ -143,6 +145,11 @@ implements it.
 If a planned version never reaches production, do not keep a synthetic release
 record for it. Fold its unshipped specs, plans, and changelog notes into the
 next production release that actually ships that work.
+
+Loose active specs/plans should not guess the next version number in advance.
+Keep `Release tag: unreleased` until the release command runs.
+During release consolidation, also review the release changelog section and
+compress it when needed so release history stays easy to scan.
 
 ## Manual Functional Checks for Staging
 

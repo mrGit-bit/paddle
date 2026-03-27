@@ -21,6 +21,7 @@ NO_CHECKS_REPORTED_RE = re.compile(r"no checks reported on the .+ branch", re.IG
 TRACKING_LINE_RE = re.compile(r"^- (?P<field>Task ID|Plan|Spec|Release tag):\s*`(?P<value>[^`]+)`\s*$")
 SAFE_PRIVATE_KEY_GROUP_OR_WORLD_MASK = 0o077
 DEFAULT_PRIVATE_KEY_MODE = 0o600
+UNRELEASED_RELEASE_TAG = "unreleased"
 
 
 class ReleaseError(RuntimeError):
@@ -504,6 +505,25 @@ def parse_tracking_metadata(source: Path) -> dict[str, str]:
     return metadata
 
 
+def is_unreleased_release_tag(value: str | None) -> bool:
+    return (value or "").strip().lower() == UNRELEASED_RELEASE_TAG
+
+
+def rewrite_release_tag(source: Path, release_tag: str) -> bool:
+    original = source.read_text(encoding="utf-8")
+    updated, count = re.subn(
+        r"^(- Release tag:\s*)`[^`]+`(\s*)$",
+        rf"\1`{release_tag}`\2",
+        original,
+        count=1,
+        flags=re.MULTILINE,
+    )
+    if count == 0 or updated == original:
+        return False
+    source.write_text(updated, encoding="utf-8")
+    return True
+
+
 def collect_release_sources(
     directory: Path,
     pattern: str,
@@ -519,7 +539,8 @@ def collect_release_sources(
         if path.name.startswith("release-"):
             continue
         metadata = parse_tracking_metadata(path)
-        if metadata.get("Release tag") == release_tag:
+        source_release_tag = metadata.get("Release tag")
+        if source_release_tag == release_tag or is_unreleased_release_tag(source_release_tag):
             matched.append(path)
         else:
             skipped.append(path)
@@ -591,6 +612,9 @@ def commit_consolidation(
     release_date = date.today()
     spec_target = context.paths.specs_dir / f"release-{context.version}-consolidated.md"
     plan_target = context.paths.plans_dir / f"release-{context.version}-consolidated.md"
+
+    for source in spec_sources + plan_sources:
+        rewrite_release_tag(source, context.version_tag)
 
     if spec_sources:
         spec_target.write_text(

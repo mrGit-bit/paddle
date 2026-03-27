@@ -4,7 +4,7 @@
 
 - Task ID: `clear-remaining-loose-specs-and-plans`
 - Spec: `specs/029-clear-remaining-loose-specs-and-plans.md`
-- Release tag: `v1.6.2`
+- Release tag: `unreleased`
 
 ## Summary
 

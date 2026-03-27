@@ -4,7 +4,7 @@
 
 - Task ID: `reduce-markdown-verbosity-across-governance-and-history`
 - Spec: `specs/030-reduce-markdown-verbosity-across-governance-and-history.md`
-- Release tag: `v1.6.2`
+- Release tag: `unreleased`
 
 ## Summary
 

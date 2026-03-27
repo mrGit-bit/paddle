@@ -1,6 +1,6 @@
 # AGENTS.md — Codex Execution Rules
 
-Instruction Set Version: 2.2.23  
+Instruction Set Version: 2.2.26  
 Last Updated: 2026-03-27
 
 ## 1. Authority and File Roles
@@ -58,19 +58,21 @@ Execution rules:
 5. Do not implement before both current active-work artifacts are approved.
 6. Keep implementation aligned with the approved scope; no scope expansion.
 7. Loose non-release specs and plans must carry explicit `Release tag`
-   tracking metadata. Post-release consolidation normally uses the matching
-   shipped production release tag. If a planned release never reaches
-   production, do not keep a standalone release record for it; roll its
-   unshipped loose files and changelog notes into the next production release
-   that actually ships them.
+   tracking metadata and default to `unreleased` while work is still pending
+   release. During release consolidation, `/prompts:release <version>` assigns
+   the shipped `vX.Y.Z` to the matched loose files, reviews the changelog
+   section for that release, and keeps that section as a light summary of
+   shipped changes. If a planned release never reaches production, do not keep
+   a standalone release record for it; roll its unshipped loose files and
+   changelog notes into the next production release that actually ships them.
 
 Simple-change exception:
 
 - For small, low-risk changes with narrow scope, such as straightforward
   documentation, governance, or repository-guidance edits, Codex CLI may skip
   creating spec and plan files.
-- Codex must first ask a confirmation question and receive approval for that
-  reduced-process path before editing files.
+- If the requested change is clearly minor and fits that reduced-process path,
+  Codex may proceed directly without an extra confirmation turn.
 - If the task grows beyond that narrow change set, stop using the exception and
   return to the normal approved spec and plan workflow.
 
@@ -88,10 +90,13 @@ Post-release:
 - After a successful tagged release and back-merge from `main` to `develop`,
   perform any pending spec/plan consolidation for that release before starting
   new SDD work. Use the shipped production release as the historical record:
-  when a planned version never entered production, its unshipped loose
-  spec/plan files and notes must be absorbed into the next production release
-  that actually shipped them instead of being archived under the non-shipped
-  version.
+  loose files stay on `Release tag: unreleased` until the release command
+  stamps the shipped version during consolidation. Review the changelog section
+  for that release in the same step and rewrite it as a simple, light summary
+  when needed. When a planned version never entered production, its unshipped
+  loose spec/plan files and notes must be absorbed into the next production
+  release that actually shipped them instead of being archived under the
+  non-shipped version.
 
 ## 4. Handoff Requirements
 
@@ -112,6 +117,9 @@ Before any commit, push, or closure step:
 - If not, ask: `Do you want me to proceed with staging changes, committing with
   the recommended commit message, pushing to the remote branch, and closing the
   current development cycle?`
+- Exception: if the user explicitly says `close cycle`, `close specification`,
+  or gives equivalent direct closure authorization, treat that as approval to
+  stage, commit, and push without asking the extra confirmation question.
 
 If the user confirms closure:
 

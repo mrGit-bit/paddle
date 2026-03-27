@@ -11,6 +11,16 @@ The repo version covers the web app, mobile wrapper, and release/devops work.
 
 ### Changed
 
+- Governance now lets clearly minor doc/governance/repository-guidance changes
+  use the reduced-process path without an extra confirmation turn.
+- Governance now treats direct user closure commands such as `close cycle` or
+  `close specification` as immediate authorization to stage, commit, and push
+  without an extra confirmation turn.
+- Release consolidation governance now also requires reviewing the release
+  changelog section and keeping it as a simple, light summary of shipped
+  changes.
+- Loose non-release specs/plans now default to `Release tag: unreleased`; the
+  release command stamps the actual shipped `vX.Y.Z` during consolidation.
 - Folded non-shipped `1.6.0` history into `1.6.1` and cleared the remaining
   loose historical spec/plan files.
 - Reduced Markdown verbosity across governance docs, active specs/plans,

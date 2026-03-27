@@ -4,7 +4,7 @@
 
 - Task ID: `reduce-markdown-verbosity-across-governance-and-history`
 - Plan: `plans/2026-03-27_reduce-markdown-verbosity-across-governance-and-history.md`
-- Release tag: `v1.6.2`
+- Release tag: `unreleased`
 
 ## Goal
 

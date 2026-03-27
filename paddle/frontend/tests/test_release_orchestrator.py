@@ -152,7 +152,7 @@ def test_collect_release_sources_only_includes_requested_release_tag(tmp_path):
         "## Tracking\n\n"
         "- Task ID: `release-slash-command`\n"
         "- Plan: `plans/2026-03-16_release-slash-command.md`\n"
-        "- Release tag: `v1.6.0`\n",
+        "- Release tag: `unreleased`\n",
         encoding="utf-8",
     )
     second = tmp_path / "023-future-scope.md"
@@ -167,6 +167,16 @@ def test_collect_release_sources_only_includes_requested_release_tag(tmp_path):
     consolidated = tmp_path / "release-1.6.0-consolidated.md"
     consolidated.write_text("# Consolidated\n", encoding="utf-8")
 
+    explicit = tmp_path / "024-already-tagged.md"
+    explicit.write_text(
+        "# Explicit\n\n"
+        "## Tracking\n\n"
+        "- Task ID: `already-tagged`\n"
+        "- Plan: `plans/2026-03-17_already-tagged.md`\n"
+        "- Release tag: `v1.6.0`\n",
+        encoding="utf-8",
+    )
+
     selection = release_orchestrator.collect_release_sources(
         tmp_path,
         "[0-9][0-9][0-9]-*.md",
@@ -174,7 +184,7 @@ def test_collect_release_sources_only_includes_requested_release_tag(tmp_path):
         release_tag="v1.6.0",
     )
 
-    assert selection.matched == [matching]
+    assert selection.matched == [matching, explicit]
     assert selection.skipped == [second]
 
 
@@ -200,6 +210,23 @@ def test_collect_release_sources_excludes_named_template_files(tmp_path):
 
     assert selection.matched == [included]
     assert selection.skipped == []
+
+
+def test_rewrite_release_tag_updates_unreleased_source(tmp_path):
+    source = tmp_path / "031-example.md"
+    source.write_text(
+        "# Example\n\n"
+        "## Tracking\n\n"
+        "- Task ID: `example`\n"
+        "- Plan: `plans/2026-03-27_example.md`\n"
+        "- Release tag: `unreleased`\n",
+        encoding="utf-8",
+    )
+
+    changed = release_orchestrator.rewrite_release_tag(source, "v1.7.0")
+
+    assert changed is True
+    assert "- Release tag: `v1.7.0`" in source.read_text(encoding="utf-8")
 
 
 def test_run_command_retries_gh_without_invalid_env_tokens(monkeypatch):
