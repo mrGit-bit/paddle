@@ -89,6 +89,11 @@ reintroduced.
   plans.
 - [specs](/workspaces/paddle/specs): active specs and consolidated release
   specs.
+- Consolidated release files represent shipped production history only. If a
+  planned version never ships, its loose historical artifacts roll into the
+  next production release that actually shipped them.
+- Specs, plans, and consolidated release files are intentionally schematic;
+  keep them compact instead of using them as long-form narrative docs.
 
 ## Codex CLI Guide
 

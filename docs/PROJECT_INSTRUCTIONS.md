@@ -1,7 +1,7 @@
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.2.21  
-Last Updated: 2026-03-25
+Instruction Set Version: 2.2.23  
+Last Updated: 2026-03-27
 
 This file mirrors the repository governance subset kept in ChatGPT Project
 instructions and must remain under 8000 characters.
@@ -84,8 +84,11 @@ Active-work rule:
 - When repository context is needed, README should point to this lookup rule
   instead of requiring generic manual discovery.
 - Loose non-release specs and plans must carry explicit `Release tag` tracking
-  metadata. Post-release consolidation includes only files whose `Release tag`
-  matches the released version.
+  metadata. Post-release consolidation normally uses the matching shipped
+  production release tag. If a planned release never reaches production, do
+  not keep a standalone release record for it; roll its unshipped loose files
+  and changelog notes into the next production release that actually ships
+  them.
 
 Additional rules:
 
@@ -118,6 +121,13 @@ Additional rules:
 
 ## 6. Markdown Rules
 
+- Keep new or rewritten Markdown light and schematic by default.
+- Prefer short sections, direct bullets, and compact summaries over narrative
+  expansion.
+- `CHANGELOG.md` should record outcomes, not process narration.
+- Specs/plans should capture only the scope, constraints, and checks needed
+  for execution.
+- Consolidated release files should stay as compact provenance summaries.
 - Do not add `markdownlint-disable` directives unless explicitly requested.
 - Enforce `MD022` and `MD032`.
 - Treat `MD013` as non-blocking.

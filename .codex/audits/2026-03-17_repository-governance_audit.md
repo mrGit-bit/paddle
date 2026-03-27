@@ -7,15 +7,13 @@
   `CHANGELOG.md`, `BACKLOG.md`, `RELEASE.md`, `specs/`, `plans/`,
   `plans/TEMPLATE.md`, `.codex/commands/release.md`, and
   `scripts/release_orchestrator.py`.
-- Audit date: 2026-03-26
+- Audit date: 2026-03-27
 - Reviewer: Codex via `governance-markdown-auditor`
 
 The top-level authority split is materially better than the earlier audit
-baseline: `docs/PROJECT_INSTRUCTIONS.md`, `AGENTS.md`, `README.md`, and
-`plans/TEMPLATE.md` now have cleaner roles and less duplication. The remaining
-workflow-coordination findings from the previous audit revision have now been
-operationalized through explicit backlog-ownership rules, spec/plan tracking
-metadata, and release-tag-based consolidation selection.
+baseline. The remaining coordination findings from the previous revision are
+solved, and governance now also enforces lower-verbosity Markdown for
+changelog/spec/plan/release-history artifacts.
 
 ## Governance Findings
 
@@ -135,6 +133,23 @@ metadata, and release-tag-based consolidation selection.
   manifest instead of sweeping all loose non-release artifacts.
 - Discard explanation:
 
+### Finding GF-008
+
+- Status: solved
+- Type: Confirmed issue
+- Severity: major
+- Category: verbosity
+- Evidence: `AGENTS.md` and `docs/PROJECT_INSTRUCTIONS.md` now require light,
+  schematic Markdown by default. `CHANGELOG.md`, active specs/plans,
+  `plans/TEMPLATE.md`, and consolidated release files have been shortened to
+  compact summaries and provenance records.
+- Why it matters: Verbose process Markdown slows agent lookup, hides the actual
+  rule or shipped fact, and inflates release-history files with low-value
+  narrative.
+- Recommended minimal fix: Keep Markdown compact by default, especially in
+  changelog entries, active specs/plans, and consolidated release history.
+- Discard explanation:
+
 ## Ownership Map
 
 - File: `docs/PROJECT_INSTRUCTIONS.md`
@@ -149,8 +164,8 @@ metadata, and release-tag-based consolidation selection.
   - Recommended role: Keep as orientation, path guide, and reading order.
 - File: `CHANGELOG.md`
   - Current role: Release history and unreleased documented changes.
-  - Recommended role: Keep as release history only; avoid using it as a process
-    control surface.
+  - Recommended role: Keep as release history only; use compact outcome
+    bullets instead of process narration.
 - File: `BACKLOG.md`
   - Current role: Public pending-work inventory with closure-owned
     reconciliation.
@@ -168,8 +183,8 @@ metadata, and release-tag-based consolidation selection.
   - Current role: Active-work and historical release artifacts stored in the
     same directories, with explicit task and release tracking metadata on loose
     non-release files.
-  - Recommended role: Keep as decision artifacts with explicit task pairing and
-    release provenance.
+  - Recommended role: Keep as schematic decision artifacts with explicit task
+    pairing and release provenance.
 - File: `plans/TEMPLATE.md`
   - Current role: Minimal active-plan scaffold.
   - Recommended role: Keep minimal and task-specific.
@@ -180,12 +195,10 @@ metadata, and release-tag-based consolidation selection.
 
 ## Rewrite Plan
 
-- Step: Preserve the current tracking metadata and release-tag rules on new
-  loose specs and plans.
-  - Goal: Keep active-work lookup and release provenance operational instead of
-    drifting back to filename inference.
-  - Files primarily affected: `specs/`, `plans/`, `plans/TEMPLATE.md`,
-    governance docs, and release automation when touched.
+- Step: Preserve the compact Markdown rule on new governance/history edits.
+  - Goal: Keep changelog/spec/plan artifacts fast to scan.
+  - Files primarily affected: `CHANGELOG.md`, `specs/`, `plans/`,
+    `plans/TEMPLATE.md`, and governance docs.
 
 ## Open Questions
 

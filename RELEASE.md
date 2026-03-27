@@ -1,13 +1,13 @@
 # Release Process
 
-This repository supports a command-first release flow through a user-level
-Codex custom prompt invoked as `/prompts:release` when it is installed in the
-current Codespace.
+This repository uses a command-first release flow through
+`/prompts:release <version>`.
 
 ## Command
 
 - Command: `/prompts:release`
-- Version argument examples:
+- Argument: `x.y.z` or `vx.y.z`
+- Examples:
   - `/prompts:release 1.6.0`
   - `/prompts:release v1.6.0`
 
@@ -21,10 +21,7 @@ Current Codex CLI behavior in this repository:
 - If the user-level prompt is not installed, run the orchestrator directly:
   `python scripts/release_orchestrator.py <version>`.
 
-Whether invoked through the user-level `/prompts:release` custom prompt or the
-direct Python entrypoint, the same orchestrator automates the GitHub workflow,
-branch promotion, deployment, back-merge, and post-release consolidation steps
-described below.
+Both entrypoints call the same orchestrator.
 
 ## Custom Prompt Setup
 
@@ -33,8 +30,7 @@ described below.
 2. Copy the checked-in prompt content to the user-level discovery path:
    `cp .codex/commands/release.md ~/.codex/prompts/release.md`
 3. Start a fresh Codex session in the repository.
-4. Run the command `/prompts:release` with one version argument, for example
-   `1.6.0` or `v1.6.0`.
+4. Run `/prompts:release <version>`, for example `1.6.0` or `v1.6.0`.
 
 If Codex still does not recognize `/prompts:release`, use the direct script
 fallback: `python scripts/release_orchestrator.py 1.6.0`.
@@ -97,8 +93,7 @@ Do not commit tokens or paste secret values into tracked repository files.
 5. Keep those files untracked. The repository ignores the config and `.pem`
    files automatically.
 
-The command always uses `ssh -F .codex/private/release_ssh/config` and never
-depends on a Windows user profile SSH config.
+The command always uses `ssh -F .codex/private/release_ssh/config`.
 
 ## GitHub Actions Used
 
@@ -130,30 +125,36 @@ depends on a Windows user profile SSH config.
 9. Deploy production with `ssh -F .codex/private/release_ssh/config
    prod-update`.
 10. Back-merge `origin/main` into local `develop`.
-11. Consolidate only the loose spec files explicitly marked with
-    `Release tag: vX.Y.Z` into `specs/release-X.Y.Z-consolidated.md`.
-12. Consolidate only the loose plan files explicitly marked with
-    `Release tag: vX.Y.Z` into `plans/release-X.Y.Z-consolidated.md`.
+11. Consolidate the loose spec files that actually shipped in that production
+    release, normally the files explicitly marked with `Release tag: vX.Y.Z`,
+    into `specs/release-X.Y.Z-consolidated.md`.
+12. Consolidate the loose plan files that actually shipped in that production
+    release, normally the files explicitly marked with `Release tag: vX.Y.Z`,
+    into `plans/release-X.Y.Z-consolidated.md`.
 13. Print a human-readable release report.
 
-If the user declines at the staging approval gate, the command stops after the
-staging deploy and reports the paused release state.
+If the user declines at the staging gate, the command stops after staging and
+reports the paused state.
 
 `BACKLOG.md` reconciliation is not owned by this command. It remains part of
 development-cycle closure unless a future release workflow explicitly
 implements it.
 
+If a planned version never reaches production, do not keep a synthetic release
+record for it. Fold its unshipped specs, plans, and changelog notes into the
+next production release that actually ships that work.
+
 ## Manual Functional Checks for Staging
 
-The command prints a release-specific staging checklist, but the baseline checks
-should cover:
+The command prints a release-specific checklist. Baseline checks:
 
-1. Iniciar sesion y cerrar sesion sin errores.
-2. Abrir rankings y confirmar que la paginacion funciona.
-3. Abrir la lista de partidos y confirmar que la paginacion funciona.
-4. Crear un partido y confirmar que ranking y estadisticas se actualizan.
-5. Abrir Americano y confirmar que la vista carga correctamente.
-6. Validar los cambios especificos de la version liberada.
+1. Sign in and sign out without errors.
+2. Open rankings and confirm pagination works.
+3. Open the match list and confirm pagination works.
+4. Create a match and confirm rankings and statistics update.
+5. Open Americano and confirm the view loads correctly.
+6. Validate release-specific changes. If the release has no UI/UX changes,
+   state `No UI/UX changes in this release.`
 
 ## Fallback Scripts
 

@@ -1,7 +1,7 @@
 # AGENTS.md — Codex Execution Rules
 
-Instruction Set Version: 2.2.21  
-Last Updated: 2026-03-25
+Instruction Set Version: 2.2.23  
+Last Updated: 2026-03-27
 
 ## 1. Authority and File Roles
 
@@ -58,8 +58,11 @@ Execution rules:
 5. Do not implement before both current active-work artifacts are approved.
 6. Keep implementation aligned with the approved scope; no scope expansion.
 7. Loose non-release specs and plans must carry explicit `Release tag`
-   tracking metadata. Post-release consolidation includes only files whose
-   `Release tag` matches the released version.
+   tracking metadata. Post-release consolidation normally uses the matching
+   shipped production release tag. If a planned release never reaches
+   production, do not keep a standalone release record for it; roll its
+   unshipped loose files and changelog notes into the next production release
+   that actually ships them.
 
 Simple-change exception:
 
@@ -84,8 +87,11 @@ Post-release:
 
 - After a successful tagged release and back-merge from `main` to `develop`,
   perform any pending spec/plan consolidation for that release before starting
-  new SDD work, using only loose spec/plan files explicitly marked with that
-  release tag.
+  new SDD work. Use the shipped production release as the historical record:
+  when a planned version never entered production, its unshipped loose
+  spec/plan files and notes must be absorbed into the next production release
+  that actually shipped them instead of being archived under the non-shipped
+  version.
 
 ## 4. Handoff Requirements
 
@@ -123,6 +129,14 @@ If the user confirms closure:
 
 For changed Markdown files:
 
+- Keep new or rewritten Markdown light and schematic by default.
+- Prefer short sections, direct bullets, compact summaries, and no duplicate
+  restatement.
+- `CHANGELOG.md` should record shipped outcomes, not process narration.
+- Loose specs/plans should capture only the scope, constraints, and checks
+  needed to execute the task.
+- Consolidated release files should be compact provenance records, not embedded
+  copies of prior source files.
 - Do not add `markdownlint-disable` directives unless explicitly requested.
 - Keep `MD022` and `MD032` compliant.
 - Treat `MD013` as non-blocking.
