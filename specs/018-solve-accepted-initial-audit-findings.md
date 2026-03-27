@@ -1,5 +1,11 @@
 # Spec 018: Solve Accepted Repository Initial Audit Findings
 
+## Tracking
+
+- Task ID: `solve-accepted-initial-audit-findings`
+- Plan: `plans/2026-03-15_solve-accepted-initial-audit-findings.md`
+- Release tag: `v1.5.0`
+
 ## Functional Goal
 
 Resolve all findings marked `accepted` in `.codex/audits/2026-03-10_repository-initial_audit.md` using the recommended minimal fix for each item, while preserving the current user-visible flows for login, registration, profile updates, player stats, and the authenticated match list.

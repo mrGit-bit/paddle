@@ -1,5 +1,11 @@
 # Spec 016: Changelog Backfill and Governance Clarification
 
+## Tracking
+
+- Task ID: `changelog-backfill-and-governance-clarification`
+- Plan: `none`
+- Release tag: `v1.4.1`
+
 ## Functional Goal
 
 Backfill `CHANGELOG.md` so `## [Unreleased]` documents the recent README and

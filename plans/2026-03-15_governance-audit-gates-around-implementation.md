@@ -1,5 +1,11 @@
 # Governance Audit Gates Around Implementation
 
+## Tracking
+
+- Task ID: `governance-audit-gates-around-implementation`
+- Spec: `specs/019-governance-audit-gates-around-implementation.md`
+- Release tag: `v1.5.0`
+
 ## Context
 
 - Current governance enforces the mandatory Spec -> Plan -> Implementation flow, but it does not yet describe when Codex should suggest a spec-focused pre-audit or a scoped post-implementation audit.

@@ -1,5 +1,11 @@
 # Require Audit Skip Rationale in Governance
 
+## Tracking
+
+- Task ID: `governance-require-audit-skip-rationale`
+- Spec: `specs/021-governance-require-audit-skip-rationale.md`
+- Release tag: `v1.5.0`
+
 ## Context
 
 - The approved scope is defined in `specs/021-governance-require-audit-skip-rationale.md`.

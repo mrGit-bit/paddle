@@ -1,5 +1,11 @@
 # Spec 017: Post-Release Consolidation of SDD Specs and Plans
 
+## Tracking
+
+- Task ID: `consolidate-specs-and-plans-per-tag`
+- Plan: `plans/2026-03-15_consolidate-specs-and-plans-per-tag.md`
+- Release tag: `v1.5.0`
+
 ## Functional Goal
 
 Keep the current SDD workflow unchanged during active development, with one spec

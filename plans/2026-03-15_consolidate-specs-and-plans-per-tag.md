@@ -1,5 +1,11 @@
 # Post-Release Consolidation of SDD Specs and Plans
 
+## Tracking
+
+- Task ID: `consolidate-specs-and-plans-per-tag`
+- Spec: `specs/017-consolidate-specs-and-plans-per-tag.md`
+- Release tag: `v1.5.0`
+
 ## Context
 
 - The approved spec is

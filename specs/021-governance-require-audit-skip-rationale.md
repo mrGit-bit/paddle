@@ -1,5 +1,11 @@
 # Spec 021: Require Audit Skip Rationale in Governance
 
+## Tracking
+
+- Task ID: `governance-require-audit-skip-rationale`
+- Plan: `plans/2026-03-15_require-audit-skip-rationale.md`
+- Release tag: `v1.5.0`
+
 ## Functional Goal
 
 Update repository governance so when Codex does not suggest a spec-focused pre-audit or a scoped post-implementation audit, the response must briefly state why the audit was not needed for that specific scope or implementation result.
