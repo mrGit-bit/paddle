@@ -29,7 +29,6 @@ Rules:
 
 | Requirement | IMP. | SIMP. | PRI. |
 | --- | --- | --- | --- |
-| In player details, the table for "pareja habitual" should have three rows for the most usual 3 partners instead of only one, ordered by more matches together | 2 | 3 | 6 |
 | Add a new button for the creator of the tournament and for the admin to close the tournament and move it to state "finalizado" even in the same day of the tournament day. Creator/admin could also reopen the tournament for editing during the same day of the tournament. | 1 | 2 | 2 |
 | DevOps: establish rotation criteria for log files | 1 | 2 | 2 |
 | Advanced stats page for additional rankings: teams with more matches played, best win rate (min. 10 matches), hot players (ranking increase), new players | 2 | 1 | 2 |

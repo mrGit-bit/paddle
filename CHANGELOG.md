@@ -35,6 +35,8 @@ The repo version covers the web app, mobile wrapper, and release/devops work.
   before implementation continues.
 - Ranking pages now support page-local sorting by position, wins, matches, and
   win rate without changing canonical ranking or pagination behavior.
+- Player detail pages now show the top 3 habitual partners, ordered by matches
+  together using the existing partner tie-break rules.
 - Governance now makes `/plan` more question-heavy by default after exploration
   for non-trivial planning work.
 

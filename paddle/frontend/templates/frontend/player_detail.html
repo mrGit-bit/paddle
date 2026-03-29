@@ -108,17 +108,19 @@
       </tr>
     </thead>
     <tbody>
-      {% if player_insights.top_partner %}
-        <tr class="clickable-row" data-href="{% url 'player_detail' player_insights.top_partner.player.id %}">
+      {% if player_insights.top_partners %}
+        {% for row in player_insights.top_partners %}
+        <tr class="clickable-row" data-href="{% url 'player_detail' row.player.id %}">
           <td>
-            <a href="{% url 'player_detail' player_insights.top_partner.player.id %}" class="text-body text-decoration-none">
-              {{ player_insights.top_partner.player.name }}
+            <a href="{% url 'player_detail' row.player.id %}" class="text-body text-decoration-none">
+              {{ row.player.name }}
             </a>
           </td>
-          <td class="text-center">{{ player_insights.top_partner.wins_together }}-{{ player_insights.top_partner.losses_together }}</td>
-          <td class="text-center">{{ player_insights.top_partner.matches_together }}</td>
-          <td class="text-center">{{ player_insights.top_partner.win_rate_percent }}%</td>
+          <td class="text-center">{{ row.wins_together }}-{{ row.losses_together }}</td>
+          <td class="text-center">{{ row.matches_together }}</td>
+          <td class="text-center">{{ row.win_rate_percent }}%</td>
         </tr>
+        {% endfor %}
       {% else %}
         <tr>
           <td colspan="4" class="text-center text-muted">Sin datos</td>
