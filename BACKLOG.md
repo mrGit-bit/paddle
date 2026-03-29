@@ -29,7 +29,6 @@ Rules:
 
 | Requirement | IMP. | SIMP. | PRI. |
 | --- | --- | --- | --- |
-| In every ranking page give the ability to order by win rate and by number of matches played. The default order should be by position and the order by position shpuld be restored after every page change, just ordering the players present on the consulted page. Add also a small bootstrap icon near the column headers of mathces and win rate to change the order in the page between ascending and descending. | 2 | 2 | 4 |
 | In player details, the table for "pareja habitual" should have three rows for the most usual 3 partners instead of only one, ordered by more matches together | 2 | 3 | 6 |
 | Add a new button for the creator of the tournament and for the admin to close the tournament and move it to state "finalizado" even in the same day of the tournament day. Creator/admin could also reopen the tournament for editing during the same day of the tournament. | 1 | 2 | 2 |
 | DevOps: establish rotation criteria for log files | 1 | 2 | 2 |

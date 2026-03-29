@@ -35,6 +35,20 @@ class TestFrontendViews:
         response = self.client.get(url)
         assert response.status_code == 200
 
+    def test_hall_of_fame_view_renders_ranking_sort_controls(self):
+        url = reverse("hall_of_fame")
+        response = self.client.get(url)
+        content = response.content.decode("utf-8")
+
+        assert response.status_code == 200
+        assert 'data-ranking-sort-table' in content
+        assert 'data-sort-key="position"' in content
+        assert 'data-sort-key="wins"' in content
+        assert 'data-sort-key="matches"' in content
+        assert 'data-sort-key="win-rate"' in content
+        assert 'frontend/js/rankingTableSort.js' in content
+        assert 'data-canonical-show-position=' in content
+
     def test_deprecated_api_routes_are_not_available(self):
         for path in ("/api/games/", "/api/users/", "/api-auth/"):
             response = self.client.get(path)

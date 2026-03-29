@@ -33,6 +33,8 @@ The repo version covers the web app, mobile wrapper, and release/devops work.
 - Governance now requires review/audit findings to be limited to medium/high
   severity and to be explicitly accepted for action or discarded by the user
   before implementation continues.
+- Ranking pages now support page-local sorting by position, wins, matches, and
+  win rate without changing canonical ranking or pagination behavior.
 
 ## [1.6.1] - 2026-03-27
 
