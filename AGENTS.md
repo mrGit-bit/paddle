@@ -1,7 +1,7 @@
 # AGENTS.md — Codex Execution Rules
 
-Instruction Set Version: 2.2.26  
-Last Updated: 2026-03-27
+Instruction Set Version: 2.2.27  
+Last Updated: 2026-03-29
 
 ## 1. Authority and File Roles
 
@@ -75,6 +75,23 @@ Simple-change exception:
   Codex may proceed directly without an extra confirmation turn.
 - If the task grows beyond that narrow change set, stop using the exception and
   return to the normal approved spec and plan workflow.
+
+Planning behavior:
+
+- In `/plan` or any planning-only workflow, explore first, then bias toward a
+  question-heavy planning loop before finalizing the plan.
+- Do not jump straight from exploration to a completed plan when meaningful
+  product, UX, or implementation preferences could still be confirmed with the
+  user.
+- After exploration, summarize the discovered context and ask follow-up
+  questions that lock preferences or tradeoffs even when a reasonable default
+  seems likely.
+- Prefer at least one round of preference-locking questions for non-trivial
+  planning work and a second round when implementation choices would otherwise
+  be left to inference.
+- Only skip those extra planning questions when the remaining decisions are
+  truly mechanical or already explicitly settled by the user or repository
+  governance.
 
 Quality checkpoints:
 

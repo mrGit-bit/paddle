@@ -35,6 +35,8 @@ The repo version covers the web app, mobile wrapper, and release/devops work.
   before implementation continues.
 - Ranking pages now support page-local sorting by position, wins, matches, and
   win rate without changing canonical ranking or pagination behavior.
+- Governance now makes `/plan` more question-heavy by default after exploration
+  for non-trivial planning work.
 
 ## [1.6.1] - 2026-03-27
 

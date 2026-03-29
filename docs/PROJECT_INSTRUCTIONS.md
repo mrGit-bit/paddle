@@ -1,7 +1,7 @@
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.2.26  
-Last Updated: 2026-03-27
+Instruction Set Version: 2.2.27  
+Last Updated: 2026-03-29
 
 This file mirrors the repository governance subset kept in ChatGPT Project
 instructions and must remain under 8000 characters.
@@ -98,6 +98,14 @@ Additional rules:
   the approved-spec requirement.
 - In Plan Mode, product code stays frozen; requested Markdown updates are
   allowed.
+- In `/plan` or other planning-only workflows, explore first, then bias toward
+  a question-heavy planning loop before finalizing the plan.
+- After exploration, summarize the discovered context and ask follow-up
+  questions to lock product, UX, or implementation preferences when the work is
+  non-trivial, even if a reasonable default seems likely.
+- Only skip those extra planning questions when the remaining decisions are
+  truly mechanical or already explicitly settled by the user or repository
+  governance.
 - Evaluate whether `/review` or `$audit` should be used for each non-trivial
   spec or implementation task, especially when the target flow already exists.
 - Prefer `/review` first when both checkpoints could fit the approved scope.
