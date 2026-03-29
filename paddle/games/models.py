@@ -158,6 +158,8 @@ class Player(models.Model):
 
 
 class Match(models.Model):
+    APPROVAL_WINDOW_DAYS = 30
+
     team1_player1 = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='team1_player1_matches')
     team1_player2 = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='team1_player2_matches')
     team2_player1 = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='team2_player1_matches')
@@ -186,6 +188,16 @@ class Match(models.Model):
 
     def __str__(self):
         return f"Match on {self.date_played}"
+
+    @classmethod
+    def editable_date_floor(cls, today=None):
+        from datetime import date, timedelta
+
+        today = today or date.today()
+        return today - timedelta(days=cls.APPROVAL_WINDOW_DAYS)
+
+    def is_locked(self, today=None):
+        return self.date_played < self.editable_date_floor(today=today)
 
     @property
     def all_players(self):
@@ -269,6 +281,4 @@ class Match(models.Model):
         # - recompute match_gender_type
         # - apply new effects
         self.save()
-
-
 

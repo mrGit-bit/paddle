@@ -25,6 +25,14 @@ The repo version covers the web app, mobile wrapper, and release/devops work.
   loose historical spec/plan files.
 - Reduced Markdown verbosity across governance docs, active specs/plans,
   consolidated release files, and recent changelog entries.
+- Match entry and deletion now use a 30-day window: results older than 30 days
+  are treated as automatically approved, cannot be deleted, and cannot be
+  added retroactively.
+- Governance now requires explicitly evaluating `/review` and `audit` on
+  non-trivial work and stating why a checkpoint is skipped.
+- Governance now requires review/audit findings to be limited to medium/high
+  severity and to be explicitly accepted for action or discarded by the user
+  before implementation continues.
 
 ## [1.6.1] - 2026-03-27
 

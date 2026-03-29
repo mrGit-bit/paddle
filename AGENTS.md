@@ -82,8 +82,18 @@ Quality checkpoints:
   scoped change set.
 - `audit` is for deeper governance, security, reuse, and maintainability
   inspection.
-- Use either when useful, prefer `/review` first when both make sense, and fix
-  accepted findings before moving past the relevant gate or closing the work.
+- Evaluate whether `/review` or `audit` should be used for each non-trivial spec
+  or implementation task, especially when the target flow already exists.
+- Prefer `/review` first when both checkpoints could fit the scope.
+- If neither checkpoint is used, say so explicitly in the working response and
+  give a brief reason for skipping it or discarding it for that scope.
+- Only surface findings that are medium or high severity; do not raise low
+  severity findings as active review/audit findings.
+- Before continuing past the relevant gate, explicitly ask the user whether
+  each surfaced finding should be addressed or discarded, then update the
+  review/audit record accordingly.
+- Do not fix findings directly just because they were found; implement fixes
+  only after the user chooses to address them.
 
 Post-release:
 

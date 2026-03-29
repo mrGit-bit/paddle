@@ -59,6 +59,9 @@ Use these rules:
 - Start new findings as `pending` unless the user says otherwise.
 - Mark a finding `accepted` only when the user explicitly accepts it.
 - Mark a finding `discarded` only when the user explicitly discards it.
+- Only surface findings that are medium or high severity as active findings in
+  the audit report; suppress low-severity suggestions instead of exporting
+  them.
 - A discarded finding may include a user-written explanation for why the
   current state is acceptable.
 - On later audits, read prior discarded explanations before repeating the same
@@ -88,6 +91,9 @@ Use this skill as part of the normal development loop, not only for cleanup.
 - Review the exported Markdown and mark findings `accepted`, `discarded`, or
   keep them `pending`.
 - Add a short explanation immediately for discarded findings.
+- Before continuing past a review/audit checkpoint, ask the user whether each
+  surfaced finding should be addressed or discarded, then update the same audit
+  file accordingly.
 - When the user asks Codex to solve accepted issues, update the same audit file
   instead of creating a disconnected second review artifact.
 - Prefer one audit file per module, view flow, or feature slice so decision
