@@ -9,6 +9,7 @@ The repo version covers the web app, mobile wrapper, and release/devops work.
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-03-31
 ### Changed
 
 - Release docs and governance now treat
