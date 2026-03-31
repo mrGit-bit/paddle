@@ -6,15 +6,23 @@ All notable changes to this repo are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 The repo version covers the web app, mobile wrapper, and release/devops work.
+Use stable domain prefixes within release bullets when a section mixes work
+types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
+`Mobile`, `Tests`, or `Docs`.
 
 ## [Unreleased]
 
 ### Changed
 
-- Release automation now verifies the requested app version on staging and
+- `Release`: Release automation now verifies the requested app version on staging and
   production after each remote deploy, and the tracked SSH update-command
   template now terminates cleanly instead of dropping into an interactive
   shell.
+- `Governance`: Governance now caps `docs/PROJECT_INSTRUCTIONS.md` with an explicit
+  character budget and moves overflow detail to higher-context docs so the file
+  remains loadable in ChatGPT Project instructions.
+- `Governance`: Changelog entries now use stable domain prefixes so mixed
+  releases stay easier to scan.
 
 ## [1.7.0] - 2026-03-31
 
