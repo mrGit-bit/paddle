@@ -15,6 +15,9 @@ Current Codex CLI behavior in this repository:
 
 - The working custom-prompt discovery path is
   `~/.codex/prompts/release.md`.
+- Bare `/release` is not a supported registration target in the current
+  `codex-cli 0.117.0` environment. Custom prompts are invoked through the
+  `/prompts:` namespace, so the working command is `/prompts:release`.
 - The checked-in file `.codex/commands/release.md` is a repository copy of the
   prompt content, but current Codex CLI builds in this environment do not
   auto-discover it as a repo-local slash command.
