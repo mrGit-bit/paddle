@@ -9,14 +9,17 @@ The repo version covers the web app, mobile wrapper, and release/devops work.
 
 ## [Unreleased]
 
-## [1.7.0] - 2026-03-31
-
 ### Changed
 
 - Release automation now verifies the requested app version on staging and
   production after each remote deploy, and the tracked SSH update-command
   template now terminates cleanly instead of dropping into an interactive
   shell.
+
+## [1.7.0] - 2026-03-31
+
+### Changed
+
 - Release docs and governance now treat
   `python scripts/release_orchestrator.py <version>` as the primary release
   entrypoint, with `/prompts:release <version>` documented only as an optional
