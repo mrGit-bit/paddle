@@ -109,7 +109,8 @@ Read this repository in this order when the task touches product behavior:
    and [plans](/workspaces/paddle/plans) created for that task, paired by
    shared `Task ID` tracking metadata and explicit `Plan` / `Spec` references.
    For small, low-risk documentation or governance updates, this may be skipped
-   only when the user has explicitly approved the reduced-process path first.
+   only when the higher-authority governance docs allow the reduced-process
+   path for that request.
 5. The relevant app code and tests.
 
 Quick routing:

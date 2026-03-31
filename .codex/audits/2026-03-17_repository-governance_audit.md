@@ -7,13 +7,13 @@
   `CHANGELOG.md`, `BACKLOG.md`, `RELEASE.md`, `specs/`, `plans/`,
   `plans/TEMPLATE.md`, `.codex/commands/release.md`, and
   `scripts/release_orchestrator.py`.
-- Audit date: 2026-03-27
+- Audit date: 2026-03-31
 - Reviewer: Codex via `governance-markdown-auditor`
 
-The top-level authority split is materially better than the earlier audit
-baseline. The remaining coordination findings from the previous revision are
-solved, and governance now also enforces lower-verbosity Markdown for
-changelog/spec/plan/release-history artifacts.
+The top-level authority split remains materially better than the earlier audit
+baseline. Most prior findings still hold as solved, but this review found one
+release-consolidation regression and one README authority-drift issue in the
+post-`v1.6.1` changes.
 
 ## Governance Findings
 
@@ -120,17 +120,20 @@ changelog/spec/plan/release-history artifacts.
 - Type: Confirmed issue
 - Severity: critical
 - Category: coordination
-- Evidence: `scripts/release_orchestrator.py` now parses tracking metadata and
-  consolidates only loose spec/plan files whose explicit `Release tag` matches
-  the requested release version. `RELEASE.md` now documents that prerequisite
-  and no longer describes consolidation as a sweep across all loose files.
+- Evidence: [scripts/release_orchestrator.py](/workspaces/paddle/scripts/release_orchestrator.py#L512)
+  now consolidates only loose files whose `Release tag` exactly matches the
+  requested `vX.Y.Z`. [RELEASE.md](/workspaces/paddle/RELEASE.md#L40),
+  [AGENTS.md](/workspaces/paddle/AGENTS.md#L60), and
+  [docs/PROJECT_INSTRUCTIONS.md](/workspaces/paddle/docs/PROJECT_INSTRUCTIONS.md#L84)
+  now align on the same explicit shipped-work selector.
 - Why it matters: The release-consolidation rule has no reliable provenance
   selector. A future release can misclassify active or unreleased SDD artifacts
   as shipped history and remove the loose source files, which makes the release
   record untrustworthy.
-- Recommended minimal fix: Add explicit release provenance for each spec/plan
-  that should be consolidated, or require consolidation from a curated release
-  manifest instead of sweeping all loose non-release artifacts.
+- Recommended minimal fix: Restore an explicit shipped-work selector for
+  consolidation. For example, require a curated release manifest or a
+  pre-consolidation step that marks only the actually shipped loose files with
+  the requested `vX.Y.Z`, then consolidate only exact matches.
 - Discard explanation:
 
 ### Finding GF-008
@@ -148,6 +151,24 @@ changelog/spec/plan/release-history artifacts.
   narrative.
 - Recommended minimal fix: Keep Markdown compact by default, especially in
   changelog entries, active specs/plans, and consolidated release history.
+- Discard explanation:
+
+### Finding GF-009
+
+- Status: solved
+- Type: Confirmed issue
+- Severity: major
+- Category: boundary
+- Evidence: [README.md](/workspaces/paddle/README.md#L107) now defers the
+  reduced-process rule to the higher-authority governance docs instead of
+  restating the stale “explicit approval first” variant.
+- Why it matters: README is the repository orientation document that agents are
+  told to read early. When it restates execution mechanics incorrectly, it
+  becomes a competing source of truth and can drive inconsistent behavior on
+  minor documentation or governance tasks.
+- Recommended minimal fix: Remove that execution-detail sentence from README or
+  align it exactly with the higher-authority rule instead of restating a stale
+  variant.
 - Discard explanation:
 
 ## Ownership Map
@@ -191,10 +212,36 @@ changelog/spec/plan/release-history artifacts.
 
 ## Coordination Gaps
 
-- None at the current repository-governance scope after the implemented fixes.
+- Gap: Release consolidation no longer has a reliable shipped-work selector
+  once multiple loose files share `Release tag: unreleased`.
+  - Evidence: [scripts/release_orchestrator.py](/workspaces/paddle/scripts/release_orchestrator.py#L527)
+    selects `unreleased` sources for any requested version and
+    [scripts/release_orchestrator.py](/workspaces/paddle/scripts/release_orchestrator.py#L616)
+    rewrites and deletes them during consolidation.
+  - Recommended minimal fix: Select shipped loose files explicitly before
+    consolidation instead of treating all `unreleased` files as part of the
+    current release.
+- Gap: README repeats an execution rule that has already changed in the owner
+  docs.
+  - Evidence: [README.md](/workspaces/paddle/README.md#L107),
+    [AGENTS.md](/workspaces/paddle/AGENTS.md#L71), and
+    [docs/PROJECT_INSTRUCTIONS.md](/workspaces/paddle/docs/PROJECT_INSTRUCTIONS.md#L67)
+    disagree on whether an extra confirmation turn is required for clearly
+    minor reduced-process edits.
+  - Recommended minimal fix: Keep README focused on routing, or align any
+    execution-detail restatements exactly with the owner docs.
 
 ## Rewrite Plan
 
+- Step: Restore explicit provenance selection before release consolidation.
+  - Goal: Prevent unrelated in-progress loose specs/plans from being stamped,
+    archived, and deleted as shipped history.
+  - Files primarily affected: `scripts/release_orchestrator.py`, `RELEASE.md`,
+    `AGENTS.md`, and `docs/PROJECT_INSTRUCTIONS.md`.
+- Step: Remove stale execution-detail duplication from README.
+  - Goal: Keep README as routing/orientation instead of a competing execution
+    authority.
+  - Files primarily affected: `README.md`.
 - Step: Preserve the compact Markdown rule on new governance/history edits.
   - Goal: Keep changelog/spec/plan artifacts fast to scan.
   - Files primarily affected: `CHANGELOG.md`, `specs/`, `plans/`,

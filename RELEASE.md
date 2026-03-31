@@ -40,8 +40,10 @@ fallback: `python scripts/release_orchestrator.py 1.6.0`.
 - Current branch is `develop`.
 - `git status --short` is clean.
 - Local `develop` is synchronized with `origin/develop`.
-- Loose non-release spec/plan files pending release should normally still be
-  marked `Release tag: \`unreleased\``.
+- Loose spec/plan files being shipped in the release are already marked with
+  `Release tag: \`vX.Y.Z\`` matching the requested version.
+- Unrelated in-progress loose spec/plan files remain on
+  `Release tag: \`unreleased\`` and are not touched by consolidation.
 - `gh` is installed and authenticated.
 - `ssh` is installed.
 - Repo-local SSH config exists at `.codex/private/release_ssh/config`.
@@ -125,12 +127,10 @@ The command always uses `ssh -F .codex/private/release_ssh/config`.
 9. Deploy production with `ssh -F .codex/private/release_ssh/config
    prod-update`.
 10. Back-merge `origin/main` into local `develop`.
-11. Stamp the matched loose spec files from `Release tag: unreleased` to the
-    shipped `vX.Y.Z`, then consolidate them into
-    `specs/release-X.Y.Z-consolidated.md`.
-12. Stamp the matched loose plan files from `Release tag: unreleased` to the
-    shipped `vX.Y.Z`, then consolidate them into
-    `plans/release-X.Y.Z-consolidated.md`.
+11. Consolidate only the loose spec files explicitly marked with
+    `Release tag: vX.Y.Z` into `specs/release-X.Y.Z-consolidated.md`.
+12. Consolidate only the loose plan files explicitly marked with
+    `Release tag: vX.Y.Z` into `plans/release-X.Y.Z-consolidated.md`.
 13. Review `CHANGELOG.md` for `## [X.Y.Z]` and keep that section as a simple,
     light summary of shipped changes.
 14. Print a human-readable release report.
@@ -146,10 +146,11 @@ If a planned version never reaches production, do not keep a synthetic release
 record for it. Fold its unshipped specs, plans, and changelog notes into the
 next production release that actually ships that work.
 
-Loose active specs/plans should not guess the next version number in advance.
-Keep `Release tag: unreleased` until the release command runs.
-During release consolidation, also review the release changelog section and
-compress it when needed so release history stays easy to scan.
+Loose active specs/plans should default to `Release tag: unreleased` during
+development. Before running the release flow, mark only the actually shipped
+loose files with the requested `vX.Y.Z`. During release consolidation, also
+review the release changelog section and compress it when needed so release
+history stays easy to scan.
 
 ## Manual Functional Checks for Staging
 

@@ -20,7 +20,8 @@ The repo version covers the web app, mobile wrapper, and release/devops work.
   changelog section and keeping it as a simple, light summary of shipped
   changes.
 - Loose non-release specs/plans now default to `Release tag: unreleased`; the
-  release command stamps the actual shipped `vX.Y.Z` during consolidation.
+  release flow now consolidates only loose files explicitly marked with the
+  shipped `vX.Y.Z`.
 - Folded non-shipped `1.6.0` history into `1.6.1` and cleared the remaining
   loose historical spec/plan files.
 - Reduced Markdown verbosity across governance docs, active specs/plans,
@@ -39,6 +40,8 @@ The repo version covers the web app, mobile wrapper, and release/devops work.
   together using the existing partner tie-break rules.
 - Governance now makes `/plan` more question-heavy by default after exploration
   for non-trivial planning work.
+- README now aligns its reduced-process guidance with the higher-authority
+  governance docs.
 
 ## [1.6.1] - 2026-03-27
 

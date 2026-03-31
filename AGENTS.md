@@ -59,12 +59,14 @@ Execution rules:
 6. Keep implementation aligned with the approved scope; no scope expansion.
 7. Loose non-release specs and plans must carry explicit `Release tag`
    tracking metadata and default to `unreleased` while work is still pending
-   release. During release consolidation, `/prompts:release <version>` assigns
-   the shipped `vX.Y.Z` to the matched loose files, reviews the changelog
-   section for that release, and keeps that section as a light summary of
-   shipped changes. If a planned release never reaches production, do not keep
-   a standalone release record for it; roll its unshipped loose files and
-   changelog notes into the next production release that actually ships them.
+   release. Before release consolidation, mark only the actually shipped loose
+   files with the target `vX.Y.Z`. During consolidation,
+   `/prompts:release <version>` folds only those exact-match files into the
+   shipped release record, reviews the changelog section for that release, and
+   keeps that section as a light summary of shipped changes. If a planned
+   release never reaches production, do not keep a standalone release record
+   for it; roll its unshipped loose files and changelog notes into the next
+   production release that actually ships them.
 
 Simple-change exception:
 
@@ -117,13 +119,13 @@ Post-release:
 - After a successful tagged release and back-merge from `main` to `develop`,
   perform any pending spec/plan consolidation for that release before starting
   new SDD work. Use the shipped production release as the historical record:
-  loose files stay on `Release tag: unreleased` until the release command
-  stamps the shipped version during consolidation. Review the changelog section
-  for that release in the same step and rewrite it as a simple, light summary
-  when needed. When a planned version never entered production, its unshipped
-  loose spec/plan files and notes must be absorbed into the next production
-  release that actually shipped them instead of being archived under the
-  non-shipped version.
+  only loose files explicitly marked with the shipped `vX.Y.Z` are
+  consolidated for that release. Review the changelog section for that release
+  in the same step and rewrite it as a simple, light summary when needed. When
+  a planned version never entered production, its unshipped loose spec/plan
+  files and notes must be absorbed into the next production release that
+  actually shipped them instead of being archived under the non-shipped
+  version.
 
 ## 4. Handoff Requirements
 

@@ -152,7 +152,7 @@ def test_collect_release_sources_only_includes_requested_release_tag(tmp_path):
         "## Tracking\n\n"
         "- Task ID: `release-slash-command`\n"
         "- Plan: `plans/2026-03-16_release-slash-command.md`\n"
-        "- Release tag: `unreleased`\n",
+        "- Release tag: `v1.6.0`\n",
         encoding="utf-8",
     )
     second = tmp_path / "023-future-scope.md"
@@ -212,7 +212,7 @@ def test_collect_release_sources_excludes_named_template_files(tmp_path):
     assert selection.skipped == []
 
 
-def test_rewrite_release_tag_updates_unreleased_source(tmp_path):
+def test_collect_release_sources_skips_unreleased_files(tmp_path):
     source = tmp_path / "031-example.md"
     source.write_text(
         "# Example\n\n"
@@ -223,10 +223,15 @@ def test_rewrite_release_tag_updates_unreleased_source(tmp_path):
         encoding="utf-8",
     )
 
-    changed = release_orchestrator.rewrite_release_tag(source, "v1.7.0")
+    selection = release_orchestrator.collect_release_sources(
+        tmp_path,
+        "[0-9][0-9][0-9]-*.md",
+        set(),
+        release_tag="v1.7.0",
+    )
 
-    assert changed is True
-    assert "- Release tag: `v1.7.0`" in source.read_text(encoding="utf-8")
+    assert selection.matched == []
+    assert selection.skipped == [source]
 
 
 def test_run_command_retries_gh_without_invalid_env_tokens(monkeypatch):

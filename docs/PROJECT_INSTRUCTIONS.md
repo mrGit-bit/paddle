@@ -85,12 +85,14 @@ Active-work rule:
   instead of requiring generic manual discovery.
 - Loose non-release specs and plans must carry explicit `Release tag` tracking
   metadata and default to `unreleased` while work is still pending release.
-  During release consolidation, `/prompts:release <version>` assigns the
-  shipped `vX.Y.Z` to the matched loose files, reviews the changelog section
-  for that release, and keeps that section as a light summary of shipped
-  changes. If a planned release never reaches production, do not keep a
-  standalone release record for it; roll its unshipped loose files and
-  changelog notes into the next production release that actually ships them.
+  Before release consolidation, mark only the actually shipped loose files with
+  the target `vX.Y.Z`. During consolidation, `/prompts:release <version>`
+  folds only those exact-match files into the shipped release record, reviews
+  the changelog section for that release, and keeps that section as a light
+  summary of shipped changes. If a planned release never reaches production, do
+  not keep a standalone release record for it; roll its unshipped loose files
+  and changelog notes into the next production release that actually ships
+  them.
 
 Additional rules:
 
@@ -122,8 +124,9 @@ Additional rules:
   auto-discovers or supports it. Verify the current environment first.
 - After a successful tagged release and back-merge from `main` to `develop`,
   consolidate the released SDD files into `specs/release-X.Y.Z-consolidated.md`
-  and `plans/release-X.Y.Z-consolidated.md` before new SDD work begins. Review
-  the release changelog section in the same step and keep it simple and light.
+  and `plans/release-X.Y.Z-consolidated.md` before new SDD work begins, using
+  only loose files explicitly marked with the shipped `vX.Y.Z`. Review the
+  release changelog section in the same step and keep it simple and light.
 
 ## 5. Delivery and Coordination
 
