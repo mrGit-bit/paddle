@@ -21,8 +21,6 @@ NO_CHECKS_REPORTED_RE = re.compile(r"no checks reported on the .+ branch", re.IG
 TRACKING_LINE_RE = re.compile(r"^- (?P<field>Task ID|Plan|Spec|Release tag):\s*`(?P<value>[^`]+)`\s*$")
 SAFE_PRIVATE_KEY_GROUP_OR_WORLD_MASK = 0o077
 DEFAULT_PRIVATE_KEY_MODE = 0o600
-
-
 class ReleaseError(RuntimeError):
     """Raised when the automated release flow cannot continue."""
 
@@ -234,7 +232,7 @@ def ensure_clean_synced_develop(context: ReleaseContext) -> None:
     status = run_command(["git", "status", "--short"], cwd=cwd).stdout.strip()
     if status:
         raise ReleaseError(
-            "Working tree is not clean. Stage, commit, or discard pending changes before /release."
+            "Working tree is not clean. Stage, commit, or discard pending changes before /prompts:release."
         )
 
     run_command(["git", "fetch", "origin"], cwd=cwd)
@@ -245,7 +243,7 @@ def ensure_clean_synced_develop(context: ReleaseContext) -> None:
     behind, ahead = [int(part) for part in counts.split()]
     if behind or ahead:
         raise ReleaseError(
-            "Local develop is not synchronized with origin/develop. Pull or push pending commits before /release."
+            "Local develop is not synchronized with origin/develop. Pull or push pending commits before /prompts:release."
         )
 
 
@@ -519,7 +517,8 @@ def collect_release_sources(
         if path.name.startswith("release-"):
             continue
         metadata = parse_tracking_metadata(path)
-        if metadata.get("Release tag") == release_tag:
+        source_release_tag = metadata.get("Release tag")
+        if source_release_tag == release_tag:
             matched.append(path)
         else:
             skipped.append(path)

@@ -62,10 +62,9 @@
           </small>  
 
           <!-- Buttons for user matches -->
-          {% if match in user_matches %}          
+          {% if match in user_matches %}
           <div class="ms-auto">
-              
-            <!-- Delete Button -->
+            {% if not match.is_locked %}
               <form method="post" action="{% url 'match' %}" class="d-inline delete-form">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="delete">
@@ -77,6 +76,11 @@
                   <i class="bi bi-trash"></i>
                 </button>
               </form>
+            {% else %}
+              <button type="button" class="btn btn-secondary btn-sm" disabled>
+                <i class="bi bi-"></i>
+              </button>
+            {% endif %}
 
             </div>
           {% endif %}
@@ -86,4 +90,3 @@
     </div>
   </div>
 </div>
-

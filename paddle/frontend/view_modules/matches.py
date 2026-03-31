@@ -56,6 +56,10 @@ def _with_match_players(queryset):
     )
 
 
+def _match_window_floor():
+    return Match.editable_date_floor()
+
+
 @login_required
 def match_view(request, client=None):
     """
@@ -95,6 +99,13 @@ def match_view(request, client=None):
 
             if not (request.user.is_staff or is_participant):
                 messages.error(request, "No estás autorizado para borrar este partido.")
+                return redirect("match")
+
+            if match.is_locked():
+                messages.error(
+                    request,
+                    "Este partido ya ha sido aprobado automáticamente y no se puede borrar.",
+                )
                 return redirect("match")
 
             match.delete()
@@ -156,6 +167,14 @@ def match_view(request, client=None):
             messages.error(request, "La fecha no puede ser futura.")
             return redirect("match")
 
+        min_date_allowed = _match_window_floor()
+        if date_played < min_date_allowed:
+            messages.error(
+                request,
+                "Solo se pueden añadir partidos jugados en los últimos 30 días.",
+            )
+            return redirect("match")
+
         team1_sorted = sorted([team1_player1.id, team1_player2.id])
         team2_sorted = sorted([team2_player1.id, team2_player2.id])
 
@@ -212,6 +231,7 @@ def match_view(request, client=None):
     user_matches = process_matches(user_matches, request.user.username, user_icon)
 
     today = date.today().isoformat()
+    min_match_date = _match_window_floor().isoformat()
 
     context = {
         "all_players": all_players,
@@ -224,6 +244,8 @@ def match_view(request, client=None):
         "new_match_ids": new_match_ids,
         "new_matches_number": len(new_match_ids),
         "today": today,
+        "min_match_date": min_match_date,
+        "match_window_days": Match.APPROVAL_WINDOW_DAYS,
         "error": None,
     }
 

@@ -75,8 +75,9 @@ reintroduced.
   unreleased documented changes.
 - [BACKLOG.md](/workspaces/paddle/BACKLOG.md): pending work inventory.
 - [RELEASE.md](/workspaces/paddle/RELEASE.md): release flow and fallback tools.
-  The release custom prompt command is `/prompts:release`, and the version
-  argument should be passed as `x.y.z` or `vx.y.z`.
+  The primary release entrypoint is
+  `python scripts/release_orchestrator.py <version>`, with
+  `/prompts:release <version>` as an optional wrapper.
 - [paddle/config/__init__.py](/workspaces/paddle/paddle/config/__init__.py):
   runtime version source.
 - [paddle/frontend/services/ranking.py](/workspaces/paddle/paddle/frontend/services/ranking.py):
@@ -89,6 +90,13 @@ reintroduced.
   plans.
 - [specs](/workspaces/paddle/specs): active specs and consolidated release
   specs.
+- Consolidated release files represent shipped production history only. If a
+  planned version never ships, its loose historical artifacts roll into the
+  next production release that actually shipped them.
+- Loose active specs/plans should keep `Release tag: unreleased` until the
+  release command stamps the shipped version.
+- Specs, plans, and consolidated release files are intentionally schematic;
+  keep them compact instead of using them as long-form narrative docs.
 
 ## Codex CLI Guide
 
@@ -102,7 +110,8 @@ Read this repository in this order when the task touches product behavior:
    and [plans](/workspaces/paddle/plans) created for that task, paired by
    shared `Task ID` tracking metadata and explicit `Plan` / `Spec` references.
    For small, low-risk documentation or governance updates, this may be skipped
-   only when the user has explicitly approved the reduced-process path first.
+   only when the higher-authority governance docs allow the reduced-process
+   path for that request.
 5. The relevant app code and tests.
 
 Quick routing:

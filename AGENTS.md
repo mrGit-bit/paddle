@@ -1,7 +1,7 @@
 # AGENTS.md — Codex Execution Rules
 
-Instruction Set Version: 2.2.21  
-Last Updated: 2026-03-25
+Instruction Set Version: 2.2.28  
+Last Updated: 2026-03-31
 
 ## 1. Authority and File Roles
 
@@ -58,18 +58,42 @@ Execution rules:
 5. Do not implement before both current active-work artifacts are approved.
 6. Keep implementation aligned with the approved scope; no scope expansion.
 7. Loose non-release specs and plans must carry explicit `Release tag`
-   tracking metadata. Post-release consolidation includes only files whose
-   `Release tag` matches the released version.
+   tracking metadata and default to `unreleased` while work is still pending
+   release. Before release consolidation, mark only the actually shipped loose
+   files with the target `vX.Y.Z`. During consolidation,
+   `python scripts/release_orchestrator.py <version>` folds only those
+   exact-match files into the shipped release record, reviews the changelog
+   section for that release, and keeps that section as a light summary of
+   shipped changes. If a planned release never reaches production, do not keep
+   a standalone release record for it; roll its unshipped loose files and
+   changelog notes into the next production release that actually ships them.
 
 Simple-change exception:
 
 - For small, low-risk changes with narrow scope, such as straightforward
   documentation, governance, or repository-guidance edits, Codex CLI may skip
   creating spec and plan files.
-- Codex must first ask a confirmation question and receive approval for that
-  reduced-process path before editing files.
+- If the requested change is clearly minor and fits that reduced-process path,
+  Codex may proceed directly without an extra confirmation turn.
 - If the task grows beyond that narrow change set, stop using the exception and
   return to the normal approved spec and plan workflow.
+
+Planning behavior:
+
+- In `/plan` or any planning-only workflow, explore first, then bias toward a
+  question-heavy planning loop before finalizing the plan.
+- Do not jump straight from exploration to a completed plan when meaningful
+  product, UX, or implementation preferences could still be confirmed with the
+  user.
+- After exploration, summarize the discovered context and ask follow-up
+  questions that lock preferences or tradeoffs even when a reasonable default
+  seems likely.
+- Prefer at least one round of preference-locking questions for non-trivial
+  planning work and a second round when implementation choices would otherwise
+  be left to inference.
+- Only skip those extra planning questions when the remaining decisions are
+  truly mechanical or already explicitly settled by the user or repository
+  governance.
 
 Quality checkpoints:
 
@@ -77,15 +101,31 @@ Quality checkpoints:
   scoped change set.
 - `audit` is for deeper governance, security, reuse, and maintainability
   inspection.
-- Use either when useful, prefer `/review` first when both make sense, and fix
-  accepted findings before moving past the relevant gate or closing the work.
+- Evaluate whether `/review` or `audit` should be used for each non-trivial spec
+  or implementation task, especially when the target flow already exists.
+- Prefer `/review` first when both checkpoints could fit the scope.
+- If neither checkpoint is used, say so explicitly in the working response and
+  give a brief reason for skipping it or discarding it for that scope.
+- Only surface findings that are medium or high severity; do not raise low
+  severity findings as active review/audit findings.
+- Before continuing past the relevant gate, explicitly ask the user whether
+  each surfaced finding should be addressed or discarded, then update the
+  review/audit record accordingly.
+- Do not fix findings directly just because they were found; implement fixes
+  only after the user chooses to address them.
 
 Post-release:
 
 - After a successful tagged release and back-merge from `main` to `develop`,
   perform any pending spec/plan consolidation for that release before starting
-  new SDD work, using only loose spec/plan files explicitly marked with that
-  release tag.
+  new SDD work. Use the shipped production release as the historical record:
+  only loose files explicitly marked with the shipped `vX.Y.Z` are
+  consolidated for that release. Review the changelog section for that release
+  in the same step and rewrite it as a simple, light summary when needed. When
+  a planned version never entered production, its unshipped loose spec/plan
+  files and notes must be absorbed into the next production release that
+  actually shipped them instead of being archived under the non-shipped
+  version.
 
 ## 4. Handoff Requirements
 
@@ -106,6 +146,9 @@ Before any commit, push, or closure step:
 - If not, ask: `Do you want me to proceed with staging changes, committing with
   the recommended commit message, pushing to the remote branch, and closing the
   current development cycle?`
+- Exception: if the user explicitly says `close cycle`, `close specification`,
+  or gives equivalent direct closure authorization, treat that as approval to
+  stage, commit, and push without asking the extra confirmation question.
 
 If the user confirms closure:
 
@@ -123,6 +166,14 @@ If the user confirms closure:
 
 For changed Markdown files:
 
+- Keep new or rewritten Markdown light and schematic by default.
+- Prefer short sections, direct bullets, compact summaries, and no duplicate
+  restatement.
+- `CHANGELOG.md` should record shipped outcomes, not process narration.
+- Loose specs/plans should capture only the scope, constraints, and checks
+  needed to execute the task.
+- Consolidated release files should be compact provenance records, not embedded
+  copies of prior source files.
 - Do not add `markdownlint-disable` directives unless explicitly requested.
 - Keep `MD022` and `MD032` compliant.
 - Treat `MD013` as non-blocking.
