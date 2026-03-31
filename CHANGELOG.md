@@ -11,6 +11,10 @@ The repo version covers the web app, mobile wrapper, and release/devops work.
 
 ### Changed
 
+- Release docs and governance now treat
+  `python scripts/release_orchestrator.py <version>` as the primary release
+  entrypoint, with `/prompts:release <version>` documented only as an optional
+  wrapper.
 - Governance now lets clearly minor doc/governance/repository-guidance changes
   use the reduced-process path without an extra confirmation turn.
 - Governance now treats direct user closure commands such as `close cycle` or

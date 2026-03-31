@@ -25,7 +25,8 @@ Rules:
   that belong to the requested scope: remove them from this list and ensure the
   implemented result is reflected in [CHANGELOG.md](CHANGELOG.md).
 - This reconciliation is owned by development-cycle closure, not by
-  `/prompts:release` unless the release workflow explicitly says otherwise.
+  `python scripts/release_orchestrator.py <version>` unless the release
+  workflow explicitly says otherwise.
 
 | Requirement | IMP. | SIMP. | PRI. |
 | --- | --- | --- | --- |

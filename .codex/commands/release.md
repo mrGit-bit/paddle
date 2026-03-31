@@ -1,6 +1,8 @@
 # Release
 
 Run the repository release automation for the supplied version argument.
+This slash command is an optional wrapper around the primary entrypoint
+`python scripts/release_orchestrator.py <version>`.
 
 Command:
 

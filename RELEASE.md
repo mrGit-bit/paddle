@@ -1,32 +1,36 @@
 # Release Process
 
 This repository uses a command-first release flow through
-`/prompts:release <version>`.
+`python scripts/release_orchestrator.py <version>`.
 
 ## Command
 
-- Command: `/prompts:release`
+- Primary command: `python scripts/release_orchestrator.py`
 - Argument: `x.y.z` or `vx.y.z`
 - Examples:
-  - `/prompts:release 1.6.0`
-  - `/prompts:release v1.6.0`
+  - `python scripts/release_orchestrator.py 1.6.0`
+  - `python scripts/release_orchestrator.py v1.6.0`
 
 Current Codex CLI behavior in this repository:
 
+- The direct script is the primary supported entrypoint and should be used for
+  normal release work.
 - The working custom-prompt discovery path is
   `~/.codex/prompts/release.md`.
 - Bare `/release` is not a supported registration target in the current
   `codex-cli 0.117.0` environment. Custom prompts are invoked through the
-  `/prompts:` namespace, so the working command is `/prompts:release`.
+  `/prompts:` namespace, so the optional wrapper command is
+  `/prompts:release`.
 - The checked-in file `.codex/commands/release.md` is a repository copy of the
   prompt content, but current Codex CLI builds in this environment do not
   auto-discover it as a repo-local slash command.
-- If the user-level prompt is not installed, run the orchestrator directly:
-  `python scripts/release_orchestrator.py <version>`.
 
 Both entrypoints call the same orchestrator.
 
 ## Custom Prompt Setup
+
+This setup is optional. Use it only if you want the slash-command wrapper in
+addition to the direct script.
 
 1. Create the user prompt directory if it does not exist:
    `mkdir -p ~/.codex/prompts`
@@ -35,8 +39,8 @@ Both entrypoints call the same orchestrator.
 3. Start a fresh Codex session in the repository.
 4. Run `/prompts:release <version>`, for example `1.6.0` or `v1.6.0`.
 
-If Codex still does not recognize `/prompts:release`, use the direct script
-fallback: `python scripts/release_orchestrator.py 1.6.0`.
+If Codex does not recognize `/prompts:release`, use the primary command
+instead: `python scripts/release_orchestrator.py 1.6.0`.
 
 ## Prerequisites
 

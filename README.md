@@ -75,8 +75,9 @@ reintroduced.
   unreleased documented changes.
 - [BACKLOG.md](/workspaces/paddle/BACKLOG.md): pending work inventory.
 - [RELEASE.md](/workspaces/paddle/RELEASE.md): release flow and fallback tools.
-  The release custom prompt command is `/prompts:release`, and the version
-  argument should be passed as `x.y.z` or `vx.y.z`.
+  The primary release entrypoint is
+  `python scripts/release_orchestrator.py <version>`, with
+  `/prompts:release <version>` as an optional wrapper.
 - [paddle/config/__init__.py](/workspaces/paddle/paddle/config/__init__.py):
   runtime version source.
 - [paddle/frontend/services/ranking.py](/workspaces/paddle/paddle/frontend/services/ranking.py):

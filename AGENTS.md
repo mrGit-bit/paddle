@@ -1,7 +1,7 @@
 # AGENTS.md — Codex Execution Rules
 
-Instruction Set Version: 2.2.27  
-Last Updated: 2026-03-29
+Instruction Set Version: 2.2.28  
+Last Updated: 2026-03-31
 
 ## 1. Authority and File Roles
 
@@ -61,12 +61,12 @@ Execution rules:
    tracking metadata and default to `unreleased` while work is still pending
    release. Before release consolidation, mark only the actually shipped loose
    files with the target `vX.Y.Z`. During consolidation,
-   `/prompts:release <version>` folds only those exact-match files into the
-   shipped release record, reviews the changelog section for that release, and
-   keeps that section as a light summary of shipped changes. If a planned
-   release never reaches production, do not keep a standalone release record
-   for it; roll its unshipped loose files and changelog notes into the next
-   production release that actually ships them.
+   `python scripts/release_orchestrator.py <version>` folds only those
+   exact-match files into the shipped release record, reviews the changelog
+   section for that release, and keeps that section as a light summary of
+   shipped changes. If a planned release never reaches production, do not keep
+   a standalone release record for it; roll its unshipped loose files and
+   changelog notes into the next production release that actually ships them.
 
 Simple-change exception:
 
