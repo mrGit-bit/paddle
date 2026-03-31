@@ -1,7 +1,7 @@
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.2.21  
-Last Updated: 2026-03-25
+Instruction Set Version: 2.2.28  
+Last Updated: 2026-03-31
 
 This file mirrors the repository governance subset kept in ChatGPT Project
 instructions and must remain under 8000 characters.
@@ -67,9 +67,9 @@ Simple-change exception:
 - For small, low-risk changes with narrow scope, such as straightforward
   documentation, governance, or repository-guidance edits, Codex CLI may skip
   creating spec and plan files.
-- In those cases, Codex must first confirm the reduced-process path with the
-  user, then proceed directly with the requested Markdown or repository-doc
-  edits.
+- In those cases, if the request is clearly minor, Codex may proceed directly
+  with the requested Markdown or repository-doc edits without an extra
+  confirmation turn.
 - If the scope expands beyond that narrow change set, return to the standard
   approved spec and plan flow before continuing implementation.
 
@@ -84,8 +84,15 @@ Active-work rule:
 - When repository context is needed, README should point to this lookup rule
   instead of requiring generic manual discovery.
 - Loose non-release specs and plans must carry explicit `Release tag` tracking
-  metadata. Post-release consolidation includes only files whose `Release tag`
-  matches the released version.
+  metadata and default to `unreleased` while work is still pending release.
+  Before release consolidation, mark only the actually shipped loose files with
+  the target `vX.Y.Z`. During consolidation,
+  `python scripts/release_orchestrator.py <version>` folds only those
+  exact-match files into the shipped release record, reviews the changelog
+  section for that release, and keeps that section as a light summary of
+  shipped changes. If a planned release never reaches production, do not keep a
+  standalone release record for it; roll its unshipped loose files and
+  changelog notes into the next production release that actually ships them.
 
 Additional rules:
 
@@ -93,13 +100,33 @@ Additional rules:
   the approved-spec requirement.
 - In Plan Mode, product code stays frozen; requested Markdown updates are
   allowed.
-- Use `/review` and `$audit` only when useful for the approved scope, and fix
-  accepted findings before advancing past the relevant gate or closing the work.
+- In `/plan` or other planning-only workflows, explore first, then bias toward
+  a question-heavy planning loop before finalizing the plan.
+- After exploration, summarize the discovered context and ask follow-up
+  questions to lock product, UX, or implementation preferences when the work is
+  non-trivial, even if a reasonable default seems likely.
+- Only skip those extra planning questions when the remaining decisions are
+  truly mechanical or already explicitly settled by the user or repository
+  governance.
+- Evaluate whether `/review` or `$audit` should be used for each non-trivial
+  spec or implementation task, especially when the target flow already exists.
+- Prefer `/review` first when both checkpoints could fit the approved scope.
+- If neither checkpoint is used, say so explicitly in the working response and
+  give a brief reason for skipping it or discarding it for that scope.
+- Only surface findings that are medium or high severity; do not raise low
+  severity findings as active review/audit findings.
+- Before advancing past the relevant gate, explicitly ask the user whether each
+  surfaced finding should be addressed or discarded, then update the
+  review/audit record accordingly.
+- Do not fix findings directly just because they were found; implement fixes
+  only after the user chooses to address them.
 - Do not treat a checked-in integration file as proof that the current tool
   auto-discovers or supports it. Verify the current environment first.
 - After a successful tagged release and back-merge from `main` to `develop`,
   consolidate the released SDD files into `specs/release-X.Y.Z-consolidated.md`
-  and `plans/release-X.Y.Z-consolidated.md` before new SDD work begins.
+  and `plans/release-X.Y.Z-consolidated.md` before new SDD work begins, using
+  only loose files explicitly marked with the shipped `vX.Y.Z`. Review the
+  release changelog section in the same step and keep it simple and light.
 
 ## 5. Delivery and Coordination
 
@@ -115,9 +142,19 @@ Additional rules:
   committed, pushed, and `git status --short` is clean.
 - If the user wants to continue developing, do not commit yet.
 - If the user confirms commit/push/closure, perform that flow in the same turn.
+- Treat direct user commands such as `close cycle`, `close specification`, or
+  equivalent explicit closure wording as commit/push/closure confirmation; do
+  not ask the extra confirmation question in that case.
 
 ## 6. Markdown Rules
 
+- Keep new or rewritten Markdown light and schematic by default.
+- Prefer short sections, direct bullets, and compact summaries over narrative
+  expansion.
+- `CHANGELOG.md` should record outcomes, not process narration.
+- Specs/plans should capture only the scope, constraints, and checks needed
+  for execution.
+- Consolidated release files should stay as compact provenance summaries.
 - Do not add `markdownlint-disable` directives unless explicitly requested.
 - Enforce `MD022` and `MD032`.
 - Treat `MD013` as non-blocking.

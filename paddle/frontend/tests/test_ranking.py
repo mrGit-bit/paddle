@@ -278,3 +278,31 @@ def test_all_scope_persisted_ranking_positions_match_canonical_display_positions
 
     assert z in unranked
     assert persisted_positions[z.id] == 0
+
+
+def test_hall_of_fame_pagination_links_do_not_persist_sort_state(client):
+    target = Player.objects.create(name="SortTarget", gender="M")
+    players = [Player.objects.create(name=f"Sort{idx:02d}", gender="M") for idx in range(1, 14)]
+    filler1 = Player.objects.create(name="SORT_FILLER_WIN", gender="M")
+    filler2 = Player.objects.create(name="SORT_FILLER_LOSE1", gender="M")
+    filler3 = Player.objects.create(name="SORT_FILLER_LOSE2", gender="M")
+
+    base = date.today() - timedelta(days=20)
+    for idx, player in enumerate(players + [target]):
+        Match.objects.create(
+            team1_player1=player,
+            team1_player2=filler1,
+            team2_player1=filler2,
+            team2_player2=filler3,
+            winning_team=1,
+            date_played=base + timedelta(days=idx),
+        )
+
+    response = client.get(reverse("ranking_male"))
+    content = response.content.decode("utf-8")
+
+    assert response.status_code == 200
+    assert 'href="?page=2"' in content
+    assert "sort=" not in content
+    assert "data-canonical-index=" in content
+    assert "data-position=" in content

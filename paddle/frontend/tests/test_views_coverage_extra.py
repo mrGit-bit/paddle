@@ -174,6 +174,19 @@ def test_match_view_delete_missing_match_id_covers_405_406():
     assert any("falta el identificador" in str(m) for m in msgs)
 
 
+def test_match_view_get_exposes_match_window_bounds():
+    user, player = mk_user_with_player("u_window", "M")
+
+    client.login(username="u_window", password="pass")
+    url = reverse("match")
+
+    resp = client.get(url)
+
+    assert resp.status_code == 200
+    assert f'min="{(date.today() - timedelta(days=30)).isoformat()}"' in resp.content.decode("utf-8")
+    assert "últimos 30 días" in resp.content.decode("utf-8")
+
+
 def test_match_view_resolve_player_new_missing_name_covers_448_449():
     # Covers 448-449: NEW_* chosen but missing name
     user, player = mk_user_with_player("u_newmiss", "M")
@@ -216,6 +229,31 @@ def test_match_view_resolve_player_creates_new_player_covers_455_457():
     resp = client.post(url, data=data, follow=True)
 
     assert Player.objects.filter(name="NEW_CREATED").exists()
+
+
+def test_match_view_get_hides_delete_button_for_locked_user_match():
+    user, player = mk_user_with_player("u_locked_ui", "M")
+    p2 = Player.objects.create(name="UI_LOCK_2", gender="M")
+    p3 = Player.objects.create(name="UI_LOCK_3", gender="M")
+    p4 = Player.objects.create(name="UI_LOCK_4", gender="M")
+    locked_match = mk_match(
+        player,
+        p2,
+        p3,
+        p4,
+        winning_team=1,
+        d=date.today() - timedelta(days=31),
+    )
+
+    client.login(username="u_locked_ui", password="pass")
+    url = reverse("match")
+
+    resp = client.get(url)
+    body = resp.content.decode("utf-8")
+
+    assert resp.status_code == 200
+    assert "Aprobado automáticamente" in body
+    assert f'name="match_id" value="{locked_match.id}"' not in body
 
 
 def test_match_view_invalid_player_id_covers_462_463():

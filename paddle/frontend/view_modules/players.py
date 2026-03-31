@@ -38,7 +38,7 @@ def _compute_win_rate_percent(wins: int, matches: int) -> int:
 
 def build_player_insights(player):
     """
-    Build trend, top partner and top rivals insights for a player.
+    Build trend, top partners and top rivals insights for a player.
     """
     matches = list(
         build_player_matches_queryset(player).select_related(
@@ -146,8 +146,6 @@ def build_player_insights(player):
             row["player"].id,
         )
     )
-    top_partner = partner_rows[0] if partner_rows else None
-
     rival_rows = []
     for rival_pair, row in rival_stats.items():
         encounters = row["encounters"]
@@ -179,7 +177,7 @@ def build_player_insights(player):
 
     return {
         "trend_rows": trend_rows,
-        "top_partner": top_partner,
+        "top_partners": partner_rows[:3],
         "top_rivals": rival_rows[:3],
     }
 

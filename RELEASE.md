@@ -1,51 +1,56 @@
 # Release Process
 
-This repository supports a command-first release flow through a user-level
-Codex custom prompt invoked as `/prompts:release` when it is installed in the
-current Codespace.
+This repository uses a command-first release flow through
+`python scripts/release_orchestrator.py <version>`.
 
 ## Command
 
-- Command: `/prompts:release`
-- Version argument examples:
-  - `/prompts:release 1.6.0`
-  - `/prompts:release v1.6.0`
+- Primary command: `python scripts/release_orchestrator.py`
+- Argument: `x.y.z` or `vx.y.z`
+- Examples:
+  - `python scripts/release_orchestrator.py 1.6.0`
+  - `python scripts/release_orchestrator.py v1.6.0`
 
 Current Codex CLI behavior in this repository:
 
+- The direct script is the primary supported entrypoint and should be used for
+  normal release work.
 - The working custom-prompt discovery path is
   `~/.codex/prompts/release.md`.
+- Bare `/release` is not a supported registration target in the current
+  `codex-cli 0.117.0` environment. Custom prompts are invoked through the
+  `/prompts:` namespace, so the optional wrapper command is
+  `/prompts:release`.
 - The checked-in file `.codex/commands/release.md` is a repository copy of the
   prompt content, but current Codex CLI builds in this environment do not
   auto-discover it as a repo-local slash command.
-- If the user-level prompt is not installed, run the orchestrator directly:
-  `python scripts/release_orchestrator.py <version>`.
 
-Whether invoked through the user-level `/prompts:release` custom prompt or the
-direct Python entrypoint, the same orchestrator automates the GitHub workflow,
-branch promotion, deployment, back-merge, and post-release consolidation steps
-described below.
+Both entrypoints call the same orchestrator.
 
 ## Custom Prompt Setup
+
+This setup is optional. Use it only if you want the slash-command wrapper in
+addition to the direct script.
 
 1. Create the user prompt directory if it does not exist:
    `mkdir -p ~/.codex/prompts`
 2. Copy the checked-in prompt content to the user-level discovery path:
    `cp .codex/commands/release.md ~/.codex/prompts/release.md`
 3. Start a fresh Codex session in the repository.
-4. Run the command `/prompts:release` with one version argument, for example
-   `1.6.0` or `v1.6.0`.
+4. Run `/prompts:release <version>`, for example `1.6.0` or `v1.6.0`.
 
-If Codex still does not recognize `/prompts:release`, use the direct script
-fallback: `python scripts/release_orchestrator.py 1.6.0`.
+If Codex does not recognize `/prompts:release`, use the primary command
+instead: `python scripts/release_orchestrator.py 1.6.0`.
 
 ## Prerequisites
 
 - Current branch is `develop`.
 - `git status --short` is clean.
 - Local `develop` is synchronized with `origin/develop`.
-- Every loose non-release spec/plan intended for the release is marked with
+- Loose spec/plan files being shipped in the release are already marked with
   `Release tag: \`vX.Y.Z\`` matching the requested version.
+- Unrelated in-progress loose spec/plan files remain on
+  `Release tag: \`unreleased\`` and are not touched by consolidation.
 - `gh` is installed and authenticated.
 - `ssh` is installed.
 - Repo-local SSH config exists at `.codex/private/release_ssh/config`.
@@ -97,8 +102,7 @@ Do not commit tokens or paste secret values into tracked repository files.
 5. Keep those files untracked. The repository ignores the config and `.pem`
    files automatically.
 
-The command always uses `ssh -F .codex/private/release_ssh/config` and never
-depends on a Windows user profile SSH config.
+The command always uses `ssh -F .codex/private/release_ssh/config`.
 
 ## GitHub Actions Used
 
@@ -134,26 +138,38 @@ depends on a Windows user profile SSH config.
     `Release tag: vX.Y.Z` into `specs/release-X.Y.Z-consolidated.md`.
 12. Consolidate only the loose plan files explicitly marked with
     `Release tag: vX.Y.Z` into `plans/release-X.Y.Z-consolidated.md`.
-13. Print a human-readable release report.
+13. Review `CHANGELOG.md` for `## [X.Y.Z]` and keep that section as a simple,
+    light summary of shipped changes.
+14. Print a human-readable release report.
 
-If the user declines at the staging approval gate, the command stops after the
-staging deploy and reports the paused release state.
+If the user declines at the staging gate, the command stops after staging and
+reports the paused state.
 
 `BACKLOG.md` reconciliation is not owned by this command. It remains part of
 development-cycle closure unless a future release workflow explicitly
 implements it.
 
+If a planned version never reaches production, do not keep a synthetic release
+record for it. Fold its unshipped specs, plans, and changelog notes into the
+next production release that actually ships that work.
+
+Loose active specs/plans should default to `Release tag: unreleased` during
+development. Before running the release flow, mark only the actually shipped
+loose files with the requested `vX.Y.Z`. During release consolidation, also
+review the release changelog section and compress it when needed so release
+history stays easy to scan.
+
 ## Manual Functional Checks for Staging
 
-The command prints a release-specific staging checklist, but the baseline checks
-should cover:
+The command prints a release-specific checklist. Baseline checks:
 
-1. Iniciar sesion y cerrar sesion sin errores.
-2. Abrir rankings y confirmar que la paginacion funciona.
-3. Abrir la lista de partidos y confirmar que la paginacion funciona.
-4. Crear un partido y confirmar que ranking y estadisticas se actualizan.
-5. Abrir Americano y confirmar que la vista carga correctamente.
-6. Validar los cambios especificos de la version liberada.
+1. Sign in and sign out without errors.
+2. Open rankings and confirm pagination works.
+3. Open the match list and confirm pagination works.
+4. Create a match and confirm rankings and statistics update.
+5. Open Americano and confirm the view loads correctly.
+6. Validate release-specific changes. If the release has no UI/UX changes,
+   state `No UI/UX changes in this release.`
 
 ## Fallback Scripts
 

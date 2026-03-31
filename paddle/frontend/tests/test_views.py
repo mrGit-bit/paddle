@@ -35,6 +35,20 @@ class TestFrontendViews:
         response = self.client.get(url)
         assert response.status_code == 200
 
+    def test_hall_of_fame_view_renders_ranking_sort_controls(self):
+        url = reverse("hall_of_fame")
+        response = self.client.get(url)
+        content = response.content.decode("utf-8")
+
+        assert response.status_code == 200
+        assert 'data-ranking-sort-table' in content
+        assert 'data-sort-key="position"' in content
+        assert 'data-sort-key="wins"' in content
+        assert 'data-sort-key="matches"' in content
+        assert 'data-sort-key="win-rate"' in content
+        assert 'frontend/js/rankingTableSort.js' in content
+        assert 'data-canonical-show-position=' in content
+
     def test_deprecated_api_routes_are_not_available(self):
         for path in ("/api/games/", "/api/users/", "/api-auth/"):
             response = self.client.get(path)
@@ -215,6 +229,63 @@ class TestFrontendViews:
         response = self.client.post(url, match_data, follow=True)        
         messages = list(response.context["messages"])
         assert any("error" in str(m).lower() for m in messages)
+
+    def test_match_view_post_rejects_date_older_than_30_days(self):
+        self.client.login(username="testuser", password="testpass")
+        url = reverse("match")
+        p2 = Player.objects.create(name="stale_p2", ranking_position=2)
+        p3 = Player.objects.create(name="stale_p3", ranking_position=3)
+        p4 = Player.objects.create(name="stale_p4", ranking_position=4)
+
+        response = self.client.post(
+            url,
+            {
+                "team1_player2_choice": str(p2.id),
+                "team2_player1_choice": str(p3.id),
+                "team2_player2_choice": str(p4.id),
+                "winning_team": "1",
+                "date_played": (date.today() - timedelta(days=31)).isoformat(),
+            },
+            follow=True,
+        )
+
+        messages = list(response.context["messages"])
+        assert any("últimos 30 días" in str(m) for m in messages)
+        assert not Match.objects.filter(
+            team1_player1=self.player,
+            team1_player2=p2,
+            team2_player1=p3,
+            team2_player2=p4,
+        ).exists()
+
+    def test_match_view_post_allows_date_exactly_30_days_old(self):
+        self.client.login(username="testuser", password="testpass")
+        url = reverse("match")
+        p2 = Player.objects.create(name="border_p2", ranking_position=2)
+        p3 = Player.objects.create(name="border_p3", ranking_position=3)
+        p4 = Player.objects.create(name="border_p4", ranking_position=4)
+
+        response = self.client.post(
+            url,
+            {
+                "team1_player2_choice": str(p2.id),
+                "team2_player1_choice": str(p3.id),
+                "team2_player2_choice": str(p4.id),
+                "winning_team": "1",
+                "date_played": (date.today() - timedelta(days=30)).isoformat(),
+            },
+            follow=True,
+        )
+
+        messages = list(response.context["messages"])
+        assert any("Partido creado correctamente" in str(m) for m in messages)
+        assert Match.objects.filter(
+            team1_player1=self.player,
+            team1_player2=p2,
+            team2_player1=p3,
+            team2_player2=p4,
+            date_played=date.today() - timedelta(days=30),
+        ).exists()
 
     def test_match_view_no_player(self):
         user = User.objects.create_user(username="noplayer", password="nopass")
@@ -444,6 +515,27 @@ class TestFrontendViews:
         assert not Match.objects.filter(id=match.id).exists()
         msgs = list(response.context["messages"])
         assert any("Partido borrado correctamente" in str(m) for m in msgs)
+
+    def test_match_view_delete_rejects_locked_match_for_participant(self):
+        self.client.login(username="testuser", password="testpass")
+        url = reverse("match")
+        p2 = Player.objects.create(name="p_locked_2")
+        p3 = Player.objects.create(name="p_locked_3")
+        p4 = Player.objects.create(name="p_locked_4")
+        match = Match.objects.create(
+            team1_player1=self.player,
+            team1_player2=p2,
+            team2_player1=p3,
+            team2_player2=p4,
+            winning_team=1,
+            date_played=date.today() - timedelta(days=31),
+        )
+
+        response = self.client.post(url, data={"action": "delete", "match_id": match.id}, follow=True)
+
+        assert Match.objects.filter(id=match.id).exists()
+        messages_list = list(response.context["messages"])
+        assert any("aprobado automáticamente" in str(m) for m in messages_list)
     
     def test_match_view_delete_exception(self):
         # Simulate exception in DELETE 
