@@ -21,6 +21,9 @@ NO_CHECKS_REPORTED_RE = re.compile(r"no checks reported on the .+ branch", re.IG
 TRACKING_LINE_RE = re.compile(r"^- (?P<field>Task ID|Plan|Spec|Release tag):\s*`(?P<value>[^`]+)`\s*$")
 SAFE_PRIVATE_KEY_GROUP_OR_WORLD_MASK = 0o077
 DEFAULT_PRIVATE_KEY_MODE = 0o600
+REMOTE_VERSION_FILE = "~/paddle/paddle/config/__init__.py"
+
+
 class ReleaseError(RuntimeError):
     """Raised when the automated release flow cannot continue."""
 
@@ -69,6 +72,13 @@ class ReleaseContext:
     @property
     def prep_pr_title(self) -> str:
         return f"version(release): prepare release {self.version_tag}"
+
+
+@dataclass(frozen=True)
+class DeployTarget:
+    deploy_alias: str
+    verify_alias: str
+    display_name: str
 
 
 @dataclass
@@ -485,6 +495,39 @@ def deploy_environment(paths: ReleasePaths, host_alias: str, *, cwd: Path) -> No
     run_command(["ssh", "-F", str(paths.ssh_config), host_alias], cwd=cwd, capture_output=False)
 
 
+def read_remote_version(paths: ReleasePaths, host_alias: str, *, cwd: Path) -> str:
+    completed = run_command(
+        [
+            "ssh",
+            "-F",
+            str(paths.ssh_config),
+            host_alias,
+            f"sed -n 's/^__version__ = \"\\([^\"]\\+\\)\"$/\\1/p' {REMOTE_VERSION_FILE}",
+        ],
+        cwd=cwd,
+    )
+    return completed.stdout.strip()
+
+
+def verify_remote_version(
+    context: ReleaseContext,
+    target: DeployTarget,
+    *,
+    step_name: str,
+) -> None:
+    remote_version = read_remote_version(context.paths, target.verify_alias, cwd=context.repo_root)
+    if remote_version != context.version:
+        raise ReleaseError(
+            f"{target.display_name} deploy completed but {target.verify_alias} reports version "
+            f"{remote_version or 'unknown'} instead of {context.version}."
+        )
+    record_success(
+        context,
+        step_name,
+        f"Executed ssh deploy via {target.deploy_alias} and verified {target.verify_alias} is on {context.version}.",
+    )
+
+
 def prompt_continue(checks: list[str]) -> bool:
     print("\nStaging manual checks:")
     for index, check in enumerate(checks, start=1):
@@ -741,8 +784,13 @@ def run_release_flow(context: ReleaseContext) -> None:
         f"Merged PR #{staging_pr['number']} after required CI checks.",
     )
 
-    deploy_environment(context.paths, "staging-update", cwd=context.repo_root)
-    record_success(context, "Staging Deploy", "Executed ssh -F repo-local-config staging-update.")
+    staging_target = DeployTarget(
+        deploy_alias="staging-update",
+        verify_alias="staging",
+        display_name="Staging",
+    )
+    deploy_environment(context.paths, staging_target.deploy_alias, cwd=context.repo_root)
+    verify_remote_version(context, staging_target, step_name="Staging Deploy")
 
     changelog_text = context.paths.changelog.read_text(encoding="utf-8")
     checks = build_staging_checks(changelog_text, context.version)
@@ -761,8 +809,13 @@ def run_release_flow(context: ReleaseContext) -> None:
         f"Merged PR #{prod_pr['number']} after required CI checks.",
     )
 
-    deploy_environment(context.paths, "prod-update", cwd=context.repo_root)
-    record_success(context, "Production Deploy", "Executed ssh -F repo-local-config prod-update.")
+    prod_target = DeployTarget(
+        deploy_alias="prod-update",
+        verify_alias="prod",
+        display_name="Production",
+    )
+    deploy_environment(context.paths, prod_target.deploy_alias, cwd=context.repo_root)
+    verify_remote_version(context, prod_target, step_name="Production Deploy")
 
     run_command([str(context.paths.backmerge_script), context.version], cwd=context.repo_root, capture_output=False)
     close_backmerge_prs(cwd=context.repo_root)
