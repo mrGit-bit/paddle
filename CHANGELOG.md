@@ -13,9 +13,6 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 ## [Unreleased]
 
 ## [1.8.0] - 2026-04-01
-- (no notable changes)
-
-## [1.8.0] - 2026-04-01
 ### Changed
 
 - `UI/UX`: Added a public `Parejas` navbar page with top pair rankings by
@@ -31,6 +28,13 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
   remains loadable in ChatGPT Project instructions.
 - `Governance`: Changelog entries now use stable domain prefixes so mixed
   releases stay easier to scan.
+
+### Fixed
+
+- `Backend`: Registration now allows linking an existing unregistered player
+  when the submitted username matches that selected player's current name, and
+  duplicate-name rejections now show the correct username guidance instead of
+  falling through to the email-mismatch path.
 
 ## [1.7.0] - 2026-03-31
 

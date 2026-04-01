@@ -16,7 +16,7 @@
     {{ form.username }}
     <label for="{{ form.username.id_for_label }}" class="form-label">Usuario*</label>
     {% if form.username.errors %}
-      <div class="invalid-feedback">{{ form.username.errors|join:", " }}</div>
+      <div class="invalid-feedback d-block">{{ form.username.errors|join:", " }}</div>
     {% else %}
       <div class="invalid-feedback">
         Nombre de usuario de 3 a 15 caracteres. Solo letras, números y @/./+/-/_.
@@ -43,9 +43,9 @@
       {{ form.confirm_email }}
       {% if is_registration %}
       <label for="{{ form.confirm_email.id_for_label }}" class="form-label">Confirma tu correo electrónico*</label>
-      <div class="invalid-feedback">
-        {% if form.confirm_email.errors %}{{ form.confirm_email.errors|join:", " }}{% else %}Los correos electrónicos no coinciden.{% endif %}
-      </div>
+      {% if form.confirm_email.errors %}
+      <div class="invalid-feedback d-block">{{ form.confirm_email.errors|join:", " }}</div>
+      {% endif %}
       {% else %}
       <label for="{{ form.confirm_email.id_for_label }}" class="form-label">Confirma tu correo electrónico</label>
       {% if form.confirm_email.errors %}

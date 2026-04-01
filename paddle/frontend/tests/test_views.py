@@ -408,8 +408,8 @@ class TestFrontendViews:
         User.objects.create_user(username="dupe", password="pass", email="dupe@example.com")
         data = {
             "username": "dupe",
-            "email": "dupe@example.com",
-            "confirm_email": "dupe@example.com",
+            "email": "fresh@example.com",
+            "confirm_email": "fresh@example.com",
             "password": "pass1234",
             "confirm_password": "pass1234",
             "player_id": "",
@@ -418,6 +418,8 @@ class TestFrontendViews:
         response = self.client.post(url, data, follow=True)
         assert response.status_code == 200
         assert b"Ya existe un usuario o un jugador con ese nombre" in response.content
+        assert b'<div class="invalid-feedback d-block">Ya existe un usuario o un jugador con ese nombre.' in response.content
+        assert b'<div class="invalid-feedback d-block">Los correos electr' not in response.content
 
     def test_register_view_post_linked_player(self):
         # Covers lines 246-247
@@ -437,6 +439,29 @@ class TestFrontendViews:
         assert response.status_code == 200
         assert not User.objects.filter(username="newuser2").exists()
         assert b"El jugador seleccionado ya no est" in response.content
+
+    def test_register_view_allows_linking_existing_unregistered_player_with_same_name(self):
+        url = reverse("register")
+        player = Player.objects.create(name="sameplayer", ranking_position=3, gender=Player.GENDER_MALE)
+        data = {
+            "username": "sameplayer",
+            "email": "sameplayer@example.com",
+            "confirm_email": "sameplayer@example.com",
+            "password": "pass1234",
+            "confirm_password": "pass1234",
+            "player_id": str(player.id),
+            "gender": "M",
+        }
+
+        response = self.client.post(url, data, follow=True)
+
+        assert response.status_code == 200
+        assert User.objects.filter(username="sameplayer").exists()
+        player.refresh_from_db()
+        assert player.registered_user is not None
+        assert player.registered_user.username == "sameplayer"
+        assert b"Ya existe un usuario o un jugador con ese nombre" not in response.content
+        assert b'<div class="invalid-feedback d-block">Los correos electr' not in response.content
 
     def test_register_view_post_mismatched_emails(self):
         url = reverse("register")
