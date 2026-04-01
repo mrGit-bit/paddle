@@ -187,10 +187,26 @@ class RegistrationForm(StyledFormMixin, forms.Form):
         )
         self._mark_invalid_fields()
 
+    def _selected_player_for_username_validation(self):
+        selected_player = self.cleaned_data.get("player_id")
+        if selected_player:
+            return selected_player
+        if not self.is_bound:
+            return None
+
+        raw_player_id = self.data.get(self.add_prefix("player_id"))
+        if not raw_player_id:
+            return None
+
+        try:
+            return self.fields["player_id"].queryset.get(pk=raw_player_id)
+        except (Player.DoesNotExist, ValueError, TypeError):
+            return None
+
     def clean_username(self):
         username = (self.cleaned_data.get("username") or "").strip()
         user_exists = User.objects.filter(username__iexact=username).exists()
-        selected_player = self.cleaned_data.get("player_id")
+        selected_player = self._selected_player_for_username_validation()
         player_exists = (
             Player.objects.filter(name__iexact=username, registered_user__isnull=True)
             .exclude(id=selected_player.id if selected_player else None)
