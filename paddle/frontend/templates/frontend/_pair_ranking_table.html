@@ -1,0 +1,52 @@
+<div class="table-responsive">
+  <table class="table table-striped table-hover">
+    <colgroup>
+      <col style="width: 15%;">
+      <col style="width: 35%;">
+      <col style="width: 15%;">
+      <col style="width: 15%;">
+      <col style="width: 20%;">
+    </colgroup>
+    <thead>
+      <tr>
+        <th scope="col" class="text-center">#</th>
+        <th scope="col">Pareja</th>
+        <th scope="col" class="text-center">🏆</th>
+        <th scope="col" class="text-center">🏓</th>
+        <th scope="col" class="text-center">🎯</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for pair in rows %}
+        <tr class="pair-ranking-row">
+          <td class="text-center">
+            {% if pair.show_position %}
+              {% if pair.display_position == 1 %}
+                <strong class="rank-1">🥇</strong>
+              {% elif pair.display_position == 2 %}
+                <strong class="rank-2">🥈</strong>
+              {% elif pair.display_position == 3 %}
+                <strong class="rank-3">🥉</strong>
+              {% else %}
+                {{ pair.display_position }}
+              {% endif %}
+            {% else %}
+              &nbsp;
+            {% endif %}
+          </td>
+          <td>
+            <div>{{ pair.player1.name }}</div>
+            <div>{{ pair.player2.name }}</div>
+          </td>
+          <td class="text-center">{{ pair.wins }}</td>
+          <td class="text-center">{{ pair.matches }}</td>
+          <td class="text-center">{{ pair.win_rate|floatformat:0 }}%</td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="5" class="text-center text-muted">Sin datos</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

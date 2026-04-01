@@ -14,6 +14,10 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ### Changed
 
+- `UI/UX`: Added a public `Parejas` navbar page with top pair rankings by
+  victories plus best and worst win-rate tables for pairs with at least 3
+  matches, reusing the ranking-table visual style with both player names shown
+  on separate lines in one cell.
 - `Release`: Release automation now verifies the requested app version on staging and
   production after each remote deploy, and the tracked SSH update-command
   template now terminates cleanly instead of dropping into an interactive

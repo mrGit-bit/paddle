@@ -13,7 +13,7 @@ from django.shortcuts import render
 
 from games.models import Player
 
-from frontend.services.ranking import compute_ranking
+from frontend.services.ranking import build_pairs_ranking_sections, compute_ranking
 
 from .common import get_new_match_ids, get_ranking_redirect, paginate_list
 
@@ -89,6 +89,26 @@ def ranking_view(request, scope):
             "following_player": following_player,
             "ranking_scope": scope,
             "page_title": titles.get(scope, titles["all"]),
+        },
+    )
+
+
+def pairs_ranking_view(request):
+    """
+    Renders the all-matches pairs ranking page.
+    """
+    sections = build_pairs_ranking_sections()
+    new_match_ids = get_new_match_ids(request) or []
+
+    return render(
+        request,
+        "frontend/pairs_ranking.html",
+        {
+            "top_pairs": sections["top_pairs"],
+            "pairs_of_the_century": sections["pairs_of_the_century"],
+            "catastrophic_pairs": sections["catastrophic_pairs"],
+            "new_matches_number": len(new_match_ids),
+            "page_title": "Parejas",
         },
     )
 
