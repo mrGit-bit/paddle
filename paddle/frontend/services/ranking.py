@@ -122,7 +122,7 @@ def build_pairs_ranking_sections() -> dict[str, list[dict]]:
             row["pair_sort_name"][1],
         ),
     )
-    qualified_by_rate = [row for row in pair_rows if row["matches"] >= 3]
+    qualified_by_rate = [row for row in pair_rows if row["matches"] >= 5]
 
     best_rate = sorted(
         qualified_by_rate,

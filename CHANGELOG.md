@@ -12,6 +12,11 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+### Changed
+
+- `UI/UX`: `Parejas del siglo` y `Parejas catastróficas` now require at least
+  5 matches instead of 3 before a pair is eligible for the rate-based tables.
+
 ## [1.8.0] - 2026-04-01
 ### Changed
 
