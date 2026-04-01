@@ -360,7 +360,7 @@ def test_pairs_ranking_wins_tiebreak_prefers_better_rate_then_more_matches():
     assert ordered_pairs.index(("C", "D")) < ordered_pairs.index(("A", "B"))
 
 
-def test_pairs_rate_sections_require_at_least_three_matches_and_use_requested_tiebreaks():
+def test_pairs_rate_sections_require_at_least_five_matches_and_use_requested_tiebreaks():
     a = mk_player("A", "M")
     b = mk_player("B", "M")
     c = mk_player("C", "M")
@@ -398,8 +398,8 @@ def test_pairs_rate_sections_require_at_least_three_matches_and_use_requested_ti
 
     assert best_names == ("A", "B")
     assert worst_names == ("E", "F")
-    assert all(row["matches"] >= 3 for row in sections["pairs_of_the_century"])
-    assert all(row["matches"] >= 3 for row in sections["catastrophic_pairs"])
+    assert all(row["matches"] >= 5 for row in sections["pairs_of_the_century"])
+    assert all(row["matches"] >= 5 for row in sections["catastrophic_pairs"])
     assert len(sections["top_pairs"]) <= 5
     assert len(sections["pairs_of_the_century"]) <= 3
     assert len(sections["catastrophic_pairs"]) <= 3
@@ -421,11 +421,12 @@ def test_pairs_of_the_century_tiebreak_prefers_more_wins_then_more_matches():
     mk_match(a, b, g, h, winning_team=1, d=base + timedelta(days=1))
     mk_match(a, b, e, f, winning_team=2, d=base + timedelta(days=2))
     mk_match(a, b, g, h, winning_team=2, d=base + timedelta(days=3))
+    mk_match(a, b, e, f, winning_team=1, d=base + timedelta(days=4))
 
-    for offset in range(3):
+    for offset in range(6):
         mk_match(c, d, e, f, winning_team=1, d=base + timedelta(days=10 + offset))
-    for offset in range(3):
-        mk_match(c, d, g, h, winning_team=2, d=base + timedelta(days=13 + offset))
+    for offset in range(4):
+        mk_match(c, d, g, h, winning_team=2, d=base + timedelta(days=16 + offset))
 
     sections = build_pairs_ranking_sections()
     ordered_pairs = [
@@ -448,12 +449,11 @@ def test_catastrophic_pairs_tiebreak_prefers_more_losses_then_more_matches():
 
     base = date.today() - timedelta(days=50)
 
-    for offset in range(4):
+    for offset in range(5):
         mk_match(a, b, e, f, winning_team=2, d=base + timedelta(days=offset))
 
-    for offset in range(4):
+    for offset in range(6):
         mk_match(c, d, g, h, winning_team=2, d=base + timedelta(days=10 + offset))
-    mk_match(c, d, e, f, winning_team=2, d=base + timedelta(days=14))
 
     sections = build_pairs_ranking_sections()
     ordered_pairs = [
@@ -509,7 +509,7 @@ def test_best_pair_section_uses_competition_style_positions_for_ties():
 
     base = date.today() - timedelta(days=70)
 
-    for offset in range(4):
+    for offset in range(5):
         mk_match(a, b, e, f, winning_team=1, d=base + timedelta(days=offset))
         mk_match(c, d, g, h, winning_team=1, d=base + timedelta(days=10 + offset))
 
@@ -533,7 +533,7 @@ def test_worst_pair_section_uses_competition_style_positions_for_ties():
 
     base = date.today() - timedelta(days=80)
 
-    for offset in range(4):
+    for offset in range(5):
         mk_match(a, b, e, f, winning_team=2, d=base + timedelta(days=offset))
         mk_match(c, d, g, h, winning_team=2, d=base + timedelta(days=10 + offset))
 

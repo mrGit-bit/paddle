@@ -49,7 +49,7 @@
 - [ ] The navbar shows a `Parejas` link to a dedicated public page.
 - [ ] `Ranking de parejas` shows the top 5 pairs by victories.
 - [ ] `Parejas del siglo` and `Parejas catastróficas` show only pairs with at
-      least 4 matches.
+      least 5 matches.
 - [ ] All pair-name cells show both players in the same column on separate
       lines.
 - [ ] Focused frontend tests cover pair aggregation, ordering, and page

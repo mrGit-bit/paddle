@@ -37,7 +37,8 @@
 - [ ] Pair rankings are computed from canonicalized team pairs regardless of
       player order within the team.
 - [ ] Victory ties and rate ties are broken by more matches played together.
-- [ ] The page renders top 5 / top 3 / top 3 rows in the requested sections.
+- [ ] The page renders top 5 / top 3 / top 3 rows in the requested sections,
+      with the rate-based tables limited to pairs with at least 5 matches.
 - [ ] Each pair cell shows one player per line in the same column.
 
 ## Validation
