@@ -12,6 +12,7 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-04-01
 ### Changed
 
 - `UI/UX`: Added a public `Parejas` navbar page with top pair rankings by
