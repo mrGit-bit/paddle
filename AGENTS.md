@@ -1,6 +1,6 @@
 # AGENTS.md — Codex Execution Rules
 
-Instruction Set Version: 2.2.28  
+Instruction Set Version: 2.2.30  
 Last Updated: 2026-03-31
 
 ## 1. Authority and File Roles
@@ -18,6 +18,11 @@ Document roles:
 - `AGENTS.md`: Codex execution behavior, workflow mechanics, and handoff rules.
 - `README.md`: repository orientation, architecture context, and owner-doc
   pointers.
+- Keep `docs/PROJECT_INSTRUCTIONS.md` compact enough for ChatGPT Project
+  instructions: target under 7000 characters and never above 7800.
+- If a governance addition would exceed that budget, keep only the portable
+  rule in `docs/PROJECT_INSTRUCTIONS.md` and move the detail here or to another
+  owner doc instead of expanding the project-instructions file further.
 
 If version/date mismatch exists between `PROJECT_INSTRUCTIONS.md` and
 `AGENTS.md`, stop and align them first.
@@ -170,6 +175,10 @@ For changed Markdown files:
 - Prefer short sections, direct bullets, compact summaries, and no duplicate
   restatement.
 - `CHANGELOG.md` should record shipped outcomes, not process narration.
+- Keep `CHANGELOG.md` entries scannable by prefixing bullets with stable domain
+  categories when a release mixes different kinds of work, for example
+  `UI/UX`, `Governance`, `Release`, `Backend`, `Data`, `Mobile`, `Tests`, or
+  `Docs`.
 - Loose specs/plans should capture only the scope, constraints, and checks
   needed to execute the task.
 - Consolidated release files should be compact provenance records, not embedded

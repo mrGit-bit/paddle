@@ -103,6 +103,8 @@ Do not commit tokens or paste secret values into tracked repository files.
    files automatically.
 
 The command always uses `ssh -F .codex/private/release_ssh/config`.
+Keep `staging-update` and `prod-update` non-interactive so the SSH command
+returns to the orchestrator after `./deploy_update.sh` finishes.
 
 ## GitHub Actions Used
 
@@ -127,12 +129,14 @@ The command always uses `ssh -F .codex/private/release_ssh/config`.
 5. Create PR `develop -> staging`, wait for required checks from
    `.github/workflows/ci.yml`, and merge it.
 6. Deploy staging with `ssh -F .codex/private/release_ssh/config
-   staging-update`.
+   staging-update`, then verify the remote host reports `paddle/config/__init__.py`
+   at `X.Y.Z`.
 7. Print 3-6 manual functional checks for staging and wait for explicit user
    approval.
 8. If approved, create PR `staging -> main`, wait for CI, and merge it.
 9. Deploy production with `ssh -F .codex/private/release_ssh/config
-   prod-update`.
+   prod-update`, then verify the remote host reports `paddle/config/__init__.py`
+   at `X.Y.Z`.
 10. Back-merge `origin/main` into local `develop`.
 11. Consolidate only the loose spec files explicitly marked with
     `Release tag: vX.Y.Z` into `specs/release-X.Y.Z-consolidated.md`.
@@ -144,6 +148,10 @@ The command always uses `ssh -F .codex/private/release_ssh/config`.
 
 If the user declines at the staging gate, the command stops after staging and
 reports the paused state.
+
+If a remote deploy command returns but the host still reports the wrong app
+version, the orchestrator aborts instead of continuing to the next release
+step.
 
 `BACKLOG.md` reconciliation is not owned by this command. It remains part of
 development-cycle closure unless a future release workflow explicitly

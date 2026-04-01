@@ -151,9 +151,12 @@
       {% for row in player_insights.top_rivals %}            
         <tr class="clickable-row" data-href="{% url 'player_detail' row.player1.id %}">
           <td>
-            <a href="{% url 'player_detail' row.player1.id %}" class="text-body text-decoration-none">{{ row.player1.name }}</a>
-            /
-            <a href="{% url 'player_detail' row.player2.id %}" class="text-body text-decoration-none">{{ row.player2.name }}</a>
+            <div>
+              <a href="{% url 'player_detail' row.player1.id %}" class="text-body text-decoration-none">{{ row.player1.name }}</a>
+            </div>
+            <div>
+              <a href="{% url 'player_detail' row.player2.id %}" class="text-body text-decoration-none">{{ row.player2.name }}</a>
+            </div>
           </td>
           <td class="text-center">{{ row.wins_vs_pair }}-{{ row.losses_vs_pair }}</td>
           <td class="text-center">{{ row.encounters }}</td>

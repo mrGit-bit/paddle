@@ -91,6 +91,85 @@ def test_build_staging_checks_includes_release_specific_items():
     assert "Validar el cambio liberado: Added release command automation." in checks
 
 
+def test_read_remote_version_uses_repo_ssh_config(tmp_path, monkeypatch):
+    paths = release_orchestrator.ReleasePaths(tmp_path)
+    calls = []
+
+    def fake_run_command(args, *, cwd, capture_output=True, input_text=None):
+        calls.append((args, cwd, capture_output, input_text))
+        return subprocess.CompletedProcess(args, 0, stdout="1.7.0\n", stderr="")
+
+    monkeypatch.setattr(release_orchestrator, "run_command", fake_run_command)
+
+    remote_version = release_orchestrator.read_remote_version(paths, "staging", cwd=tmp_path)
+
+    assert remote_version == "1.7.0"
+    assert calls == [
+        (
+            [
+                "ssh",
+                "-F",
+                str(paths.ssh_config),
+                "staging",
+                "sed -n 's/^__version__ = \"\\([^\"]\\+\\)\"$/\\1/p' ~/paddle/paddle/config/__init__.py",
+            ],
+            tmp_path,
+            True,
+            None,
+        )
+    ]
+
+
+def test_verify_remote_version_records_success(monkeypatch):
+    context = release_orchestrator.ReleaseContext(
+        repo_root=Path("/tmp/repo"),
+        version="1.7.0",
+        version_tag="v1.7.0",
+        paths=release_orchestrator.ReleasePaths(Path("/tmp/repo")),
+    )
+    target = release_orchestrator.DeployTarget(
+        deploy_alias="staging-update",
+        verify_alias="staging",
+        display_name="Staging",
+    )
+
+    monkeypatch.setattr(release_orchestrator, "read_remote_version", lambda *args, **kwargs: "1.7.0")
+
+    release_orchestrator.verify_remote_version(context, target, step_name="Staging Deploy")
+
+    assert context.steps == [
+        release_orchestrator.StepResult(
+            name="Staging Deploy",
+            status="ok",
+            detail="Executed ssh deploy via staging-update and verified staging is on 1.7.0.",
+        )
+    ]
+
+
+def test_verify_remote_version_raises_on_mismatch(monkeypatch):
+    context = release_orchestrator.ReleaseContext(
+        repo_root=Path("/tmp/repo"),
+        version="1.7.0",
+        version_tag="v1.7.0",
+        paths=release_orchestrator.ReleasePaths(Path("/tmp/repo")),
+    )
+    target = release_orchestrator.DeployTarget(
+        deploy_alias="prod-update",
+        verify_alias="prod",
+        display_name="Production",
+    )
+
+    monkeypatch.setattr(release_orchestrator, "read_remote_version", lambda *args, **kwargs: "1.6.1")
+
+    with pytest.raises(release_orchestrator.ReleaseError) as exc_info:
+        release_orchestrator.verify_remote_version(context, target, step_name="Production Deploy")
+
+    assert (
+        str(exc_info.value)
+        == "Production deploy completed but prod reports version 1.6.1 instead of 1.7.0."
+    )
+
+
 def test_build_consolidated_markdown_includes_provenance_and_snapshot(tmp_path):
     source = tmp_path / "001-example.md"
     source.write_text("# Example\n\nBody.\n", encoding="utf-8")

@@ -6,10 +6,31 @@ All notable changes to this repo are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 The repo version covers the web app, mobile wrapper, and release/devops work.
+Use stable domain prefixes within release bullets when a section mixes work
+types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
+`Mobile`, `Tests`, or `Docs`.
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-04-01
+### Changed
+
+- `UI/UX`: Added a public `Parejas` navbar page with top pair rankings by
+  victories plus best and worst win-rate tables for pairs with at least 3
+  matches, reusing the ranking-table visual style with both player names shown
+  on separate lines in one cell.
+- `Release`: Release automation now verifies the requested app version on staging and
+  production after each remote deploy, and the tracked SSH update-command
+  template now terminates cleanly instead of dropping into an interactive
+  shell.
+- `Governance`: Governance now caps `docs/PROJECT_INSTRUCTIONS.md` with an explicit
+  character budget and moves overflow detail to higher-context docs so the file
+  remains loadable in ChatGPT Project instructions.
+- `Governance`: Changelog entries now use stable domain prefixes so mixed
+  releases stay easier to scan.
+
 ## [1.7.0] - 2026-03-31
+
 ### Changed
 
 - Release docs and governance now treat
