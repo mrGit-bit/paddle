@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.test import RequestFactory
 
 from games.models import Player, Match
-from frontend.services.ranking import compute_ranking
+from frontend.services.ranking import build_pairs_ranking_sections, compute_ranking
 from frontend.views import get_ranking_redirect
 from frontend.views import get_player_page_in_scope
 from frontend.views import paginate_list
@@ -306,3 +306,240 @@ def test_hall_of_fame_pagination_links_do_not_persist_sort_state(client):
     assert "sort=" not in content
     assert "data-canonical-index=" in content
     assert "data-position=" in content
+
+
+def test_pairs_ranking_sections_canonicalize_player_order_and_rank_by_wins():
+    a = mk_player("A", "M")
+    b = mk_player("B", "M")
+    c = mk_player("C", "M")
+    d = mk_player("D", "M")
+    e = mk_player("E", "M")
+    f = mk_player("F", "M")
+    g = mk_player("G", "M")
+    h = mk_player("H", "M")
+
+    base = date.today() - timedelta(days=10)
+
+    mk_match(a, b, c, d, winning_team=1, d=base)
+    mk_match(b, a, e, f, winning_team=1, d=base + timedelta(days=1))
+    mk_match(a, b, g, h, winning_team=1, d=base + timedelta(days=2))
+
+    sections = build_pairs_ranking_sections()
+    top_pair = sections["top_pairs"][0]
+
+    assert top_pair["player1"].id == a.id
+    assert top_pair["player2"].id == b.id
+    assert top_pair["wins"] == 3
+    assert top_pair["matches"] == 3
+
+
+def test_pairs_ranking_wins_tiebreak_prefers_better_rate_then_more_matches():
+    a = mk_player("A", "M")
+    b = mk_player("B", "M")
+    c = mk_player("C", "M")
+    d = mk_player("D", "M")
+    e = mk_player("E", "M")
+    f = mk_player("F", "M")
+    g = mk_player("G", "M")
+    h = mk_player("H", "M")
+
+    base = date.today() - timedelta(days=20)
+
+    mk_match(a, b, c, d, winning_team=1, d=base)
+    mk_match(a, b, e, f, winning_team=1, d=base + timedelta(days=1))
+    mk_match(a, b, g, h, winning_team=2, d=base + timedelta(days=2))
+    mk_match(a, b, e, f, winning_team=2, d=base + timedelta(days=3))
+
+    mk_match(c, d, e, f, winning_team=1, d=base + timedelta(days=4))
+    mk_match(c, d, g, h, winning_team=1, d=base + timedelta(days=5))
+    mk_match(c, d, e, f, winning_team=1, d=base + timedelta(days=6))
+
+    sections = build_pairs_ranking_sections()
+    ordered_pairs = [(row["player1"].name, row["player2"].name) for row in sections["top_pairs"]]
+
+    assert ordered_pairs.index(("C", "D")) < ordered_pairs.index(("A", "B"))
+
+
+def test_pairs_rate_sections_require_at_least_three_matches_and_use_requested_tiebreaks():
+    a = mk_player("A", "M")
+    b = mk_player("B", "M")
+    c = mk_player("C", "M")
+    d = mk_player("D", "M")
+    e = mk_player("E", "M")
+    f = mk_player("F", "M")
+    g = mk_player("G", "M")
+    h = mk_player("H", "M")
+    i = mk_player("I", "M")
+    j = mk_player("J", "M")
+
+    base = date.today() - timedelta(days=30)
+
+    for offset in range(4):
+        mk_match(a, b, c, d, winning_team=1, d=base + timedelta(days=offset))
+
+    mk_match(c, d, e, f, winning_team=1, d=base + timedelta(days=5))
+    mk_match(c, d, g, h, winning_team=1, d=base + timedelta(days=6))
+    mk_match(c, d, i, j, winning_team=2, d=base + timedelta(days=7))
+    mk_match(c, d, a, b, winning_team=2, d=base + timedelta(days=8))
+
+    for offset in range(4):
+        mk_match(e, f, g, h, winning_team=2, d=base + timedelta(days=10 + offset))
+
+    mk_match(g, h, i, j, winning_team=1, d=base + timedelta(days=20))
+    mk_match(g, h, a, b, winning_team=2, d=base + timedelta(days=21))
+    mk_match(g, h, c, d, winning_team=2, d=base + timedelta(days=22))
+
+    sections = build_pairs_ranking_sections()
+
+    best_pair = sections["pairs_of_the_century"][0]
+    worst_pair = sections["catastrophic_pairs"][0]
+    best_names = (best_pair["player1"].name, best_pair["player2"].name)
+    worst_names = (worst_pair["player1"].name, worst_pair["player2"].name)
+
+    assert best_names == ("A", "B")
+    assert worst_names == ("E", "F")
+    assert all(row["matches"] >= 3 for row in sections["pairs_of_the_century"])
+    assert all(row["matches"] >= 3 for row in sections["catastrophic_pairs"])
+    assert len(sections["top_pairs"]) <= 5
+    assert len(sections["pairs_of_the_century"]) <= 3
+    assert len(sections["catastrophic_pairs"]) <= 3
+
+
+def test_pairs_of_the_century_tiebreak_prefers_more_wins_then_more_matches():
+    a = mk_player("A", "M")
+    b = mk_player("B", "M")
+    c = mk_player("C", "M")
+    d = mk_player("D", "M")
+    e = mk_player("E", "M")
+    f = mk_player("F", "M")
+    g = mk_player("G", "M")
+    h = mk_player("H", "M")
+
+    base = date.today() - timedelta(days=40)
+
+    mk_match(a, b, e, f, winning_team=1, d=base)
+    mk_match(a, b, g, h, winning_team=1, d=base + timedelta(days=1))
+    mk_match(a, b, e, f, winning_team=2, d=base + timedelta(days=2))
+    mk_match(a, b, g, h, winning_team=2, d=base + timedelta(days=3))
+
+    for offset in range(3):
+        mk_match(c, d, e, f, winning_team=1, d=base + timedelta(days=10 + offset))
+    for offset in range(3):
+        mk_match(c, d, g, h, winning_team=2, d=base + timedelta(days=13 + offset))
+
+    sections = build_pairs_ranking_sections()
+    ordered_pairs = [
+        (row["player1"].name, row["player2"].name)
+        for row in sections["pairs_of_the_century"]
+    ]
+
+    assert ordered_pairs.index(("C", "D")) < ordered_pairs.index(("A", "B"))
+
+
+def test_catastrophic_pairs_tiebreak_prefers_more_losses_then_more_matches():
+    a = mk_player("A", "M")
+    b = mk_player("B", "M")
+    c = mk_player("C", "M")
+    d = mk_player("D", "M")
+    e = mk_player("E", "M")
+    f = mk_player("F", "M")
+    g = mk_player("G", "M")
+    h = mk_player("H", "M")
+
+    base = date.today() - timedelta(days=50)
+
+    for offset in range(4):
+        mk_match(a, b, e, f, winning_team=2, d=base + timedelta(days=offset))
+
+    for offset in range(4):
+        mk_match(c, d, g, h, winning_team=2, d=base + timedelta(days=10 + offset))
+    mk_match(c, d, e, f, winning_team=2, d=base + timedelta(days=14))
+
+    sections = build_pairs_ranking_sections()
+    ordered_pairs = [
+        (row["player1"].name, row["player2"].name)
+        for row in sections["catastrophic_pairs"]
+    ]
+
+    assert ordered_pairs.index(("C", "D")) < ordered_pairs.index(("A", "B"))
+
+
+def test_top_pairs_use_competition_style_positions_for_ties():
+    a = mk_player("A", "M")
+    b = mk_player("B", "M")
+    c = mk_player("C", "M")
+    d = mk_player("D", "M")
+    e = mk_player("E", "M")
+    f = mk_player("F", "M")
+    g = mk_player("G", "M")
+    h = mk_player("H", "M")
+    i = mk_player("I", "M")
+    j = mk_player("J", "M")
+
+    base = date.today() - timedelta(days=60)
+
+    mk_match(a, b, e, f, winning_team=1, d=base)
+    mk_match(a, b, g, h, winning_team=1, d=base + timedelta(days=1))
+
+    mk_match(c, d, e, f, winning_team=1, d=base + timedelta(days=2))
+    mk_match(c, d, g, h, winning_team=1, d=base + timedelta(days=3))
+
+    mk_match(i, j, e, f, winning_team=1, d=base + timedelta(days=4))
+
+    sections = build_pairs_ranking_sections()
+    top_pairs = sections["top_pairs"]
+
+    assert top_pairs[0]["display_position"] == 1
+    assert top_pairs[0]["show_position"] is True
+    assert top_pairs[1]["display_position"] == 1
+    assert top_pairs[1]["show_position"] is False
+    assert top_pairs[2]["display_position"] == 3
+    assert top_pairs[2]["show_position"] is True
+
+
+def test_best_pair_section_uses_competition_style_positions_for_ties():
+    a = mk_player("A", "M")
+    b = mk_player("B", "M")
+    c = mk_player("C", "M")
+    d = mk_player("D", "M")
+    e = mk_player("E", "M")
+    f = mk_player("F", "M")
+    g = mk_player("G", "M")
+    h = mk_player("H", "M")
+
+    base = date.today() - timedelta(days=70)
+
+    for offset in range(4):
+        mk_match(a, b, e, f, winning_team=1, d=base + timedelta(days=offset))
+        mk_match(c, d, g, h, winning_team=1, d=base + timedelta(days=10 + offset))
+
+    sections = build_pairs_ranking_sections()
+    best_pairs = sections["pairs_of_the_century"]
+
+    assert best_pairs[0]["display_position"] == 1
+    assert best_pairs[1]["display_position"] == 1
+    assert best_pairs[1]["show_position"] is False
+
+
+def test_worst_pair_section_uses_competition_style_positions_for_ties():
+    a = mk_player("A", "M")
+    b = mk_player("B", "M")
+    c = mk_player("C", "M")
+    d = mk_player("D", "M")
+    e = mk_player("E", "M")
+    f = mk_player("F", "M")
+    g = mk_player("G", "M")
+    h = mk_player("H", "M")
+
+    base = date.today() - timedelta(days=80)
+
+    for offset in range(4):
+        mk_match(a, b, e, f, winning_team=2, d=base + timedelta(days=offset))
+        mk_match(c, d, g, h, winning_team=2, d=base + timedelta(days=10 + offset))
+
+    sections = build_pairs_ranking_sections()
+    worst_pairs = sections["catastrophic_pairs"]
+
+    assert worst_pairs[0]["display_position"] == 1
+    assert worst_pairs[1]["display_position"] == 1
+    assert worst_pairs[1]["show_position"] is False

@@ -1,10 +1,10 @@
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.2.28  
+Instruction Set Version: 2.2.30  
 Last Updated: 2026-03-31
 
-This file mirrors the repository governance subset kept in ChatGPT Project
-instructions and must remain under 8000 characters.
+This file mirrors the governance subset intended for ChatGPT Project
+instructions and must stay small enough to load there reliably.
 
 ## 1. Product and Stack
 
@@ -30,24 +30,25 @@ Rules:
 - `docs/PROJECT_INSTRUCTIONS.md` owns compact repository constraints.
 - `AGENTS.md` owns Codex execution behavior, workflow mechanics, and handoff
   rules.
-- Check `README.md` for repository orientation and owner-doc pointers.
 - `Instruction Set Version` and `Last Updated` must stay aligned here and in
   `AGENTS.md`.
+- Keep this file under 7000 characters when possible and never above 7800.
+- If a governance addition would push this file past that budget, keep only the
+  minimum portable rule here and move the detail to `AGENTS.md` or another
+  owner doc.
 
 ## 3. Repository Constraints
 
 - Apply DRY, KISS, SRP, YAGNI, and Explicit > Implicit.
 - No speculative refactors, renames, moves, or unrelated formatting changes.
 - Backend owns business logic; templates render only.
-- No business logic in templates.
 - No frontend ranking logic.
 - UI text in Spanish.
 - Code, comments, docs, specs, and plans in English.
 - Keep deprecated API/DRF policy centralized in governance; do not restate it
   in feature specs unless the task directly touches that surface.
-- For external-tool or integration-dependent features, verify the supported
-  behavior in the current tool or current official docs before relying on it in
-  repository guidance or automation.
+- For external-tool or integration-dependent features, verify current supported
+  behavior before relying on it in repository guidance or automation.
 
 ## 4. Mandatory SDD Gates
 
@@ -67,8 +68,7 @@ Simple-change exception:
 - For small, low-risk changes with narrow scope, such as straightforward
   documentation, governance, or repository-guidance edits, Codex CLI may skip
   creating spec and plan files.
-- In those cases, if the request is clearly minor, Codex may proceed directly
-  with the requested Markdown or repository-doc edits without an extra
+- If the request is clearly minor, Codex may proceed directly without an extra
   confirmation turn.
 - If the scope expands beyond that narrow change set, return to the standard
   approved spec and plan flow before continuing implementation.
@@ -81,18 +81,15 @@ Active-work rule:
   `Plan` / `Spec` references instead of filename similarity alone.
 - `specs/release-*.md` and `plans/release-*.md` are historical release
   artifacts, not active-work inputs.
-- When repository context is needed, README should point to this lookup rule
-  instead of requiring generic manual discovery.
 - Loose non-release specs and plans must carry explicit `Release tag` tracking
   metadata and default to `unreleased` while work is still pending release.
   Before release consolidation, mark only the actually shipped loose files with
   the target `vX.Y.Z`. During consolidation,
   `python scripts/release_orchestrator.py <version>` folds only those
-  exact-match files into the shipped release record, reviews the changelog
-  section for that release, and keeps that section as a light summary of
-  shipped changes. If a planned release never reaches production, do not keep a
-  standalone release record for it; roll its unshipped loose files and
-  changelog notes into the next production release that actually ships them.
+  exact-match files into the shipped release record and keeps that changelog
+  section as a light shipped summary. If a planned release never reaches
+  production, roll its unshipped loose files and changelog notes into the next
+  production release that actually ships them.
 
 Additional rules:
 
@@ -102,14 +99,11 @@ Additional rules:
   allowed.
 - In `/plan` or other planning-only workflows, explore first, then bias toward
   a question-heavy planning loop before finalizing the plan.
-- After exploration, summarize the discovered context and ask follow-up
-  questions to lock product, UX, or implementation preferences when the work is
-  non-trivial, even if a reasonable default seems likely.
-- Only skip those extra planning questions when the remaining decisions are
-  truly mechanical or already explicitly settled by the user or repository
-  governance.
+- After exploration, lock product, UX, or implementation preferences with
+  follow-up questions unless the remaining choices are purely mechanical or
+  already settled.
 - Evaluate whether `/review` or `$audit` should be used for each non-trivial
-  spec or implementation task, especially when the target flow already exists.
+  spec or implementation task.
 - Prefer `/review` first when both checkpoints could fit the approved scope.
 - If neither checkpoint is used, say so explicitly in the working response and
   give a brief reason for skipping it or discarding it for that scope.
@@ -120,8 +114,6 @@ Additional rules:
   review/audit record accordingly.
 - Do not fix findings directly just because they were found; implement fixes
   only after the user chooses to address them.
-- Do not treat a checked-in integration file as proof that the current tool
-  auto-discovers or supports it. Verify the current environment first.
 - After a successful tagged release and back-merge from `main` to `develop`,
   consolidate the released SDD files into `specs/release-X.Y.Z-consolidated.md`
   and `plans/release-X.Y.Z-consolidated.md` before new SDD work begins, using
@@ -133,31 +125,31 @@ Additional rules:
 - Update `CHANGELOG.md` under `## [Unreleased]` for every behavior,
   documentation, governance, workflow, or repository-guidance change unless the
   change is truly formatting-only.
-- Before closing a development cycle, reconcile any completed backlog items in
-  `BACKLOG.md` that belong to the requested scope: remove them from backlog and
-  ensure the implemented outcome is reflected in `CHANGELOG.md`.
+- Prefix changelog bullets with domain categories such as `UI/UX`,
+  `Governance`, `Release`, `Backend`, `Data`, `Mobile`, `Tests`, or `Docs`
+  when that keeps mixed releases scannable.
+- Before closing a development cycle, reconcile completed scoped items in
+  `BACKLOG.md` and reflect them in `CHANGELOG.md`.
 - Backlog reconciliation is owned by development-cycle closure. Release
   automation does not perform it unless the release workflow explicitly says so.
 - Closure is complete only after all requested-work changes are staged,
   committed, pushed, and `git status --short` is clean.
 - If the user wants to continue developing, do not commit yet.
-- If the user confirms commit/push/closure, perform that flow in the same turn.
-- Treat direct user commands such as `close cycle`, `close specification`, or
-  equivalent explicit closure wording as commit/push/closure confirmation; do
-  not ask the extra confirmation question in that case.
+- If the user confirms commit/push/closure, do it in the same turn.
+- Treat direct user commands such as `close cycle` or `close specification` as
+  commit/push/closure confirmation; do not ask the extra confirmation question.
 
 ## 6. Markdown Rules
 
 - Keep new or rewritten Markdown light and schematic by default.
-- Prefer short sections, direct bullets, and compact summaries over narrative
-  expansion.
+- Prefer short sections, direct bullets, and compact summaries.
 - `CHANGELOG.md` should record outcomes, not process narration.
-- Specs/plans should capture only the scope, constraints, and checks needed
-  for execution.
+- Keep `CHANGELOG.md` categories stable; prefer product or workflow domains.
+- Specs/plans should capture only scope, constraints, and checks needed for
+  execution.
 - Consolidated release files should stay as compact provenance summaries.
 - Do not add `markdownlint-disable` directives unless explicitly requested.
-- Enforce `MD022` and `MD032`.
-- Treat `MD013` as non-blocking.
+- Enforce `MD022` and `MD032`; treat `MD013` as non-blocking.
 - `CHANGELOG.md` may keep an `MD024` disable because repeated Keep a Changelog
   category headings are intentional there.
 - Use `-` for unordered lists.

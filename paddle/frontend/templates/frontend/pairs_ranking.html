@@ -1,0 +1,40 @@
+{% extends 'frontend/base.html' %}
+{% block title %}{{ page_title|default:"rankingdepadel.club" }}{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+  <h1 class="display-5">🏆club moraleja🏆</h1>
+</div>
+
+{% if messages %}
+<div class="row justify-content-center mt-3">
+  <div class="col-lg-10">
+    {% for message in messages %}
+    <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% else %}alert-info{% endif %}" role="alert">
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<div class="ranking-content fade-in">
+  <section class="mb-4">
+    <h2 class="h4 text-center mb-0">Ranking de parejas</h2>
+    <p class="text-muted text-center mb-3">Todas las categorías</p>
+    {% include "frontend/_pair_ranking_table.html" with rows=top_pairs %}
+  </section>
+
+  <section class="mb-4">
+    <h2 class="h4 text-center mb-0">Parejas del siglo</h2>
+    <p class="text-muted text-center mb-3">Mínimo 3 partidos</p>
+    {% include "frontend/_pair_ranking_table.html" with rows=pairs_of_the_century %}
+  </section>
+
+  <section class="mb-4">
+    <h2 class="h4 text-center mb-0">Parejas catastróficas</h2>
+    <p class="text-muted text-center mb-3">Mínimo 3 partidos</p>
+    {% include "frontend/_pair_ranking_table.html" with rows=catastrophic_pairs %}
+  </section>
+</div>
+{% endblock %}

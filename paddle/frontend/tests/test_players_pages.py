@@ -248,6 +248,9 @@ def test_player_detail_partner_and_rivals_tiebreakers_and_clickable_links(client
     assert f'href="/players/{partner_c.id}/"' in content
     assert f'href="/players/{rival_1.id}/"' in content
     assert f'href="/players/{rival_2.id}/"' in content
+    assert f'<div>\n              <a href="/players/{rival_1.id}/"' in content
+    assert f'<div>\n              <a href="/players/{rival_2.id}/"' in content
+    assert "/\n" not in content
 
 
 def test_player_detail_partner_tiebreak_prefers_win_rate_before_recent_date(client):

@@ -18,9 +18,9 @@ Host prod-update staging-update
 Host prod-update
     HostName 143.47.38.168
     IdentityFile .codex/private/release_ssh/production-oracle-key.pem
-    RemoteCommand source ~/venv/bin/activate && cd ~/paddle && clear && ./deploy_update.sh; exec bash
+    RemoteCommand source ~/venv/bin/activate && cd ~/paddle && clear && ./deploy_update.sh
 
 Host staging-update
     HostName 158.179.218.204
     IdentityFile .codex/private/release_ssh/staging-oracle-key.pem
-    RemoteCommand source ~/venv/bin/activate && cd ~/paddle && clear && ./deploy_update.sh; exec bash
+    RemoteCommand source ~/venv/bin/activate && cd ~/paddle && clear && ./deploy_update.sh

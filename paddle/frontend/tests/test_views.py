@@ -49,6 +49,73 @@ class TestFrontendViews:
         assert 'frontend/js/rankingTableSort.js' in content
         assert 'data-canonical-show-position=' in content
 
+    def test_hall_of_fame_view_renders_pairs_nav_link(self):
+        response = self.client.get(reverse("hall_of_fame"))
+        content = response.content.decode("utf-8")
+
+        assert response.status_code == 200
+        assert f'href="{reverse("ranking_pairs")}"' in content
+        assert ">Parejas<" in content
+
+    def test_pairs_ranking_view_renders_requested_sections_and_two_line_pair_cell(self):
+        pair_a = Player.objects.create(name="Pareja A", gender=Player.GENDER_MALE)
+        pair_b = Player.objects.create(name="Pareja B", gender=Player.GENDER_MALE)
+        rival_1 = Player.objects.create(name="Rival 1", gender=Player.GENDER_MALE)
+        rival_2 = Player.objects.create(name="Rival 2", gender=Player.GENDER_MALE)
+
+        for offset in range(4):
+            Match.objects.create(
+                team1_player1=pair_a,
+                team1_player2=pair_b,
+                team2_player1=rival_1,
+                team2_player2=rival_2,
+                winning_team=1,
+                date_played=date.today() - timedelta(days=offset),
+            )
+
+        response = self.client.get(reverse("ranking_pairs"))
+        content = response.content.decode("utf-8")
+
+        assert response.status_code == 200
+        assert "Ranking de parejas" in content
+        assert "Parejas del siglo" in content
+        assert "Parejas catastróficas" in content
+        assert '<div>Pareja A</div>' in content
+        assert '<div>Pareja B</div>' in content
+        assert 'data-href=' not in content
+
+    def test_pairs_ranking_view_hides_repeated_tie_positions(self):
+        pair_a = Player.objects.create(name="Pareja A", gender=Player.GENDER_MALE)
+        pair_b = Player.objects.create(name="Pareja B", gender=Player.GENDER_MALE)
+        pair_c = Player.objects.create(name="Pareja C", gender=Player.GENDER_MALE)
+        pair_d = Player.objects.create(name="Pareja D", gender=Player.GENDER_MALE)
+        rival_1 = Player.objects.create(name="Rival 1", gender=Player.GENDER_MALE)
+        rival_2 = Player.objects.create(name="Rival 2", gender=Player.GENDER_MALE)
+
+        Match.objects.create(
+            team1_player1=pair_a,
+            team1_player2=pair_b,
+            team2_player1=rival_1,
+            team2_player2=rival_2,
+            winning_team=1,
+            date_played=date.today(),
+        )
+        Match.objects.create(
+            team1_player1=pair_c,
+            team1_player2=pair_d,
+            team2_player1=rival_1,
+            team2_player2=rival_2,
+            winning_team=1,
+            date_played=date.today() - timedelta(days=1),
+        )
+
+        response = self.client.get(reverse("ranking_pairs"))
+        content = response.content.decode("utf-8")
+
+        assert response.status_code == 200
+        assert content.count('class="rank-1">🥇</strong>') == 1
+        assert '&nbsp;' in content
+
     def test_deprecated_api_routes_are_not_available(self):
         for path in ("/api/games/", "/api/users/", "/api-auth/"):
             response = self.client.get(path)
@@ -341,8 +408,8 @@ class TestFrontendViews:
         User.objects.create_user(username="dupe", password="pass", email="dupe@example.com")
         data = {
             "username": "dupe",
-            "email": "dupe@example.com",
-            "confirm_email": "dupe@example.com",
+            "email": "fresh@example.com",
+            "confirm_email": "fresh@example.com",
             "password": "pass1234",
             "confirm_password": "pass1234",
             "player_id": "",
@@ -351,6 +418,8 @@ class TestFrontendViews:
         response = self.client.post(url, data, follow=True)
         assert response.status_code == 200
         assert b"Ya existe un usuario o un jugador con ese nombre" in response.content
+        assert b'<div class="invalid-feedback d-block">Ya existe un usuario o un jugador con ese nombre.' in response.content
+        assert b'<div class="invalid-feedback d-block">Los correos electr' not in response.content
 
     def test_register_view_post_linked_player(self):
         # Covers lines 246-247
@@ -370,6 +439,29 @@ class TestFrontendViews:
         assert response.status_code == 200
         assert not User.objects.filter(username="newuser2").exists()
         assert b"El jugador seleccionado ya no est" in response.content
+
+    def test_register_view_allows_linking_existing_unregistered_player_with_same_name(self):
+        url = reverse("register")
+        player = Player.objects.create(name="sameplayer", ranking_position=3, gender=Player.GENDER_MALE)
+        data = {
+            "username": "sameplayer",
+            "email": "sameplayer@example.com",
+            "confirm_email": "sameplayer@example.com",
+            "password": "pass1234",
+            "confirm_password": "pass1234",
+            "player_id": str(player.id),
+            "gender": "M",
+        }
+
+        response = self.client.post(url, data, follow=True)
+
+        assert response.status_code == 200
+        assert User.objects.filter(username="sameplayer").exists()
+        player.refresh_from_db()
+        assert player.registered_user is not None
+        assert player.registered_user.username == "sameplayer"
+        assert b"Ya existe un usuario o un jugador con ese nombre" not in response.content
+        assert b'<div class="invalid-feedback d-block">Los correos electr' not in response.content
 
     def test_register_view_post_mismatched_emails(self):
         url = reverse("register")
