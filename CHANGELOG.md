@@ -12,6 +12,7 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+## [1.8.1] - 2026-04-01
 ### Changed
 
 - `UI/UX`: `Parejas del siglo` y `Parejas catastróficas` now require at least
