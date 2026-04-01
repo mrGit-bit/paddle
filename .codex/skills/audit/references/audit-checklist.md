@@ -45,6 +45,6 @@
 
 ## Governance Compliance
 
-- Does the implementation drift from the approved spec or plan?
+- Does the implementation drift from the approved spec?
 - Does it introduce deprecated DRF or API usage?
 - Are recommendations minimal and free of unrelated cleanup?

@@ -1,6 +1,6 @@
 # AGENTS.md — Codex Execution Rules
 
-Instruction Set Version: 2.2.31  
+Instruction Set Version: 2.3.0  
 Last Updated: 2026-04-01
 
 ## 1. Authority and File Roles
@@ -38,7 +38,7 @@ If version/date mismatch exists between `PROJECT_INSTRUCTIONS.md` and
 - For external-tool or integration features that depend on current support,
   discovery rules, authentication behavior, configuration paths, or versioned
   capabilities, verify the live tool behavior or current official
-  documentation before relying on them in specs, plans, automation, or user
+  documentation before relying on them in specs, automation, or user
   guidance.
 - This applies to Codex CLI, GitHub CLI, GitHub Actions behavior, SSH tooling,
   Codespaces integration, MCP wiring, and any similar dependency needed to
@@ -54,18 +54,15 @@ Follow the SDD flow defined in `docs/PROJECT_INSTRUCTIONS.md`.
 Execution rules:
 
 1. Verify the current branch before development or implementation work.
-2. Use the latest approved non-release spec and plan for the current task as
-   the active-work artifacts.
-3. Pair loose specs and plans by shared `Task ID` tracking metadata and
-   explicit `Plan` / `Spec` references instead of filename similarity alone.
-4. Treat `specs/release-*.md` and `plans/release-*.md` as historical release
-   records only.
-5. Do not implement before both current active-work artifacts are approved.
-6. Keep implementation aligned with the approved scope; no scope expansion.
-7. Loose non-release specs and plans must carry explicit `Release tag`
-   tracking metadata and default to `unreleased` while work is still pending
-   release. Before release consolidation, mark only the actually shipped loose
-   files with the target `vX.Y.Z`. During consolidation,
+2. Use the latest approved non-release spec for the current task as the
+   active-work artifact.
+3. Treat `specs/release-*.md` as historical release records only.
+4. Do not implement before the current active-work spec is approved.
+5. Keep implementation aligned with the approved scope; no scope expansion.
+6. Loose non-release specs must carry explicit `Release tag` tracking metadata
+   and default to `unreleased` while work is still pending release. Before
+   release consolidation, mark only the actually shipped loose files with the
+   target `vX.Y.Z`. During consolidation,
    `python scripts/release_orchestrator.py <version>` folds only those
    exact-match files into the shipped release record, reviews the changelog
    section for that release, and keeps that section as a light summary of
@@ -73,19 +70,19 @@ Execution rules:
    a standalone release record for it; roll its unshipped loose files and
    changelog notes into the next production release that actually ships them.
    A loose task must not stay loose once any scoped behavior from that task has
-   reached production; consolidate the shipped files for that release, and if
-   more work is needed afterward, create a new loose spec/plan pair for the
-   follow-up instead of reopening or extending the shipped files.
+   reached production; consolidate the shipped file for that release, and if
+   more work is needed afterward, create a new loose spec for the follow-up
+   instead of reopening or extending the shipped file.
 
 Simple-change exception:
 
 - For small, low-risk changes with narrow scope, such as straightforward
   documentation, governance, or repository-guidance edits, Codex CLI may skip
-  creating spec and plan files.
+  creating an active-work spec.
 - If the requested change is clearly minor and fits that reduced-process path,
   Codex may proceed directly without an extra confirmation turn.
 - If the task grows beyond that narrow change set, stop using the exception and
-  return to the normal approved spec and plan workflow.
+  return to the normal approved-spec workflow.
 
 Planning behavior:
 
@@ -126,18 +123,18 @@ Quality checkpoints:
 Post-release:
 
 - After a successful tagged release and back-merge from `main` to `develop`,
-  perform any pending spec/plan consolidation for that release before starting
-  new SDD work. Use the shipped production release as the historical record:
-  only loose files explicitly marked with the shipped `vX.Y.Z` are
-  consolidated for that release. Review the changelog section for that release
-  in the same step and rewrite it as a simple, light summary when needed. When
-  a planned version never entered production, its unshipped loose spec/plan
-  files and notes must be absorbed into the next production release that
-  actually shipped them instead of being archived under the non-shipped
-  version. Post-release reconciliation is not complete while any loose
-  non-release file still describes behavior already in production; retag those
-  files to the shipped version if needed, consolidate them immediately, and
-  delete the superseded loose files before new SDD work begins.
+  perform any pending spec consolidation for that release before starting new
+  SDD work. Use the shipped production release as the historical record: only
+  loose files explicitly marked with the shipped `vX.Y.Z` are consolidated for
+  that release. Review the changelog section for that release in the same step
+  and rewrite it as a simple, light summary when needed. When a planned
+  version never entered production, its unshipped loose spec files and notes
+  must be absorbed into the next production release that actually shipped them
+  instead of being archived under the non-shipped version. Post-release
+  reconciliation is not complete while any loose non-release file still
+  describes behavior already in production; retag those files to the shipped
+  version if needed, consolidate them immediately, and delete the superseded
+  loose files before new SDD work begins.
 
 ## 4. Handoff Requirements
 
@@ -188,7 +185,7 @@ For changed Markdown files:
   categories when a release mixes different kinds of work, for example
   `UI/UX`, `Governance`, `Release`, `Backend`, `Data`, `Mobile`, `Tests`, or
   `Docs`.
-- Loose specs/plans should capture only the scope, constraints, and checks
+- Active-work specs should capture only the scope, constraints, and checks
   needed to execute the task.
 - Consolidated release files should be compact provenance records, not embedded
   copies of prior source files.

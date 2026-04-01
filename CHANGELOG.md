@@ -14,6 +14,13 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ### Changed
 
+- `Governance`: Non-trivial SDD work now uses one approved active-work spec in
+  `specs/` instead of separate spec and plan files, and shipped history now
+  consolidates into one compact release spec per version.
+- `Release`: `python scripts/release_orchestrator.py <version>` now
+  consolidates only loose spec files and writes a single compact
+  `specs/release-X.Y.Z-consolidated.md` record instead of dual spec/plan
+  release artifacts.
 - `Release`: The release orchestrator now exits cleanly at the staging approval
   gate in non-interactive sessions and supports a one-command
   `--resume-from staging-approval` continuation path, reducing manual recovery

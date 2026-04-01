@@ -188,12 +188,23 @@ def test_verify_remote_version_raises_on_mismatch(monkeypatch):
     )
 
 
-def test_build_consolidated_markdown_includes_provenance_and_snapshot(tmp_path):
+def test_build_consolidated_markdown_builds_compact_summary_sections(tmp_path):
     source = tmp_path / "001-example.md"
-    source.write_text("# Example\n\nBody.\n", encoding="utf-8")
+    source.write_text(
+        "# Example\n\n"
+        "## Tracking\n\n"
+        "- Task ID: `example`\n"
+        "- Release tag: `v1.6.0`\n\n"
+        "## Summary\n\n"
+        "- Added the simplified SDD workflow.\n"
+        "- Removed duplicate release-plan history.\n\n"
+        "## Validation\n\n"
+        "- `pytest paddle/frontend/tests/test_release_orchestrator.py -q`\n"
+        "- Manual review of release docs.\n",
+        encoding="utf-8",
+    )
 
     output = release_orchestrator.build_consolidated_markdown(
-        "spec",
         "1.6.0",
         date(2026, 3, 16),
         [source],
@@ -201,8 +212,10 @@ def test_build_consolidated_markdown_includes_provenance_and_snapshot(tmp_path):
 
     assert "# Release 1.6.0 Consolidated Spec" in output
     assert "`" + source.as_posix() + "`" in output
-    assert "```md" in output
-    assert "# Example" in output
+    assert "## Shipped Scope" in output
+    assert "- Added the simplified SDD workflow." in output
+    assert "## Validation Summary" in output
+    assert "- `pytest paddle/frontend/tests/test_release_orchestrator.py -q`" in output
 
 
 def test_render_report_lists_step_statuses():
@@ -273,7 +286,6 @@ def test_parse_tracking_metadata_reads_task_and_release_fields(tmp_path):
         "# Example\n\n"
         "## Tracking\n\n"
         "- Task ID: `release-slash-command`\n"
-        "- Plan: `plans/2026-03-16_release-slash-command.md`\n"
         "- Release tag: `v1.6.0`\n",
         encoding="utf-8",
     )
@@ -282,7 +294,6 @@ def test_parse_tracking_metadata_reads_task_and_release_fields(tmp_path):
 
     assert metadata == {
         "Task ID": "release-slash-command",
-        "Plan": "plans/2026-03-16_release-slash-command.md",
         "Release tag": "v1.6.0",
     }
 
@@ -293,7 +304,6 @@ def test_collect_release_sources_only_includes_requested_release_tag(tmp_path):
         "# Matching\n\n"
         "## Tracking\n\n"
         "- Task ID: `release-slash-command`\n"
-        "- Plan: `plans/2026-03-16_release-slash-command.md`\n"
         "- Release tag: `v1.6.0`\n",
         encoding="utf-8",
     )
@@ -302,7 +312,6 @@ def test_collect_release_sources_only_includes_requested_release_tag(tmp_path):
         "# Other\n\n"
         "## Tracking\n\n"
         "- Task ID: `future-scope`\n"
-        "- Plan: `plans/2026-03-17_future-scope.md`\n"
         "- Release tag: `v1.7.0`\n",
         encoding="utf-8",
     )
@@ -314,7 +323,6 @@ def test_collect_release_sources_only_includes_requested_release_tag(tmp_path):
         "# Explicit\n\n"
         "## Tracking\n\n"
         "- Task ID: `already-tagged`\n"
-        "- Plan: `plans/2026-03-17_already-tagged.md`\n"
         "- Release tag: `v1.6.0`\n",
         encoding="utf-8",
     )
@@ -333,10 +341,9 @@ def test_collect_release_sources_only_includes_requested_release_tag(tmp_path):
 def test_collect_release_sources_excludes_named_template_files(tmp_path):
     included = tmp_path / "2026-03-17_release-fix.md"
     included.write_text(
-        "# Plan\n\n"
+        "# Spec\n\n"
         "## Tracking\n\n"
         "- Task ID: `release-fix`\n"
-        "- Spec: `specs/099-release-fix.md`\n"
         "- Release tag: `v1.6.0`\n",
         encoding="utf-8",
     )
@@ -360,7 +367,6 @@ def test_collect_release_sources_skips_unreleased_files(tmp_path):
         "# Example\n\n"
         "## Tracking\n\n"
         "- Task ID: `example`\n"
-        "- Plan: `plans/2026-03-27_example.md`\n"
         "- Release tag: `unreleased`\n",
         encoding="utf-8",
     )
@@ -374,6 +380,52 @@ def test_collect_release_sources_skips_unreleased_files(tmp_path):
 
     assert selection.matched == []
     assert selection.skipped == [source]
+
+
+def test_commit_consolidation_writes_single_release_spec(monkeypatch, tmp_path):
+    repo_root = tmp_path
+    specs_dir = repo_root / "specs"
+    specs_dir.mkdir()
+    source = specs_dir / "037-example.md"
+    source.write_text(
+        "# Example\n\n"
+        "## Tracking\n\n"
+        "- Task ID: `example`\n"
+        "- Release tag: `v1.6.0`\n\n"
+        "## Summary\n\n"
+        "- Added one approved spec file per task.\n\n"
+        "## Validation\n\n"
+        "- `pytest -q`\n",
+        encoding="utf-8",
+    )
+
+    commands = []
+
+    def fake_run_command(args, *, cwd, capture_output=True, input_text=None):
+        commands.append(args)
+        if args[:3] == ["git", "diff", "--cached"]:
+            return subprocess.CompletedProcess(args, 0, stdout="specs/release-1.6.0-consolidated.md\n", stderr="")
+        return subprocess.CompletedProcess(args, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(release_orchestrator, "run_command", fake_run_command)
+    monkeypatch.setattr(release_orchestrator, "date", type("FakeDate", (), {"today": staticmethod(lambda: date(2026, 3, 16))}))
+
+    context = release_orchestrator.ReleaseContext(
+        repo_root=repo_root,
+        version="1.6.0",
+        version_tag="v1.6.0",
+        paths=release_orchestrator.ReleasePaths(repo_root),
+    )
+    selection = release_orchestrator.ReleaseSourceSelection(matched=[source], skipped=[])
+
+    release_orchestrator.commit_consolidation(context, selection)
+
+    target = specs_dir / "release-1.6.0-consolidated.md"
+    assert target.exists()
+    assert not source.exists()
+    assert target.read_text(encoding="utf-8").startswith("# Release 1.6.0 Consolidated Spec")
+    assert ["git", "add", str(target)] in commands
+    assert ["git", "commit", "-m", "docs(release): consolidate specs for v1.6.0"] in commands
 
 
 def test_run_command_retries_gh_without_invalid_env_tokens(monkeypatch):

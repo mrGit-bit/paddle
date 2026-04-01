@@ -1,6 +1,6 @@
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.2.31  
+Instruction Set Version: 2.3.0  
 Last Updated: 2026-04-01
 
 This is the compact governance subset for ChatGPT Project instructions.
@@ -42,7 +42,7 @@ Rules:
 - Backend owns business logic; templates render only.
 - No frontend ranking logic.
 - UI text in Spanish.
-- Code, comments, docs, specs, and plans in English.
+- Code, comments, docs, and specs in English.
 - Keep deprecated API/DRF policy centralized in governance; do not restate it
   in feature specs unless the task directly touches that surface.
 - Verify current supported behavior before relying on external-tool or
@@ -55,41 +55,38 @@ Before any development or code change:
 1. Check the current git branch.
 2. If it is not `develop`, warn clearly, ask which branch should receive the
    work, and wait for confirmation before editing files.
-3. Create or update an approved active-work spec in `specs/###-short-title.md`.
-4. Create or update an approved active-work plan in
-   `plans/YYYY-MM-DD_short-description.md`.
-5. Start implementation only after both the current spec and current plan are
-   explicitly approved.
+3. Create or update an approved active-work spec in
+   `specs/###-short-title.md`.
+4. Start implementation only after the current active-work spec is explicitly
+   approved.
 
 Simple-change exception:
 
 - For small, low-risk documentation, governance, or repository-guidance edits,
-  Codex CLI may skip creating spec and plan files.
+  Codex CLI may skip creating an active-work spec.
 - If the request is clearly minor, Codex may proceed directly without an extra
   confirmation turn.
 - If the scope expands beyond that narrow change set, return to the standard
-  approved spec and plan flow before continuing implementation.
+  approved-spec flow before continuing implementation.
 
 Active-work rule:
 
-- The active spec and plan for a task are the latest approved non-release files
+- The active spec for a task is the latest approved non-release spec file
   created for that task.
-- Pair loose specs and plans by shared `Task ID` tracking metadata and explicit
-  `Plan` / `Spec` references instead of filename similarity alone.
-- `specs/release-*.md` and `plans/release-*.md` are historical release
-  artifacts, not active-work inputs.
-- Loose non-release specs and plans must carry explicit `Release tag` tracking
-  metadata and default to `unreleased` while work is still pending release.
-  Before release consolidation, mark only the actually shipped loose files with
-  the target `vX.Y.Z`. During consolidation,
+- `specs/release-*.md` files are historical release artifacts, not active-work
+  inputs.
+- Loose non-release specs must carry explicit `Release tag` tracking metadata
+  and default to `unreleased` while work is still pending release. Before
+  release consolidation, mark only the actually shipped loose files with the
+  target `vX.Y.Z`. During consolidation,
   `python scripts/release_orchestrator.py <version>` folds only those
   exact-match files into the shipped release record and keeps that changelog
   section as a light shipped summary. If a planned release never reaches
   production, roll its unshipped loose files and changelog notes into the next
   production release that actually ships them. A loose task must not remain
   loose after any scoped behavior from that task reaches production; any
-  post-release follow-up must move to a new loose spec/plan pair instead of
-  extending the shipped files.
+  post-release follow-up must move to a new loose spec instead of extending
+  the shipped file.
 
 Additional rules:
 
@@ -116,9 +113,9 @@ Additional rules:
   only after the user chooses to address them.
 - After a successful tagged release and back-merge from `main` to `develop`,
   consolidate the released SDD files before new SDD work begins, using only
-  loose files explicitly marked with the shipped `vX.Y.Z`. Keep that release
-  changelog section simple and light. A release is not reconciled while any
-  loose non-release file still describes shipped behavior; retag,
+  loose spec files explicitly marked with the shipped `vX.Y.Z`. Keep that
+  release changelog section simple and light. A release is not reconciled
+  while any loose non-release file still describes shipped behavior; retag,
   consolidate, and delete those superseded files before new SDD work starts.
 
 ## 5. Delivery and Coordination
@@ -148,8 +145,8 @@ Additional rules:
 - Prefer short sections, direct bullets, and compact summaries.
 - `CHANGELOG.md` should record outcomes, not process narration.
 - Keep `CHANGELOG.md` categories stable; prefer product or workflow domains.
-- Specs/plans should capture only scope, constraints, and checks needed for
-  execution.
+- Active-work specs should capture only scope, constraints, and checks needed
+  for execution.
 - Consolidated release files should stay as compact provenance summaries.
 - Do not add `markdownlint-disable` directives unless explicitly requested.
 - Enforce `MD022` and `MD032`; treat `MD013` as non-blocking.

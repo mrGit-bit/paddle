@@ -86,17 +86,15 @@ reintroduced.
   main frontend view implementations.
 - [paddle/frontend/VIEW_MODULES.md](/workspaces/paddle/paddle/frontend/VIEW_MODULES.md):
   notes about the view-module split.
-- [plans](/workspaces/paddle/plans): active plans and consolidated release
-  plans.
-- [specs](/workspaces/paddle/specs): active specs and consolidated release
-  specs.
+- [specs](/workspaces/paddle/specs): active work specs, the task template, and
+  consolidated release specs.
 - Consolidated release files represent shipped production history only. If a
   planned version never ships, its loose historical artifacts roll into the
   next production release that actually shipped them.
-- Loose active specs/plans should keep `Release tag: unreleased` until the
-  release command stamps the shipped version.
-- Specs, plans, and consolidated release files are intentionally schematic;
-  keep them compact instead of using them as long-form narrative docs.
+- Loose active specs should keep `Release tag: unreleased` until the release
+  command stamps the shipped version.
+- Active specs and consolidated release files are intentionally schematic; keep
+  them compact instead of using them as long-form narrative docs.
 
 ## Codex CLI Guide
 
@@ -105,13 +103,11 @@ Read this repository in this order when the task touches product behavior:
 1. Explicit user task brief.
 2. [docs/PROJECT_INSTRUCTIONS.md](/workspaces/paddle/docs/PROJECT_INSTRUCTIONS.md).
 3. [AGENTS.md](/workspaces/paddle/AGENTS.md).
-4. The active-work spec and plan for the task:
-   the latest approved non-release files in [specs](/workspaces/paddle/specs)
-   and [plans](/workspaces/paddle/plans) created for that task, paired by
-   shared `Task ID` tracking metadata and explicit `Plan` / `Spec` references.
-   For small, low-risk documentation or governance updates, this may be skipped
-   only when the higher-authority governance docs allow the reduced-process
-   path for that request.
+4. The active-work spec for the task:
+   the latest approved non-release file in [specs](/workspaces/paddle/specs)
+   created for that task. For small, low-risk documentation or governance
+   updates, this may be skipped only when the higher-authority governance docs
+   allow the reduced-process path for that request.
 5. The relevant app code and tests.
 
 Quick routing:
@@ -139,7 +135,6 @@ Quick routing:
 │   │   └── views.py
 │   └── users/
 ├── docs/
-├── plans/
 ├── specs/
 ├── CHANGELOG.md
 ├── RELEASE.md

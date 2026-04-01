@@ -17,7 +17,7 @@ from pathlib import Path
 
 VERSION_PATTERN = re.compile(r"^v?(?P<version>\d+\.\d+\.\d+)$")
 NO_CHECKS_REPORTED_RE = re.compile(r"no checks reported on the .+ branch", re.IGNORECASE)
-TRACKING_LINE_RE = re.compile(r"^- (?P<field>Task ID|Plan|Spec|Release tag):\s*`(?P<value>[^`]+)`\s*$")
+TRACKING_LINE_RE = re.compile(r"^- (?P<field>Task ID|Release tag):\s*`(?P<value>[^`]+)`\s*$")
 SAFE_PRIVATE_KEY_GROUP_OR_WORLD_MASK = 0o077
 DEFAULT_PRIVATE_KEY_MODE = 0o600
 REMOTE_VERSION_FILE = "~/paddle/paddle/config/__init__.py"
@@ -41,7 +41,6 @@ class ReleasePaths:
     staging_key: Path = field(init=False)
     prod_key: Path = field(init=False)
     specs_dir: Path = field(init=False)
-    plans_dir: Path = field(init=False)
     changelog: Path = field(init=False)
     backmerge_script: Path = field(init=False)
 
@@ -51,7 +50,6 @@ class ReleasePaths:
         self.staging_key = private_dir / "staging-oracle-key.pem"
         self.prod_key = private_dir / "production-oracle-key.pem"
         self.specs_dir = self.repo_root / "specs"
-        self.plans_dir = self.repo_root / "plans"
         self.changelog = self.repo_root / "CHANGELOG.md"
         self.backmerge_script = self.repo_root / "scripts" / "backmerge_main_to_develop.sh"
 
@@ -614,94 +612,93 @@ def collect_release_sources(
     return ReleaseSourceSelection(matched=matched, skipped=skipped)
 
 
-def build_consolidated_markdown(kind: str, version: str, release_date: date, sources: list[Path]) -> str:
-    title = f"# Release {version} Consolidated {kind.title()}\n"
+def parse_markdown_section_items(source_text: str, heading: str) -> list[str]:
+    pattern = rf"^## {re.escape(heading)}\n(?P<body>.*?)(?=^## |\Z)"
+    match = re.search(pattern, source_text, flags=re.M | re.S)
+    if not match:
+        return []
+
+    items: list[str] = []
+    current_item: str | None = None
+    for raw_line in match.group("body").splitlines():
+        line = raw_line.rstrip()
+        if line.startswith("- ") or line.startswith("- [ ] "):
+            if current_item:
+                items.append(current_item)
+            current_item = re.sub(r"^- (?:\[ \] )?", "", line).strip()
+            continue
+        if current_item and line.startswith("  "):
+            current_item = f"{current_item} {line.strip()}"
+    if current_item:
+        items.append(current_item)
+    return items
+
+
+def build_consolidated_markdown(version: str, release_date: date, sources: list[Path]) -> str:
+    shipped_scope: list[str] = []
+    validation_summary: list[str] = []
+    for source in sources:
+        source_text = source.read_text(encoding="utf-8")
+        shipped_scope.extend(parse_markdown_section_items(source_text, "Summary"))
+        validation_summary.extend(parse_markdown_section_items(source_text, "Validation"))
+
     lines = [
-        title,
+        f"# Release {version} Consolidated Spec",
         "",
         "## Release",
         "",
-        f"- Release tag: `{version}`",
-        f"- Release date: `{release_date.isoformat()}`",
-        "- Consolidation status: post-release back-merge complete",
+        f"- Tag: `{version}`",
+        f"- Date: `{release_date.isoformat()}`",
         "",
-        "## Source Provenance",
+        "## Sources",
         "",
     ]
     for source in sources:
         lines.append(f"- `{source.as_posix()}`")
 
-    lines.extend(
-        [
-            "",
-            "## Source Snapshots",
-            "",
-            "The following approved source files were consolidated for this release.",
-            "",
-        ]
-    )
+    lines.extend(["", "## Shipped Scope", ""])
+    if shipped_scope:
+        for item in shipped_scope:
+            lines.append(f"- {item}")
+    else:
+        lines.append("- Consolidated approved release specs for this shipped version.")
 
-    for source in sources:
-        lines.extend(
-            [
-                f"### `{source.as_posix()}`",
-                "",
-                "```md",
-                source.read_text(encoding="utf-8").rstrip(),
-                "```",
-                "",
-            ]
-        )
+    if validation_summary:
+        lines.extend(["", "## Validation Summary", ""])
+        for item in validation_summary:
+            lines.append(f"- {item}")
 
     return "\n".join(lines).rstrip() + "\n"
 
 
-def commit_consolidation(
-    context: ReleaseContext,
-    spec_selection: ReleaseSourceSelection,
-    plan_selection: ReleaseSourceSelection,
-) -> None:
+def commit_consolidation(context: ReleaseContext, spec_selection: ReleaseSourceSelection) -> None:
     spec_sources = spec_selection.matched
-    plan_sources = plan_selection.matched
-    if not spec_sources and not plan_sources:
-        skipped_sources = spec_selection.skipped + plan_selection.skipped
+    if not spec_sources:
+        skipped_sources = spec_selection.skipped
         if skipped_sources:
             skipped_names = ", ".join(source.name for source in skipped_sources)
             record_success(
                 context,
                 "Consolidation",
-                f"No loose spec or plan files were tagged for {context.version_tag}; left other loose files untouched ({skipped_names}).",
+                f"No loose spec files were tagged for {context.version_tag}; left other loose files untouched ({skipped_names}).",
             )
             return
-        record_success(context, "Consolidation", "No loose spec or plan files required consolidation.")
+        record_success(context, "Consolidation", "No loose spec files required consolidation.")
         return
 
     release_date = date.today()
     spec_target = context.paths.specs_dir / f"release-{context.version}-consolidated.md"
-    plan_target = context.paths.plans_dir / f"release-{context.version}-consolidated.md"
 
-    if spec_sources:
-        spec_target.write_text(
-            build_consolidated_markdown("spec", context.version, release_date, spec_sources),
-            encoding="utf-8",
-        )
-    if plan_sources:
-        plan_target.write_text(
-            build_consolidated_markdown("plan", context.version, release_date, plan_sources),
-            encoding="utf-8",
-        )
+    spec_target.write_text(
+        build_consolidated_markdown(context.version, release_date, spec_sources),
+        encoding="utf-8",
+    )
 
-    for source in spec_sources + plan_sources:
+    for source in spec_sources:
         source.unlink()
 
-    add_targets: list[str] = []
-    if spec_sources:
-        add_targets.append(str(spec_target))
-    if plan_sources:
-        add_targets.append(str(plan_target))
-    if add_targets:
-        run_command(["git", "add", *add_targets], cwd=context.repo_root)
-    for source in spec_sources + plan_sources:
+    run_command(["git", "add", str(spec_target)], cwd=context.repo_root)
+    for source in spec_sources:
         run_command(["git", "add", "-u", str(source)], cwd=context.repo_root)
 
     diff = run_command(["git", "diff", "--cached", "--name-only"], cwd=context.repo_root).stdout.strip()
@@ -710,12 +707,12 @@ def commit_consolidation(
         return
 
     run_command(
-        ["git", "commit", "-m", f"docs(release): consolidate specs and plans for {context.version_tag}"],
+        ["git", "commit", "-m", f"docs(release): consolidate specs for {context.version_tag}"],
         cwd=context.repo_root,
         capture_output=False,
     )
     run_command(["git", "push", "origin", "develop"], cwd=context.repo_root, capture_output=False)
-    skipped_sources = spec_selection.skipped + plan_selection.skipped
+    skipped_sources = spec_selection.skipped
     skipped_detail = ""
     if skipped_sources:
         skipped_names = ", ".join(source.name for source in skipped_sources)
@@ -723,7 +720,7 @@ def commit_consolidation(
     record_success(
         context,
         "Consolidation",
-        f"Created consolidated release artifacts and pushed the develop update for {context.version_tag}.{skipped_detail}",
+        f"Created the consolidated release spec and pushed the develop update for {context.version_tag}.{skipped_detail}",
     )
 
 
@@ -795,16 +792,10 @@ def continue_after_staging_approval(context: ReleaseContext) -> None:
     spec_sources = collect_release_sources(
         context.paths.specs_dir,
         "[0-9][0-9][0-9]-*.md",
-        set(),
-        release_tag=context.version_tag,
-    )
-    plan_sources = collect_release_sources(
-        context.paths.plans_dir,
-        "20[0-9][0-9]-*.md",
         {"TEMPLATE.md"},
         release_tag=context.version_tag,
     )
-    commit_consolidation(context, spec_sources, plan_sources)
+    commit_consolidation(context, spec_sources)
     print(render_report(context))
 
 

@@ -32,4 +32,4 @@ markdown.
 - Keep one source of truth per rule.
 - Keep README focused on current-state orientation, not release history.
 - Treat manual-only cross-file coordination as a defect, not a preference.
-- Challenge spec/plan detail when it is not reused in execution.
+- Challenge SDD artifact detail when it is not reused in execution.
