@@ -7,6 +7,10 @@ This repository uses a command-first release flow through
 
 - Primary command: `python scripts/release_orchestrator.py`
 - Argument: `x.y.z` or `vx.y.z`
+- Resume after staging checks:
+  `python scripts/release_orchestrator.py <version> --resume-from staging-approval --staging-approved`
+- Record a paused stop after staging checks:
+  `python scripts/release_orchestrator.py <version> --resume-from staging-approval --staging-declined`
 - Examples:
   - `python scripts/release_orchestrator.py 1.6.0`
   - `python scripts/release_orchestrator.py v1.6.0`
@@ -148,6 +152,16 @@ returns to the orchestrator after `./deploy_update.sh` finishes.
 
 If the user declines at the staging gate, the command stops after staging and
 reports the paused state.
+
+If the command reaches staging in a non-interactive session, it now prints the
+manual checks and exits with resume guidance instead of crashing on `input()`.
+After the checks are complete, resume with:
+
+- `python scripts/release_orchestrator.py <version> --resume-from staging-approval --staging-approved`
+
+If staging is not approved, record the pause cleanly with:
+
+- `python scripts/release_orchestrator.py <version> --resume-from staging-approval --staging-declined`
 
 If a remote deploy command returns but the host still reports the wrong app
 version, the orchestrator aborts instead of continuing to the next release

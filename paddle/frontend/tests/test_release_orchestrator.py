@@ -91,6 +91,24 @@ def test_build_staging_checks_includes_release_specific_items():
     assert "Validar el cambio liberado: Added release command automation." in checks
 
 
+def test_build_staging_checks_preserves_multiline_release_items():
+    changelog = """## [Unreleased]
+
+## [1.8.1] - 2026-04-02
+### Changed
+- `UI/UX`: `Parejas del siglo` y `Parejas catastróficas` now require at least
+  5 matches instead of 3 before a pair is eligible for the rate-based tables.
+"""
+
+    checks = release_orchestrator.build_staging_checks(changelog, "1.8.1")
+
+    assert (
+        "Validar el cambio liberado: `UI/UX`: `Parejas del siglo` y `Parejas catastróficas` "
+        "now require at least 5 matches instead of 3 before a pair is eligible for the rate-based tables."
+        in checks
+    )
+
+
 def test_read_remote_version_uses_repo_ssh_config(tmp_path, monkeypatch):
     paths = release_orchestrator.ReleasePaths(tmp_path)
     calls = []
@@ -202,6 +220,51 @@ def test_render_report_lists_step_statuses():
     assert "Release report for v1.6.0" in report
     assert "- [ok] Preflight: All prerequisites satisfied." in report
     assert "- [paused] Staging Approval: User declined production." in report
+
+
+def test_prompt_continue_raises_resume_guidance_when_not_interactive(capsys):
+    with pytest.raises(release_orchestrator.ReleaseError) as exc_info:
+        release_orchestrator.prompt_continue(["Check one."], stdin_isatty=False)
+
+    captured = capsys.readouterr()
+    assert "Staging manual checks:" in captured.out
+    assert "Check one." in captured.out
+    assert "rerun `python scripts/release_orchestrator.py <version> --resume-from staging-approval" in str(
+        exc_info.value
+    )
+
+
+def test_parse_args_accepts_resume_flags():
+    args = release_orchestrator.parse_args(
+        ["1.8.1", "--resume-from", "staging-approval", "--staging-approved"]
+    )
+
+    assert args.version == "1.8.1"
+    assert args.resume_from == "staging-approval"
+    assert args.staging_approved is True
+    assert args.staging_declined is False
+
+
+def test_resume_requires_staging_decision_for_resume_mode():
+    args = release_orchestrator.parse_args(["1.8.1", "--resume-from", "staging-approval"])
+
+    with pytest.raises(release_orchestrator.ReleaseError) as exc_info:
+        release_orchestrator.resume_requires_staging_decision(args)
+
+    assert "--resume-from staging-approval requires either --staging-approved or --staging-declined" in str(
+        exc_info.value
+    )
+
+
+def test_resume_flags_require_resume_mode():
+    args = release_orchestrator.parse_args(["1.8.1", "--staging-approved"])
+
+    with pytest.raises(release_orchestrator.ReleaseError) as exc_info:
+        release_orchestrator.resume_requires_staging_decision(args)
+
+    assert "--staging-approved and --staging-declined are only valid with --resume-from staging-approval." in str(
+        exc_info.value
+    )
 
 
 def test_parse_tracking_metadata_reads_task_and_release_fields(tmp_path):
@@ -461,7 +524,7 @@ def test_main_prints_partial_report_when_subprocess_fails(monkeypatch, capsys):
     monkeypatch.setattr(release_orchestrator, "normalize_version", lambda value: ("1.6.0", "v1.6.0"))
     monkeypatch.setattr(release_orchestrator, "ReleasePaths", lambda repo_root: context.paths)
 
-    def fail_run_release_flow(passed_context):
+    def fail_run_release_flow(passed_context, passed_args):
         release_orchestrator.record_success(passed_context, "Preflight", "All prerequisites satisfied.")
         raise subprocess.CalledProcessError(2, ["gh", "run", "watch"], stderr="gh watch failed")
 

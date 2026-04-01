@@ -12,13 +12,28 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+### Changed
+
+- `Release`: The release orchestrator now exits cleanly at the staging approval
+  gate in non-interactive sessions and supports a one-command
+  `--resume-from staging-approval` continuation path, reducing manual recovery
+  steps and permission churn for staged releases.
+- `Governance`: Post-release reconciliation now blocks new SDD work while any
+  loose spec or plan still describes already shipped behavior, and follow-up
+  changes after consolidation must move into a new loose task instead of
+  extending the shipped files.
+- `Governance`: Development-cycle closure now requires `git add`, `git
+  commit`, and `git push` to run sequentially instead of in parallel.
+
 ## [1.8.1] - 2026-04-01
+
 ### Changed
 
 - `UI/UX`: `Parejas del siglo` y `Parejas catastróficas` now require at least
   5 matches instead of 3 before a pair is eligible for the rate-based tables.
 
 ## [1.8.0] - 2026-04-01
+
 ### Changed
 
 - `UI/UX`: Added a public `Parejas` navbar page with top pair rankings by

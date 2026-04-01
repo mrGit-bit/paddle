@@ -1,7 +1,7 @@
 # AGENTS.md — Codex Execution Rules
 
-Instruction Set Version: 2.2.30  
-Last Updated: 2026-03-31
+Instruction Set Version: 2.2.31  
+Last Updated: 2026-04-01
 
 ## 1. Authority and File Roles
 
@@ -72,6 +72,10 @@ Execution rules:
    shipped changes. If a planned release never reaches production, do not keep
    a standalone release record for it; roll its unshipped loose files and
    changelog notes into the next production release that actually ships them.
+   A loose task must not stay loose once any scoped behavior from that task has
+   reached production; consolidate the shipped files for that release, and if
+   more work is needed afterward, create a new loose spec/plan pair for the
+   follow-up instead of reopening or extending the shipped files.
 
 Simple-change exception:
 
@@ -130,7 +134,10 @@ Post-release:
   a planned version never entered production, its unshipped loose spec/plan
   files and notes must be absorbed into the next production release that
   actually shipped them instead of being archived under the non-shipped
-  version.
+  version. Post-release reconciliation is not complete while any loose
+  non-release file still describes behavior already in production; retag those
+  files to the shipped version if needed, consolidate them immediately, and
+  delete the superseded loose files before new SDD work begins.
 
 ## 4. Handoff Requirements
 
@@ -158,6 +165,8 @@ Before any commit, push, or closure step:
 If the user confirms closure:
 
 - Stage, commit, and push in the same flow.
+- Run closure git operations sequentially, never in parallel; `git add`,
+  `git commit`, and `git push` must each finish before the next one starts.
 - Reconcile any completed backlog items in `BACKLOG.md` that belong to the
   requested scope by removing them from backlog and ensuring the implemented
   outcome is reflected in `CHANGELOG.md`.

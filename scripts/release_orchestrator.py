@@ -16,7 +16,6 @@ from pathlib import Path
 
 
 VERSION_PATTERN = re.compile(r"^v?(?P<version>\d+\.\d+\.\d+)$")
-CHECKLIST_ITEM_RE = re.compile(r"^-\s+(.*\S)\s*$", re.MULTILINE)
 NO_CHECKS_REPORTED_RE = re.compile(r"no checks reported on the .+ branch", re.IGNORECASE)
 TRACKING_LINE_RE = re.compile(r"^- (?P<field>Task ID|Plan|Spec|Release tag):\s*`(?P<value>[^`]+)`\s*$")
 SAFE_PRIVATE_KEY_GROUP_OR_WORLD_MASK = 0o077
@@ -316,7 +315,24 @@ def parse_changelog_section(changelog_text: str, version: str) -> list[str]:
     if not match:
         return []
     body = match.group("body")
-    return CHECKLIST_ITEM_RE.findall(body)
+    items: list[str] = []
+    current_item: str | None = None
+
+    for raw_line in body.splitlines():
+        line = raw_line.rstrip()
+        if line.startswith("- "):
+            if current_item:
+                items.append(current_item)
+            current_item = line[2:].strip()
+            continue
+
+        if current_item and line.startswith("  "):
+            current_item = f"{current_item} {line.strip()}"
+
+    if current_item:
+        items.append(current_item)
+
+    return items
 
 
 def build_staging_checks(changelog_text: str, version: str) -> list[str]:
@@ -528,12 +544,42 @@ def verify_remote_version(
     )
 
 
-def prompt_continue(checks: list[str]) -> bool:
+def prompt_continue(checks: list[str], *, input_func=input, stdin_isatty: bool | None = None) -> bool:
     print("\nStaging manual checks:")
     for index, check in enumerate(checks, start=1):
         print(f"{index}. {check}")
-    response = input("\nContinue to production after these checks? [y/N]: ").strip().lower()
+
+    if stdin_isatty is None:
+        stdin = getattr(sys, "stdin", None)
+        stdin_isatty = bool(stdin and stdin.isatty())
+
+    if not stdin_isatty:
+        raise ReleaseError(
+            "Staging approval requires interactive input. After manual checks, rerun "
+            "`python scripts/release_orchestrator.py <version> --resume-from staging-approval "
+            "--staging-approved` to continue, or use `--staging-declined` to stop cleanly."
+        )
+
+    response = input_func("\nContinue to production after these checks? [y/N]: ").strip().lower()
     return response in {"y", "yes"}
+
+
+def resume_requires_staging_decision(args: argparse.Namespace) -> None:
+    resume_from = getattr(args, "resume_from", None)
+    staging_approved = bool(getattr(args, "staging_approved", False))
+    staging_declined = bool(getattr(args, "staging_declined", False))
+
+    if resume_from == "staging-approval":
+        if staging_approved or staging_declined:
+            return
+        raise ReleaseError(
+            "--resume-from staging-approval requires either --staging-approved or --staging-declined."
+        )
+
+    if staging_approved or staging_declined:
+        raise ReleaseError(
+            "--staging-approved and --staging-declined are only valid with --resume-from staging-approval."
+        )
 
 
 def parse_tracking_metadata(source: Path) -> dict[str, str]:
@@ -724,7 +770,79 @@ def render_report(context: ReleaseContext) -> str:
     return "\n".join(lines)
 
 
-def run_release_flow(context: ReleaseContext) -> None:
+def continue_after_staging_approval(context: ReleaseContext) -> None:
+    prod_pr = create_or_reuse_promotion_pr("main", "staging", context.version_tag, cwd=context.repo_root)
+    wait_for_required_checks(int(prod_pr["number"]), cwd=context.repo_root)
+    merge_pr(int(prod_pr["number"]), "--merge", cwd=context.repo_root, delete_branch=False)
+    record_success(
+        context,
+        "Staging to Main PR",
+        f"Merged PR #{prod_pr['number']} after required CI checks.",
+    )
+
+    prod_target = DeployTarget(
+        deploy_alias="prod-update",
+        verify_alias="prod",
+        display_name="Production",
+    )
+    deploy_environment(context.paths, prod_target.deploy_alias, cwd=context.repo_root)
+    verify_remote_version(context, prod_target, step_name="Production Deploy")
+
+    run_command([str(context.paths.backmerge_script), context.version], cwd=context.repo_root, capture_output=False)
+    close_backmerge_prs(cwd=context.repo_root)
+    record_success(context, "Back-merge", "Merged origin/main into local develop and pushed origin/develop.")
+
+    spec_sources = collect_release_sources(
+        context.paths.specs_dir,
+        "[0-9][0-9][0-9]-*.md",
+        set(),
+        release_tag=context.version_tag,
+    )
+    plan_sources = collect_release_sources(
+        context.paths.plans_dir,
+        "20[0-9][0-9]-*.md",
+        {"TEMPLATE.md"},
+        release_tag=context.version_tag,
+    )
+    commit_consolidation(context, spec_sources, plan_sources)
+    print(render_report(context))
+
+
+def resume_from_staging_approval(context: ReleaseContext, args: argparse.Namespace) -> None:
+    changelog_text = context.paths.changelog.read_text(encoding="utf-8")
+    checks = build_staging_checks(changelog_text, context.version)
+
+    staging_target = DeployTarget(
+        deploy_alias="staging-update",
+        verify_alias="staging",
+        display_name="Staging",
+    )
+    remote_version = read_remote_version(context.paths, staging_target.verify_alias, cwd=context.repo_root)
+    if remote_version != context.version:
+        raise ReleaseError(
+            f"Cannot resume after staging approval because staging reports version "
+            f"{remote_version or 'unknown'} instead of {context.version}."
+        )
+    record_success(
+        context,
+        "Staging Resume Check",
+        f"Verified staging is already on {context.version} before resume.",
+    )
+
+    print("\nStaging manual checks:")
+    for index, check in enumerate(checks, start=1):
+        print(f"{index}. {check}")
+
+    if args.staging_declined:
+        add_step(context, "Staging Approval", "paused", "User declined production promotion after staging.")
+        print(render_report(context))
+        return
+
+    record_success(context, "Staging Approval", "User approved promotion after staging validation.")
+    continue_after_staging_approval(context)
+
+
+def run_release_flow(context: ReleaseContext, args: argparse.Namespace) -> None:
     ensure_command_available("gh", cwd=context.repo_root)
     ensure_command_available("ssh", cwd=context.repo_root)
     ensure_gh_authenticated(cwd=context.repo_root)
@@ -737,6 +855,10 @@ def run_release_flow(context: ReleaseContext) -> None:
         "Preflight",
         "Validated develop branch, clean synced git state, GitHub auth, and repo-local SSH assets.",
     )
+
+    if args.resume_from == "staging-approval":
+        resume_from_staging_approval(context, args)
+        return
 
     started_at = datetime.now(timezone.utc)
     run_command(
@@ -800,46 +922,27 @@ def run_release_flow(context: ReleaseContext) -> None:
         return
 
     record_success(context, "Staging Approval", "User approved promotion after staging validation.")
-    prod_pr = create_or_reuse_promotion_pr("main", "staging", context.version_tag, cwd=context.repo_root)
-    wait_for_required_checks(int(prod_pr["number"]), cwd=context.repo_root)
-    merge_pr(int(prod_pr["number"]), "--merge", cwd=context.repo_root, delete_branch=False)
-    record_success(
-        context,
-        "Staging to Main PR",
-        f"Merged PR #{prod_pr['number']} after required CI checks.",
-    )
-
-    prod_target = DeployTarget(
-        deploy_alias="prod-update",
-        verify_alias="prod",
-        display_name="Production",
-    )
-    deploy_environment(context.paths, prod_target.deploy_alias, cwd=context.repo_root)
-    verify_remote_version(context, prod_target, step_name="Production Deploy")
-
-    run_command([str(context.paths.backmerge_script), context.version], cwd=context.repo_root, capture_output=False)
-    close_backmerge_prs(cwd=context.repo_root)
-    record_success(context, "Back-merge", "Merged origin/main into local develop and pushed origin/develop.")
-
-    spec_sources = collect_release_sources(
-        context.paths.specs_dir,
-        "[0-9][0-9][0-9]-*.md",
-        set(),
-        release_tag=context.version_tag,
-    )
-    plan_sources = collect_release_sources(
-        context.paths.plans_dir,
-        "20[0-9][0-9]-*.md",
-        {"TEMPLATE.md"},
-        release_tag=context.version_tag,
-    )
-    commit_consolidation(context, spec_sources, plan_sources)
-    print(render_report(context))
+    continue_after_staging_approval(context)
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("version", help="Release version in X.Y.Z or vX.Y.Z format.")
+    parser.add_argument(
+        "--resume-from",
+        choices=("staging-approval",),
+        help="Resume an already-paused release from the named gate.",
+    )
+    parser.add_argument(
+        "--staging-approved",
+        action="store_true",
+        help="Resume past staging approval after manual checks are complete.",
+    )
+    parser.add_argument(
+        "--staging-declined",
+        action="store_true",
+        help="Resume only to record that staging was not approved for production.",
+    )
     return parser.parse_args(argv)
 
 
@@ -849,13 +952,14 @@ def main(argv: list[str] | None = None) -> int:
     context: ReleaseContext | None = None
     try:
         version, version_tag = normalize_version(args.version)
+        resume_requires_staging_decision(args)
         context = ReleaseContext(
             repo_root=repo_root,
             version=version,
             version_tag=version_tag,
             paths=ReleasePaths(repo_root),
         )
-        run_release_flow(context)
+        run_release_flow(context, args)
         return 0
     except ReleaseError as exc:
         if context is not None:
