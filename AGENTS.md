@@ -1,6 +1,6 @@
 # AGENTS.md — Codex Execution Rules
 
-Instruction Set Version: 2.3.4  
+Instruction Set Version: 2.3.5  
 Last Updated: 2026-04-02
 
 ## 1. Authority and File Roles
@@ -169,6 +169,9 @@ Before any commit, push, or closure step:
 
 If the user confirms closure:
 
+- Update each in-scope loose spec from `Status: approved` to
+  `Status: implemented` when the scoped work is complete and that development
+  cycle is being closed, before staging and committing the closure.
 - Stage, commit, and push in the same flow.
 - Run closure git operations sequentially, never in parallel; `git add`,
   `git commit`, and `git push` must each finish before the next one starts.

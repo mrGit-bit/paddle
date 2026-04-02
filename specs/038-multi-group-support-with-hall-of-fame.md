@@ -3,7 +3,7 @@
 ## Tracking
 
 - Task ID: `multi-group-hall-of-fame`
-- Status: `approved`
+- Status: `implemented`
 - Release tag: `unreleased`
 
 ## Summary

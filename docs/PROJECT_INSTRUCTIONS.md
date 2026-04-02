@@ -1,6 +1,6 @@
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.3.4  
+Instruction Set Version: 2.3.5  
 Last Updated: 2026-04-02
 
 This is the compact governance subset for ChatGPT Project instructions.
@@ -137,6 +137,9 @@ Additional rules:
   when that keeps mixed releases scannable.
 - Before closing a development cycle, reconcile completed scoped items in
   `BACKLOG.md` and reflect them in `CHANGELOG.md`.
+- During development-cycle closure, move each in-scope loose spec from
+  `Status: approved` to `Status: implemented` when the scoped work is complete
+  and that cycle is being closed, before staging and committing the closure.
 - Backlog reconciliation belongs to development-cycle closure unless the
   release workflow explicitly says otherwise.
 - Closure is complete only after all requested-work changes are staged,

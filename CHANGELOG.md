@@ -39,6 +39,9 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 - `Governance`: Loose specs now move from `approved` to `implemented` only
   when the scoped development cycle is being closed, so in-progress work on
   `develop` does not look closure-complete before that gate.
+- `Governance`: Development-cycle closure now explicitly requires updating each
+  completed in-scope loose spec from `approved` to `implemented` before
+  staging and committing the closure.
 - `Docs`: Added a reusable manual test checklist in
   `docs/spec-038-manual-checklist.md` for the current multi-group and Hall of
   Fame rollout.
