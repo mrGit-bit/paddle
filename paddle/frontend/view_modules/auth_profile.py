@@ -18,16 +18,23 @@ from .common import compute_player_stats
 User = get_user_model()
 
 def register_view(request):
-    player_queryset = Player.objects.filter(registered_user__isnull=True).order_by(Lower("name"))
+    player_queryset = (
+        Player.objects.filter(registered_user__isnull=True)
+        .select_related("group")
+        .order_by(Lower("group__name"), Lower("name"))
+    )
 
     if request.method == "POST":
         form = RegistrationForm(request.POST, player_queryset=player_queryset)
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect("match")
+            return redirect("hall_of_fame")
     else:
-        form = RegistrationForm(player_queryset=player_queryset)
+        initial = {}
+        if request.GET.get("create_group") == "1":
+            initial["group_mode"] = RegistrationForm.GROUP_MODE_CREATE
+        form = RegistrationForm(player_queryset=player_queryset, initial=initial)
 
     return render(
         request,

@@ -5,6 +5,9 @@
 {% block content %}
 <div class="text-center mb-4">
   <h1 class="display-5">Jugadores</h1>
+  {% if group_display_name %}
+    <p class="text-muted mb-0">{{ group_display_name }}</p>
+  {% endif %}
 </div>
 
 <div class="row justify-content-center mb-4">

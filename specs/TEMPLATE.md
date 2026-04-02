@@ -5,7 +5,12 @@ Use for active SDD work only.
 ## Tracking
 
 - Task ID: `short-task-id`
+- Status: `approved`
 - Release tag: `unreleased`
+
+`approved` stays in place until the scoped work is finished and the
+development cycle for that spec is being closed. Only then move the spec to
+`implemented`.
 
 ## Summary
 

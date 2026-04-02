@@ -16,6 +16,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.db.models.functions import Lower
 from django.shortcuts import redirect
 
 from games.models import Match, Player
@@ -64,6 +65,61 @@ def compute_player_stats(player):
         "matches": matches,
         "win_rate": win_rate,
     }
+
+
+def get_user_player(request):
+    cached_user_id = getattr(request, "_cached_user_player_user_id", object())
+    current_user_id = getattr(request.user, "id", None) if getattr(request, "user", None) else None
+    if cached_user_id == current_user_id and hasattr(request, "_cached_user_player"):
+        return request._cached_user_player
+    if not request.user.is_authenticated:
+        request._cached_user_player_user_id = current_user_id
+        request._cached_user_player = None
+        return None
+    request._cached_user_player = (
+        Player.objects.filter(registered_user=request.user).select_related("group").first()
+    )
+    request._cached_user_player_user_id = current_user_id
+    return request._cached_user_player
+
+
+def get_user_group(request):
+    player = get_user_player(request)
+    return player.group if player else None
+
+
+def get_request_group_context(request):
+    user_group = get_user_group(request)
+    return {
+        "group": user_group,
+        "aggregate": user_group is None,
+        "display_name": user_group.name if user_group else "Hall of Fame",
+    }
+
+
+def filter_players_for_group(queryset=None, *, group=None):
+    queryset = queryset if queryset is not None else Player.objects.all()
+    if group is not None:
+        queryset = queryset.filter(group=group)
+    return queryset
+
+
+def filter_matches_for_group(queryset=None, *, group=None):
+    queryset = queryset if queryset is not None else Match.objects.all()
+    if group is not None:
+        queryset = queryset.filter(group=group)
+    return queryset
+
+
+def annotate_player_options(players, *, include_group=False):
+    annotated = []
+    for player in players:
+        option_label = player.name
+        if include_group:
+            option_label = f"{player.name} — {player.group.name}"
+        player.option_label = option_label
+        annotated.append(player)
+    return annotated
 
 
 def get_player_stats(request, player_id=None):
@@ -127,7 +183,7 @@ def get_new_match_ids(request):
     if not request.user.is_authenticated:
         return []
 
-    user_player = Player.objects.filter(registered_user=request.user).first()
+    user_player = get_user_player(request)
     if not user_player:
         return []
 
@@ -207,13 +263,20 @@ def fetch_available_players():
     return list(registered_players), list(non_registered_players)
 
 
-def build_all_players():
+def build_all_players(*, group=None, include_group_labels=False):
     """
     Returns the merged players list used in selects, sorted alphabetically.
     """
-    registered_players, non_registered_players = fetch_available_players()
+    queryset = Player.objects.select_related("group")
+    queryset = filter_players_for_group(queryset, group=group).order_by(Lower("name"), Lower("group__name"))
+    registered_players = list(queryset.filter(registered_user__isnull=False))
+    non_registered_players = list(queryset.filter(registered_user__isnull=True))
     all_players = sorted(
         list(registered_players) + list(non_registered_players),
-        key=lambda p: p["name"].lower(),
+        key=lambda p: (p.name.lower(), p.group.name.lower()),
     )
-    return registered_players, non_registered_players, all_players
+    return (
+        annotate_player_options(registered_players, include_group=include_group_labels),
+        annotate_player_options(non_registered_players, include_group=include_group_labels),
+        annotate_player_options(all_players, include_group=include_group_labels),
+    )

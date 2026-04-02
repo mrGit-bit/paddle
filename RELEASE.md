@@ -52,9 +52,12 @@ instead: `python scripts/release_orchestrator.py 1.6.0`.
 - `git status --short` is clean.
 - Local `develop` is synchronized with `origin/develop`.
 - Loose spec files being shipped in the release are already marked with
+  `Status: \`implemented\`` or `Status: \`shipped\``.
+- Loose spec files being shipped in the release are already marked with
   `Release tag: \`vX.Y.Z\`` matching the requested version.
 - Unrelated in-progress loose spec files remain on
-  `Release tag: \`unreleased\`` and are not touched by consolidation.
+  `Status: \`approved\`` with `Release tag: \`unreleased\`` and are not
+  touched by consolidation.
 - `gh` is installed and authenticated.
 - `ssh` is installed.
 - Repo-local SSH config exists at `.codex/private/release_ssh/config`.
@@ -65,6 +68,8 @@ instead: `python scripts/release_orchestrator.py 1.6.0`.
 - Repo-local private keys must be owner-only files. `0600` is the expected
   mode, and the orchestrator repairs unsafe group/world-readable modes to
   `0600` before deployment when it can.
+- If the release changes Django models, the deploy steps for staging and
+  production must run the corresponding migrations before final verification.
 
 ## GitHub CLI Authentication in Codespaces
 
@@ -133,17 +138,20 @@ returns to the orchestrator after `./deploy_update.sh` finishes.
 5. Create PR `develop -> staging`, wait for required checks from
    `.github/workflows/ci.yml`, and merge it.
 6. Deploy staging with `ssh -F .codex/private/release_ssh/config
-   staging-update`, then verify the remote host reports `paddle/config/__init__.py`
-   at `X.Y.Z`.
+   staging-update`, ensuring Django migrations run as part of the deploy when
+   the release changes models; then verify the remote host reports
+   `paddle/config/__init__.py` at `X.Y.Z`.
 7. Print 3-6 manual functional checks for staging and wait for explicit user
    approval.
 8. If approved, create PR `staging -> main`, wait for CI, and merge it.
 9. Deploy production with `ssh -F .codex/private/release_ssh/config
-   prod-update`, then verify the remote host reports `paddle/config/__init__.py`
-   at `X.Y.Z`.
+   prod-update`, ensuring Django migrations run as part of the deploy when the
+   release changes models; then verify the remote host reports
+   `paddle/config/__init__.py` at `X.Y.Z`.
 10. Back-merge `origin/main` into local `develop`.
 11. Consolidate only the loose spec files explicitly marked with
-    `Release tag: vX.Y.Z` into `specs/release-X.Y.Z-consolidated.md`.
+    `Release tag: vX.Y.Z` and a closure-complete `Status`
+    (`implemented` or `shipped`) into `specs/release-X.Y.Z-consolidated.md`.
 12. Review `CHANGELOG.md` for `## [X.Y.Z]` and keep that section as a simple,
     light summary of shipped changes.
 13. Print a human-readable release report.
@@ -173,11 +181,15 @@ If a planned version never reaches production, do not keep a synthetic release
 record for it. Fold its unshipped specs and changelog notes into the next
 production release that actually ships that work.
 
-Loose active specs should default to `Release tag: unreleased` during
-development. Before running the release flow, mark only the actually shipped
-loose files with the requested `vX.Y.Z`. During release consolidation, also
-review the release changelog section and compress it when needed so release
-history stays easy to scan.
+Loose active specs should default to `Status: approved` plus
+`Release tag: unreleased` during development. Once the scoped development
+cycle is closed, move the loose spec to `Status: implemented`. Before running
+the release flow, mark only the actually shipped loose files with the
+requested `vX.Y.Z`. During release consolidation, the command selects only
+loose specs whose `Release tag` matches and whose `Status` is already
+closure-complete (`implemented` or `shipped`). Also review the release
+changelog section and compress it when needed so release history stays easy to
+scan.
 
 ## Manual Functional Checks for Staging
 

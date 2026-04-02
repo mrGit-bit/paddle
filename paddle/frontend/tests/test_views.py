@@ -8,7 +8,7 @@ from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
 from frontend import views
-from games.models import Match, Player
+from games.models import Group, Match, Player
 
 User = get_user_model()
 
@@ -56,6 +56,14 @@ class TestFrontendViews:
         assert response.status_code == 200
         assert f'href="{reverse("ranking_pairs")}"' in content
         assert ">Parejas<" in content
+
+    def test_hall_of_fame_view_renders_create_group_cta_for_anonymous_users(self):
+        response = self.client.get(reverse("hall_of_fame"))
+        content = response.content.decode("utf-8")
+
+        assert response.status_code == 200
+        assert f'href="{reverse("register")}?create_group=1"' in content
+        assert "crea un grupo" in content
 
     def test_pairs_ranking_view_renders_requested_sections_and_two_line_pair_cell(self):
         pair_a = Player.objects.create(name="Pareja A", gender=Player.GENDER_MALE)
@@ -127,14 +135,23 @@ class TestFrontendViews:
         assert response.status_code == 200
         assert b"nuevo jugador" in response.content
 
+    def test_register_view_get_create_group_query_preselects_create_mode(self):
+        url = reverse("register")
+        response = self.client.get(f"{url}?create_group=1")
+
+        assert response.status_code == 200
+        assert response.context["form"].initial["group_mode"] == "create"
+
     def test_register_view_post_new_player(self):
         url = reverse("register")
+        group = Group.objects.create(name="Grupo Registro")
         data = {
             "username": "newuser",
             "email": "new@example.com",
             "confirm_email": "new@example.com",
             "password": "newpass12",
             "confirm_password": "newpass12",
+            "group_choice": str(group.id),
             "player_id": "",
             "gender": "F",
         }
@@ -151,6 +168,7 @@ class TestFrontendViews:
             "confirm_email": "linked@example.com",
             "password": "linkedpass",
             "confirm_password": "linkedpass",
+            "group_choice": str(player.group_id),
             "player_id": str(player.id),
             "gender": "F",
         }
@@ -159,6 +177,46 @@ class TestFrontendViews:
         assert User.objects.filter(username="linkeduser").exists()
         player.refresh_from_db()
         assert player.registered_user.username == "linkeduser"
+
+    def test_register_view_requires_explicit_group_choice(self):
+        url = reverse("register")
+        response = self.client.post(
+            url,
+            {
+                "username": "nogroup",
+                "email": "nogroup@example.com",
+                "confirm_email": "nogroup@example.com",
+                "password": "pass12345",
+                "confirm_password": "pass12345",
+                "player_id": "",
+                "gender": "F",
+            },
+        )
+
+        assert response.status_code == 200
+        assert "Selecciona un grupo/club o crea uno nuevo." in response.content.decode()
+        assert not User.objects.filter(username="nogroup").exists()
+
+    def test_register_view_rejects_invalid_email_format(self):
+        url = reverse("register")
+        group = Group.objects.create(name="Grupo Email")
+        response = self.client.post(
+            url,
+            {
+                "username": "badmailuser",
+                "email": "texto-plano",
+                "confirm_email": "texto-plano",
+                "password": "pass12345",
+                "confirm_password": "pass12345",
+                "group_choice": str(group.id),
+                "player_id": "",
+                "gender": "F",
+            },
+        )
+
+        assert response.status_code == 200
+        assert "Introduce un correo electrónico válido." in response.content.decode()
+        assert not User.objects.filter(username="badmailuser").exists()
 
 
     def test_logout_view(self):
@@ -449,6 +507,7 @@ class TestFrontendViews:
             "confirm_email": "sameplayer@example.com",
             "password": "pass1234",
             "confirm_password": "pass1234",
+            "group_choice": str(player.group_id),
             "player_id": str(player.id),
             "gender": "M",
         }
@@ -462,6 +521,36 @@ class TestFrontendViews:
         assert player.registered_user.username == "sameplayer"
         assert b"Ya existe un usuario o un jugador con ese nombre" not in response.content
         assert b'<div class="invalid-feedback d-block">Los correos electr' not in response.content
+
+    def test_register_view_rejects_duplicate_player_name_from_other_group(self):
+        url = reverse("register")
+        first_group = Group.objects.create(name="Grupo Uno")
+        second_group = Group.objects.create(name="Grupo Dos")
+        Player.objects.create(
+            name="globaldupe",
+            ranking_position=3,
+            gender=Player.GENDER_MALE,
+            group=first_group,
+        )
+
+        response = self.client.post(
+            url,
+            data={
+                "username": "globaldupe",
+                "email": "globaldupe@example.com",
+                "confirm_email": "globaldupe@example.com",
+                "password": "pass1234",
+                "confirm_password": "pass1234",
+                "group_choice": str(second_group.id),
+                "player_id": "",
+                "gender": "M",
+            },
+            follow=True,
+        )
+
+        assert response.status_code == 200
+        assert not User.objects.filter(username="globaldupe").exists()
+        assert b"Ya existe un usuario o un jugador con ese nombre" in response.content
 
     def test_register_view_post_mismatched_emails(self):
         url = reverse("register")
@@ -657,7 +746,7 @@ class TestFrontendViews:
             response = self.client.get(url)
 
         assert response.status_code == 200
-        assert len(ctx) <= 3
+        assert len(ctx) <= 4
 
     def test_user_view_get_query_count(self):
         self.client.login(username="testuser", password="testpass")
@@ -667,7 +756,7 @@ class TestFrontendViews:
             response = self.client.get(url)
 
         assert response.status_code == 200
-        assert len(ctx) <= 9
+        assert len(ctx) <= 10
 
     def test_match_view_get_query_count(self):
         self.client.login(username="testuser", password="testpass")
@@ -689,4 +778,4 @@ class TestFrontendViews:
             response = self.client.get(url)
 
         assert response.status_code == 200
-        assert len(ctx) <= 16
+        assert len(ctx) <= 17

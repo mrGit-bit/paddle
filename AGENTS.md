@@ -1,7 +1,7 @@
 # AGENTS.md — Codex Execution Rules
 
-Instruction Set Version: 2.3.0  
-Last Updated: 2026-04-01
+Instruction Set Version: 2.3.4  
+Last Updated: 2026-04-02
 
 ## 1. Authority and File Roles
 
@@ -59,10 +59,16 @@ Execution rules:
 3. Treat `specs/release-*.md` as historical release records only.
 4. Do not implement before the current active-work spec is approved.
 5. Keep implementation aligned with the approved scope; no scope expansion.
-6. Loose non-release specs must carry explicit `Release tag` tracking metadata
-   and default to `unreleased` while work is still pending release. Before
-   release consolidation, mark only the actually shipped loose files with the
-   target `vX.Y.Z`. During consolidation,
+6. Loose non-release specs must carry explicit tracking metadata:
+   `Status: approved|implemented` and `Release tag: unreleased`.
+   Use `Status: approved` for approved work that has not yet completed its
+   development cycle closure. Move a loose spec from `approved` to
+   `implemented` only when the scoped work is done and that spec's
+   development cycle is being closed. Use `Status: implemented` for work whose
+   development cycle was closed on `develop` but is not yet shipped. Reserve
+   `Release tag` for shipment tracking only. Before release
+   consolidation, mark only the actually shipped loose files with the target
+   `vX.Y.Z` and update them to `Status: shipped`. During consolidation,
    `python scripts/release_orchestrator.py <version>` folds only those
    exact-match files into the shipped release record, reviews the changelog
    section for that release, and keeps that section as a light summary of
@@ -119,6 +125,8 @@ Quality checkpoints:
   review/audit record accordingly.
 - Do not fix findings directly just because they were found; implement fixes
   only after the user chooses to address them.
+- When Django model/schema changes are introduced, generate and apply the
+  required migrations in development before treating the task as complete.
 
 Post-release:
 

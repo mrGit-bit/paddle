@@ -17,7 +17,9 @@ from pathlib import Path
 
 VERSION_PATTERN = re.compile(r"^v?(?P<version>\d+\.\d+\.\d+)$")
 NO_CHECKS_REPORTED_RE = re.compile(r"no checks reported on the .+ branch", re.IGNORECASE)
-TRACKING_LINE_RE = re.compile(r"^- (?P<field>Task ID|Release tag):\s*`(?P<value>[^`]+)`\s*$")
+TRACKING_LINE_RE = re.compile(
+    r"^- (?P<field>Task ID|Status|Release tag):\s*`(?P<value>[^`]+)`\s*$"
+)
 SAFE_PRIVATE_KEY_GROUP_OR_WORLD_MASK = 0o077
 DEFAULT_PRIVATE_KEY_MODE = 0o600
 REMOTE_VERSION_FILE = "~/paddle/paddle/config/__init__.py"
@@ -605,7 +607,8 @@ def collect_release_sources(
             continue
         metadata = parse_tracking_metadata(path)
         source_release_tag = metadata.get("Release tag")
-        if source_release_tag == release_tag:
+        source_status = metadata.get("Status")
+        if source_release_tag == release_tag and source_status in {"implemented", "shipped"}:
             matched.append(path)
         else:
             skipped.append(path)

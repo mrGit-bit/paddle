@@ -14,6 +14,34 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ### Changed
 
+- `Data`: Added real group ownership for players, matches, and Americano
+  tournaments, migrated legacy records into `club moraleja`, and kept player
+  name uniqueness globally case-insensitive across groups.
+- `UI/UX`: Logged-in users now browse rankings, matches, players, pair
+  rankings, and tournaments only inside their own group, while anonymous users
+  see an aggregated public `Hall of Fame` view across all groups.
+- `UI/UX`: Registration now supports joining an existing group or creating a
+  new one, and the anonymous Hall of Fame landing message now includes a
+  `crea un grupo` CTA that opens the registration page.
+- `UI/UX`: Registration now requires an explicit `Grupo/club` choice, rejects
+  invalid email formats consistently, and keeps the submit button usable after
+  group-name validation errors are corrected.
+- `Release`: Release guidance now explicitly requires applying Django
+  migrations on staging and production for schema-changing releases.
+- `Governance`: Synced the repository instructions to the single-spec SDD
+  workflow and removed the extra active-work plan artifact from the current
+  multi-group task.
+- `Governance`: Schema-changing Django work must now apply the corresponding
+  migrations in development before the task is considered complete.
+- `Governance`: Loose specs now separate lifecycle from shipment tracking with
+  `Status: approved|implemented|shipped`, while `Release tag` stays reserved
+  for `unreleased` or the real shipped `vX.Y.Z`.
+- `Governance`: Loose specs now move from `approved` to `implemented` only
+  when the scoped development cycle is being closed, so in-progress work on
+  `develop` does not look closure-complete before that gate.
+- `Docs`: Added a reusable manual test checklist in
+  `docs/spec-038-manual-checklist.md` for the current multi-group and Hall of
+  Fame rollout.
 - `Governance`: Non-trivial SDD work now uses one approved active-work spec in
   `specs/` instead of separate spec and plan files, and shipped history now
   consolidates into one compact release spec per version.

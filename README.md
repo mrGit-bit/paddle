@@ -91,8 +91,12 @@ reintroduced.
 - Consolidated release files represent shipped production history only. If a
   planned version never ships, its loose historical artifacts roll into the
   next production release that actually shipped them.
-- Loose active specs should keep `Release tag: unreleased` until the release
-  command stamps the shipped version.
+- Loose active specs should stay on `Status: approved` until their
+  development cycle is closed, then move to `Status: implemented` while they
+  remain unreleased.
+- `Release tag` is shipment tracking only: keep `Release tag: unreleased`
+  until a closed loose spec is intentionally included in a real shipped
+  release.
 - Active specs and consolidated release files are intentionally schematic; keep
   them compact instead of using them as long-form narrative docs.
 

@@ -1,7 +1,7 @@
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.3.0  
-Last Updated: 2026-04-01
+Instruction Set Version: 2.3.4  
+Last Updated: 2026-04-02
 
 This is the compact governance subset for ChatGPT Project instructions.
 
@@ -75,10 +75,17 @@ Active-work rule:
   created for that task.
 - `specs/release-*.md` files are historical release artifacts, not active-work
   inputs.
-- Loose non-release specs must carry explicit `Release tag` tracking metadata
-  and default to `unreleased` while work is still pending release. Before
-  release consolidation, mark only the actually shipped loose files with the
-  target `vX.Y.Z`. During consolidation,
+- Loose non-release specs must carry explicit tracking metadata:
+  `Status: approved|implemented` and `Release tag: unreleased`.
+- Use `Status: approved` for approved work that has not yet completed its
+  development cycle closure.
+- Move a loose spec from `approved` to `implemented` only when the scoped work
+  is done and that spec's development cycle is being closed.
+- Use `Status: implemented` for work whose development cycle was closed on
+  `develop` but is not yet shipped.
+- Reserve `Release tag` for shipment tracking only. Before release
+  consolidation, mark only the actually shipped loose files with the target
+  `vX.Y.Z` and update them to `Status: shipped`. During consolidation,
   `python scripts/release_orchestrator.py <version>` folds only those
   exact-match files into the shipped release record and keeps that changelog
   section as a light shipped summary. If a planned release never reaches
@@ -111,6 +118,8 @@ Additional rules:
   review/audit record accordingly.
 - Do not fix findings directly just because they were found; implement fixes
   only after the user chooses to address them.
+- When Django model/schema changes are introduced, generate and apply the
+  required migrations in development before treating the task as complete.
 - After a successful tagged release and back-merge from `main` to `develop`,
   consolidate the released SDD files before new SDD work begins, using only
   loose spec files explicitly marked with the shipped `vX.Y.Z`. Keep that

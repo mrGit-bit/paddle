@@ -117,10 +117,42 @@
       </div>
     </div>
 
+    {{ form.group_mode }}
+    {{ form.group_id }}
+
     <div class="mb-3 form-floating">
-      {{ form.player_id }}
+      {{ form.group_choice }}
+      <label for="{{ form.group_choice.id_for_label }}">Grupo/club*</label>
+      {% if form.group_choice.errors %}
+        <div class="invalid-feedback d-block">{{ form.group_choice.errors|join:", " }}</div>
+      {% elif form.group_id.errors %}
+        <div class="invalid-feedback d-block">{{ form.group_id.errors|join:", " }}</div>
+      {% endif %}
+    </div>
+
+    <div class="mb-3 form-floating{% if form.group_mode.value != 'create' %} d-none{% endif %}" id="new-group-name-wrapper">
+      {{ form.new_group_name }}
+      <label for="{{ form.new_group_name.id_for_label }}">Nombre del nuevo grupo/club</label>
+      {% if form.new_group_name.errors %}
+        <div class="invalid-feedback d-block">{{ form.new_group_name.errors|join:", " }}</div>
+      {% endif %}
+    </div>
+
+    <div class="mb-3 form-floating{% if form.group_mode.value == 'create' %} d-none{% endif %}" id="player-id-wrapper">
+      <select class="form-select" id="{{ form.player_id.id_for_label }}" name="{{ form.player_id.html_name }}">
+        <option value="" {% if not form.player_id.value %}selected{% endif %}>No, soy un nuevo jugador</option>
+        {% for player in form.player_id.field.queryset %}
+          <option
+            value="{{ player.id }}"
+            data-group-id="{{ player.group_id }}"
+            {% if form.player_id.value|stringformat:"s" == player.id|stringformat:"s" %}selected{% endif %}
+          >
+            {{ player.name }}
+          </option>
+        {% endfor %}
+      </select>
       <label for="{{ form.player_id.id_for_label }}">
-        Te han anotado resultados? Qué jugador eres?
+        ¿Te han anotado resultados? ¿Qué jugador eres?
       </label>
       {% if form.player_id.errors %}
         <div class="invalid-feedback d-block">{{ form.player_id.errors|join:", " }}</div>
@@ -157,6 +189,6 @@
       <button type="submit" id="save-btn" class="btn btn-success w-50">Guardar</button>
     </div>
 
-  {% endif %}
+{% endif %}
 
 </form>

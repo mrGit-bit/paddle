@@ -8,7 +8,7 @@
     <option value="" {% if not selected_id %}selected{% endif %}>Selecciona jugador</option>
     {% for player in players %}
       <option value="{{ player.id }}" {% if player.id == selected_id %}selected{% endif %}>
-        {{ player.name }}
+        {{ player.option_label|default:player.name }}
       </option>
     {% endfor %}
     {% if include_new_options %}

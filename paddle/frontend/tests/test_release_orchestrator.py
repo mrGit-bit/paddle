@@ -286,6 +286,7 @@ def test_parse_tracking_metadata_reads_task_and_release_fields(tmp_path):
         "# Example\n\n"
         "## Tracking\n\n"
         "- Task ID: `release-slash-command`\n"
+        "- Status: `implemented`\n"
         "- Release tag: `v1.6.0`\n",
         encoding="utf-8",
     )
@@ -294,6 +295,7 @@ def test_parse_tracking_metadata_reads_task_and_release_fields(tmp_path):
 
     assert metadata == {
         "Task ID": "release-slash-command",
+        "Status": "implemented",
         "Release tag": "v1.6.0",
     }
 
@@ -304,6 +306,7 @@ def test_collect_release_sources_only_includes_requested_release_tag(tmp_path):
         "# Matching\n\n"
         "## Tracking\n\n"
         "- Task ID: `release-slash-command`\n"
+        "- Status: `implemented`\n"
         "- Release tag: `v1.6.0`\n",
         encoding="utf-8",
     )
@@ -312,6 +315,7 @@ def test_collect_release_sources_only_includes_requested_release_tag(tmp_path):
         "# Other\n\n"
         "## Tracking\n\n"
         "- Task ID: `future-scope`\n"
+        "- Status: `implemented`\n"
         "- Release tag: `v1.7.0`\n",
         encoding="utf-8",
     )
@@ -323,6 +327,7 @@ def test_collect_release_sources_only_includes_requested_release_tag(tmp_path):
         "# Explicit\n\n"
         "## Tracking\n\n"
         "- Task ID: `already-tagged`\n"
+        "- Status: `shipped`\n"
         "- Release tag: `v1.6.0`\n",
         encoding="utf-8",
     )
@@ -344,6 +349,7 @@ def test_collect_release_sources_excludes_named_template_files(tmp_path):
         "# Spec\n\n"
         "## Tracking\n\n"
         "- Task ID: `release-fix`\n"
+        "- Status: `implemented`\n"
         "- Release tag: `v1.6.0`\n",
         encoding="utf-8",
     )
@@ -367,7 +373,30 @@ def test_collect_release_sources_skips_unreleased_files(tmp_path):
         "# Example\n\n"
         "## Tracking\n\n"
         "- Task ID: `example`\n"
+        "- Status: `approved`\n"
         "- Release tag: `unreleased`\n",
+        encoding="utf-8",
+    )
+
+    selection = release_orchestrator.collect_release_sources(
+        tmp_path,
+        "[0-9][0-9][0-9]-*.md",
+        set(),
+        release_tag="v1.7.0",
+    )
+
+    assert selection.matched == []
+    assert selection.skipped == [source]
+
+
+def test_collect_release_sources_skips_tagged_specs_until_cycle_is_closed(tmp_path):
+    source = tmp_path / "032-approved-but-tagged.md"
+    source.write_text(
+        "# Example\n\n"
+        "## Tracking\n\n"
+        "- Task ID: `example`\n"
+        "- Status: `approved`\n"
+        "- Release tag: `v1.7.0`\n",
         encoding="utf-8",
     )
 
@@ -391,6 +420,7 @@ def test_commit_consolidation_writes_single_release_spec(monkeypatch, tmp_path):
         "# Example\n\n"
         "## Tracking\n\n"
         "- Task ID: `example`\n"
+        "- Status: `implemented`\n"
         "- Release tag: `v1.6.0`\n\n"
         "## Summary\n\n"
         "- Added one approved spec file per task.\n\n"

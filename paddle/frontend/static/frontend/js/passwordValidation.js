@@ -1,5 +1,10 @@
-document.addEventListener("DOMContentLoaded", function () {
-  const form = document.getElementById("user-form");
+function initPasswordValidation(doc) {
+  const currentDocument = doc || (typeof document !== "undefined" ? document : null);
+  if (!currentDocument) {
+    return;
+  }
+
+  const form = currentDocument.getElementById("user-form");
   if (!form) {
     return;
   }
@@ -14,15 +19,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const pairs = [
     {
-      target: document.getElementById("email"),
-      confirm: document.getElementById("confirm_email"),
+      target: currentDocument.getElementById("email"),
+      confirm: currentDocument.getElementById("confirm_email"),
       mode: "email",
       mismatchMessage: "Los correos electrónicos no coinciden.",
       touched: false,
     },
     {
-      target: document.getElementById("password"),
-      confirm: document.getElementById("confirm_password"),
+      target: currentDocument.getElementById("password"),
+      confirm: currentDocument.getElementById("confirm_password"),
       mode: "raw",
       mismatchMessage: "Las contraseñas no coinciden.",
       touched: false,
@@ -38,6 +43,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const confirmValue = normalize(pair.confirm.value, pair.mode);
     const hasInput = pair.target.value.length > 0 || pair.confirm.value.length > 0;
     const isMatch = targetValue.length > 0 && targetValue === confirmValue;
+    // Clear pair-specific mismatch state before checking native field validity.
+    pair.confirm.setCustomValidity("");
+
+    const targetFormatValid = pair.target.checkValidity();
+    const confirmFormatValid = pair.confirm.checkValidity();
 
     if (!hasInput) {
       pair.confirm.setCustomValidity("Este campo es obligatorio.");
@@ -50,6 +60,12 @@ document.addEventListener("DOMContentLoaded", function () {
       pair.confirm.setCustomValidity(pair.mismatchMessage);
       pair.confirm.classList.remove("is-valid");
       pair.confirm.classList.remove("is-invalid");
+      return false;
+    }
+
+    if (!targetFormatValid || !confirmFormatValid) {
+      pair.confirm.classList.add("is-invalid");
+      pair.confirm.classList.remove("is-valid");
       return false;
     }
 
@@ -74,6 +90,7 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   pairs.forEach((pair) => {
+    pair.touched = pair.confirm.value.length > 0;
     pair.target.addEventListener("input", syncSubmitState);
     pair.confirm.addEventListener("input", () => {
       pair.touched = true;
@@ -82,4 +99,14 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   syncSubmitState();
-});
+}
+
+if (typeof document !== "undefined") {
+  document.addEventListener("DOMContentLoaded", function () {
+    initPasswordValidation(document);
+  });
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { initPasswordValidation };
+}
