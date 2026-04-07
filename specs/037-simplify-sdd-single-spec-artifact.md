@@ -3,8 +3,8 @@
 ## Tracking
 
 - Task ID: `simplify-sdd-single-spec-artifact`
-- Status: `implemented`
-- Release tag: `unreleased`
+- Status: `shipped`
+- Release tag: `v1.9.0`
 
 ## Summary
 
