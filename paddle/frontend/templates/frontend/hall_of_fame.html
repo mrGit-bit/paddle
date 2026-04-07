@@ -6,7 +6,7 @@
 
 <!-- Title and information section -->
 <div class="text-center mb-4">
-  <h1 class="display-5">🏆club moraleja🏆</h1>
+  <h1 class="display-5">🏆{{ group_display_name|default:"Hall of Fame" }}🏆</h1>
 
   {% if user.is_authenticated %}
     {% if new_matches_number > 0 %}
@@ -16,8 +16,9 @@
     {% endif %}
     {% else %}
     <p class="lead">
-      <a href="{% url 'login' %}">Inicia sesión</a> o
-      <a href="{% url 'register' %}">regístrate</a> !
+      <a href="{% url 'login' %}">Inicia sesión</a>,
+      <a href="{% url 'register' %}">regístrate</a> o
+      <a href="{% url 'register' %}?create_group=1">crea un grupo</a>!
     </p>
     {% endif %} 
     

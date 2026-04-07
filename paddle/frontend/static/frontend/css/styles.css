@@ -228,9 +228,17 @@ select:invalid:focus ~ .invalid-feedback {
   padding-right: 2.75rem;
 }
 
+.password-toggle-field .password-toggle-input.is-valid,
+.password-toggle-field .password-toggle-input.is-invalid,
+.password-toggle-field .form-control.is-valid,
+.password-toggle-field .form-control.is-invalid {
+  padding-right: 4.75rem;
+  background-position: right 2.5rem center;
+}
+
 .password-toggle-button {
   position: absolute;
-  top: 50%;
+  top: 1.75rem;
   right: 0.75rem;
   transform: translateY(-50%);
   z-index: 5;
@@ -359,4 +367,3 @@ ul.errorlist li {
 .clickable-row:focus-within {
   outline: none;
 }
-

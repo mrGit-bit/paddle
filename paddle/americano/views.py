@@ -10,6 +10,7 @@ from django.db.models import F
 from .forms import AmericanoTournamentForm
 from .models import AmericanoTournament, AmericanoRound, AmericanoMatch, AmericanoPlayerStats
 from games.models import Player
+from frontend.view_modules.common import get_request_group_context, get_user_group, get_user_player
 
 def americano_create_next_round(tournament: AmericanoTournament) -> AmericanoRound:
     """
@@ -154,12 +155,14 @@ def recompute_americano_standings(tournament: AmericanoTournament) -> None:
 
 @login_required
 def americano_new(request):
+    user_group = get_user_group(request)
     if request.method == "POST":
-        form = AmericanoTournamentForm(request.POST)
+        form = AmericanoTournamentForm(request.POST, group=user_group)
 
         if form.is_valid():
             tournament = form.save(commit=False)
             tournament.created_by = request.user
+            tournament.group = user_group
             tournament.save()
 
             # Combine selected players + newly created players
@@ -173,13 +176,13 @@ def americano_new(request):
                     continue
 
                 # Respect case-insensitive uniqueness constraint
-                player = Player.objects.filter(name__iexact=normalized).first()
+                player = Player.objects.filter(name__iexact=normalized, group=user_group).first()
                 if player is None:
                     try:
-                        player = Player.objects.create(name=normalized, gender=gender)
+                        player = Player.objects.create(name=normalized, gender=gender, group=user_group)
                     except IntegrityError:
                         # Safety net for race conditions / DB constraint hit
-                        player = Player.objects.filter(name__iexact=normalized).first()
+                        player = Player.objects.filter(name__iexact=normalized, group=user_group).first()
                 elif not player.gender:
                     player.gender = gender
                     player.save(update_fields=["gender"])
@@ -200,10 +203,10 @@ def americano_new(request):
             return redirect("americano_detail", pk=tournament.pk)
 
     else:
-        form = AmericanoTournamentForm()
+        form = AmericanoTournamentForm(group=user_group)
 
         # Preselect creator player (GET only)
-        player = Player.objects.filter(registered_user=request.user).first()
+        player = get_user_player(request)
         if player:
             form.fields["players"].initial = [player.pk]
 
@@ -215,15 +218,19 @@ def americano_new(request):
 
 def americano_list(request):
     today = timezone.localdate()
+    group_context = get_request_group_context(request)
+    queryset = AmericanoTournament.objects.all()
+    if group_context["group"] is not None:
+        queryset = queryset.filter(group=group_context["group"])
 
     ongoing = (
-        AmericanoTournament.objects
+        queryset
         .filter(is_active=True, play_date__gte=today)
         .order_by("play_date", "name")
     )
 
     finished = (
-        AmericanoTournament.objects
+        queryset
         .filter(play_date__lt=today)
         .order_by("-play_date", "name")
     )
@@ -231,12 +238,16 @@ def americano_list(request):
     return render(
         request,
         "frontend/americano/americano_list.html",
-        {"ongoing": ongoing, "finished": finished},
+        {"ongoing": ongoing, "finished": finished, "group_display_name": group_context["display_name"]},
     )
 
 
 def americano_detail(request, pk):
-    tournament = get_object_or_404(AmericanoTournament, pk=pk)
+    group_context = get_request_group_context(request)
+    queryset = AmericanoTournament.objects.all()
+    if group_context["group"] is not None:
+        queryset = queryset.filter(group=group_context["group"])
+    tournament = get_object_or_404(queryset, pk=pk)
 
     # Edit capabilities: participants/staff/creator and only until tournament day (inclusive)
     can_edit = americano_can_edit(request, tournament)
@@ -291,6 +302,7 @@ def americano_detail(request, pk):
             "rounds": rounds,
             "standings": ranked_standings,
             "can_edit": can_edit,
+            "group_display_name": group_context["display_name"],
         },
     )
 

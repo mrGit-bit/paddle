@@ -3,10 +3,16 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
-from games.models import Player  
+from games.models import Group, Player, get_default_group_id
 
 
 class AmericanoTournament(models.Model):
+    group = models.ForeignKey(
+        Group,
+        on_delete=models.CASCADE,
+        related_name="americano_tournaments",
+        default=get_default_group_id,
+    )
     name = models.CharField(max_length=100)
     play_date = models.DateField(default=timezone.localdate)
     num_players = models.PositiveIntegerField()
@@ -24,6 +30,11 @@ class AmericanoTournament(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.play_date})"
+
+    def save(self, *args, **kwargs):
+        if not self.group_id:
+            self.group_id = get_default_group_id()
+        super().save(*args, **kwargs)
 
     @property
     def is_open_for_edit(self) -> bool:

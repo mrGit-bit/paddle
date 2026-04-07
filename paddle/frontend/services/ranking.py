@@ -38,12 +38,14 @@ def _pair_player_tuple(player_a, player_b):
     return player_b, player_a
 
 
-def _build_pair_rows():
+def _build_pair_rows(*, group=None):
     from games.models import Match
 
     matches_qs = Match.objects.select_related(
         "team1_player1", "team1_player2", "team2_player1", "team2_player2"
     )
+    if group is not None:
+        matches_qs = matches_qs.filter(group=group)
 
     stats = {}
 
@@ -109,8 +111,8 @@ def _apply_competition_positions(rows: list[dict], key_fn) -> list[dict]:
     return rows
 
 
-def build_pairs_ranking_sections() -> dict[str, list[dict]]:
-    pair_rows = _build_pair_rows()
+def build_pairs_ranking_sections(*, group=None) -> dict[str, list[dict]]:
+    pair_rows = _build_pair_rows(group=group)
 
     by_wins = sorted(
         pair_rows,
@@ -191,7 +193,7 @@ def apply_competition_ranking_with_ties(players: list[Player], key_fn: Callable[
             p.show_position = False
 
 
-def compute_ranking(scope: str) -> tuple[list[Player], list[Player], str]:
+def compute_ranking(scope: str, *, group=None) -> tuple[list[Player], list[Player], str]:
     """
     Compute ranking for a scope:
         - "all": all matches
@@ -218,6 +220,8 @@ def compute_ranking(scope: str) -> tuple[list[Player], list[Player], str]:
     gender_type = scope_map[scope]
 
     matches_qs = Match.objects.all()
+    if group is not None:
+        matches_qs = matches_qs.filter(group=group)
     if gender_type:
         matches_qs = matches_qs.filter(match_gender_type=gender_type)
 
@@ -241,11 +245,11 @@ def compute_ranking(scope: str) -> tuple[list[Player], list[Player], str]:
 
     # Scoped population for "unranked" list
     if scope == "male":
-        population = list(Player.objects.filter(gender=Player.GENDER_MALE).order_by("name"))
+        population = list(Player.objects.filter(group=group, gender=Player.GENDER_MALE).order_by("name")) if group else list(Player.objects.filter(gender=Player.GENDER_MALE).select_related("group").order_by("name", "group__name"))
     elif scope == "female":
-        population = list(Player.objects.filter(gender=Player.GENDER_FEMALE).order_by("name"))
+        population = list(Player.objects.filter(group=group, gender=Player.GENDER_FEMALE).order_by("name")) if group else list(Player.objects.filter(gender=Player.GENDER_FEMALE).select_related("group").order_by("name", "group__name"))
     else:
-        population = list(Player.objects.all().order_by("name"))
+        population = list(Player.objects.filter(group=group).order_by("name")) if group else list(Player.objects.select_related("group").all().order_by("name", "group__name"))
 
     ranked_players: list[Player] = []
     unranked_players: list[Player] = []

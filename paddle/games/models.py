@@ -1,10 +1,50 @@
 # absolute path: /workspaces/paddle/paddle/games/models.py
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.functions import Lower
 from django.contrib.auth.models import User
+from django.utils.text import slugify
 
-def update_player_rankings():
+
+DEFAULT_GROUP_NAME = "club moraleja"
+
+
+def get_default_group():
+    group, _ = Group.objects.get_or_create(
+        slug=slugify(DEFAULT_GROUP_NAME),
+        defaults={"name": DEFAULT_GROUP_NAME},
+    )
+    return group
+
+
+def get_default_group_id():
+    return get_default_group().id
+
+
+class Group(models.Model):
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=120, unique=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                Lower("name"),
+                name="unique_lower_group_name",
+            )
+        ]
+        ordering = ("name",)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+
+def update_player_rankings(*, group=None):
     """
     Recalculates persisted `ranking_position` using the canonical ranking policy.
 
@@ -17,11 +57,17 @@ def update_player_rankings():
     """
     from frontend.services.ranking import canonical_ranking_sort_key, canonical_ranking_tie_key
 
-    players = list(Player.objects.all())
+    players_qs = Player.objects.all()
+    matches_qs = Match.objects.all()
+    if group is not None:
+        players_qs = players_qs.filter(group=group)
+        matches_qs = matches_qs.filter(group=group)
+
+    players = list(players_qs)
     if not players:
         return
 
-    matches_qs = Match.objects.select_related(
+    matches_qs = matches_qs.select_related(
         "team1_player1", "team1_player2", "team2_player1", "team2_player2"
     )
     stats: dict[int, dict[str, int]] = {}
@@ -92,7 +138,8 @@ def update_player_rankings():
 
 
 class Player(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    group = models.ForeignKey("Group", on_delete=models.CASCADE, related_name="players", default=get_default_group_id)
+    name = models.CharField(max_length=100)
     registered_user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True)
     matches = models.ManyToManyField('Match', related_name='players', blank=True)
     ranking_position = models.PositiveIntegerField(default=0)
@@ -120,9 +167,14 @@ class Player(models.Model):
             models.UniqueConstraint(
                 Lower('name'),
                 name='unique_lower_name',
-                violation_error_message="Player name must be unique (case insensitive)"
+                violation_error_message="Player name must be globally unique (case insensitive)"
             )
         ]
+
+    def save(self, *args, **kwargs):
+        if not self.group_id:
+            self.group = get_default_group()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -160,6 +212,7 @@ class Player(models.Model):
 class Match(models.Model):
     APPROVAL_WINDOW_DAYS = 30
 
+    group = models.ForeignKey("Group", on_delete=models.CASCADE, related_name="matches", default=get_default_group_id)
     team1_player1 = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='team1_player1_matches')
     team1_player2 = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='team1_player2_matches')
     team2_player1 = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='team2_player1_matches')
@@ -237,17 +290,27 @@ class Match(models.Model):
         # Any combination containing both genders is mixed
         return Match.GENDER_TYPE_MIXED
 
+    def clean(self):
+        player_groups = {player.group_id for player in self.all_players if player}
+        if len(player_groups) > 1:
+            raise ValidationError("Todos los jugadores del partido deben pertenecer al mismo grupo.")
+        if player_groups:
+            group_id = next(iter(player_groups))
+            if self.group_id and self.group_id != group_id:
+                raise ValidationError("El grupo del partido no coincide con el grupo de sus jugadores.")
+            self.group_id = group_id
+
     def apply_match_effects(self):
         # Add this match to all players' matches
         for player in self.all_players:
             player.matches.add(self)
-        update_player_rankings()
+        update_player_rankings(group=self.group)
 
     def revert_match_effects(self):
         # Remove this match from all players' matches
         for player in self.all_players:
             player.matches.remove(self)
-        update_player_rankings()
+        update_player_rankings(group=self.group)
 
     def save(self, *args, **kwargs):
         is_new = self._state.adding
@@ -257,7 +320,11 @@ class Match(models.Model):
             old = Match.objects.get(pk=self.pk)
             old.revert_match_effects()
 
+        if not self.group_id:
+            self.group = self.team1_player1.group
+
         # Compute match gender type from the (new/current) players
+        self.clean()
         self.match_gender_type = self.compute_gender_type()
 
         super().save(*args, **kwargs)
@@ -281,4 +348,3 @@ class Match(models.Model):
         # - recompute match_gender_type
         # - apply new effects
         self.save()
-
