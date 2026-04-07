@@ -12,6 +12,7 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-04-07
 ### Changed
 
 - `Data`: Added real group ownership for players, matches, and Americano
