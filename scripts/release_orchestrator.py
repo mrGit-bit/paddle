@@ -20,9 +20,12 @@ NO_CHECKS_REPORTED_RE = re.compile(r"no checks reported on the .+ branch", re.IG
 TRACKING_LINE_RE = re.compile(
     r"^- (?P<field>Task ID|Status|Release tag):\s*`(?P<value>[^`]+)`\s*$"
 )
+PENDING_MIGRATION_RE = re.compile(r"^\s*\[\s\]\s+(?P<name>\S+)", re.M)
 SAFE_PRIVATE_KEY_GROUP_OR_WORLD_MASK = 0o077
 DEFAULT_PRIVATE_KEY_MODE = 0o600
 REMOTE_VERSION_FILE = "~/paddle/paddle/config/__init__.py"
+REMOTE_MANAGE_PY_DIR = "~/paddle/paddle"
+REMOTE_DJANGO_SETTINGS = "config.settings.prod"
 
 
 class ReleaseError(RuntimeError):
@@ -525,12 +528,50 @@ def read_remote_version(paths: ReleasePaths, host_alias: str, *, cwd: Path) -> s
     return completed.stdout.strip()
 
 
+def run_remote_manage_py(paths: ReleasePaths, host_alias: str, manage_args: list[str], *, cwd: Path) -> str:
+    command = (
+        f"cd {REMOTE_MANAGE_PY_DIR} && source ~/venv/bin/activate && "
+        f"python manage.py {' '.join(manage_args)} --settings={REMOTE_DJANGO_SETTINGS}"
+    )
+    completed = run_command(
+        [
+            "ssh",
+            "-F",
+            str(paths.ssh_config),
+            host_alias,
+            command,
+        ],
+        cwd=cwd,
+    )
+    return completed.stdout.strip()
+
+
+def read_remote_pending_migrations(paths: ReleasePaths, host_alias: str, *, cwd: Path) -> list[str]:
+    output = run_remote_manage_py(paths, host_alias, ["showmigrations"], cwd=cwd)
+    return PENDING_MIGRATION_RE.findall(output)
+
+
+def apply_remote_migrations(paths: ReleasePaths, host_alias: str, *, cwd: Path) -> None:
+    run_remote_manage_py(paths, host_alias, ["migrate"], cwd=cwd)
+
+
 def verify_remote_version(
     context: ReleaseContext,
     target: DeployTarget,
     *,
     step_name: str,
 ) -> None:
+    apply_remote_migrations(context.paths, target.verify_alias, cwd=context.repo_root)
+    pending_migrations = read_remote_pending_migrations(
+        context.paths,
+        target.verify_alias,
+        cwd=context.repo_root,
+    )
+    if pending_migrations:
+        raise ReleaseError(
+            f"{target.display_name} deploy completed but {target.verify_alias} still has pending migrations: "
+            f"{', '.join(pending_migrations)}."
+        )
     remote_version = read_remote_version(context.paths, target.verify_alias, cwd=context.repo_root)
     if remote_version != context.version:
         raise ReleaseError(
@@ -540,7 +581,8 @@ def verify_remote_version(
     record_success(
         context,
         step_name,
-        f"Executed ssh deploy via {target.deploy_alias} and verified {target.verify_alias} is on {context.version}.",
+        f"Executed ssh deploy via {target.deploy_alias}, applied remote migrations, and verified "
+        f"{target.verify_alias} is on {context.version} with no pending migrations.",
     )
 
 
@@ -817,10 +859,20 @@ def resume_from_staging_approval(context: ReleaseContext, args: argparse.Namespa
             f"Cannot resume after staging approval because staging reports version "
             f"{remote_version or 'unknown'} instead of {context.version}."
         )
+    pending_migrations = read_remote_pending_migrations(
+        context.paths,
+        staging_target.verify_alias,
+        cwd=context.repo_root,
+    )
+    if pending_migrations:
+        raise ReleaseError(
+            "Cannot resume after staging approval because staging still has pending migrations: "
+            f"{', '.join(pending_migrations)}."
+        )
     record_success(
         context,
         "Staging Resume Check",
-        f"Verified staging is already on {context.version} before resume.",
+        f"Verified staging is already on {context.version} with no pending migrations before resume.",
     )
 
     print("\nStaging manual checks:")

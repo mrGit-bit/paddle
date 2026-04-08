@@ -13,6 +13,7 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 ## [Unreleased]
 
 ## [1.9.0] - 2026-04-07
+
 ### Changed
 
 - `Data`: Added real group ownership for players, matches, and Americano
@@ -29,6 +30,12 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
   group-name validation errors are corrected.
 - `Release`: Release guidance now explicitly requires applying Django
   migrations on staging and production for schema-changing releases.
+- `Release`: The release orchestrator now runs `manage.py migrate` on staging
+  and production after each deploy and fails if any migrations remain pending,
+  so schema changes cannot ship behind a version-only check.
+- `Release`: The host deploy helper `deploy_update.sh` now lives in the public
+  repo as a tracked operational script, keeping the remote deploy steps
+  reviewable and aligned with release docs.
 - `Governance`: Synced the repository instructions to the single-spec SDD
   workflow and removed the extra active-work plan artifact from the current
   multi-group task.

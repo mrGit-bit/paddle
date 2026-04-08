@@ -138,6 +138,40 @@ def test_read_remote_version_uses_repo_ssh_config(tmp_path, monkeypatch):
     ]
 
 
+def test_read_remote_pending_migrations_uses_repo_ssh_config(tmp_path, monkeypatch):
+    paths = release_orchestrator.ReleasePaths(tmp_path)
+    calls = []
+
+    def fake_run_command(args, *, cwd, capture_output=True, input_text=None):
+        calls.append((args, cwd, capture_output, input_text))
+        return subprocess.CompletedProcess(
+            args,
+            0,
+            stdout="games\n [X] 0001_initial\n [ ] 0006_group_remove_player_unique_lower_name_and_more\n",
+            stderr="",
+        )
+
+    monkeypatch.setattr(release_orchestrator, "run_command", fake_run_command)
+
+    pending = release_orchestrator.read_remote_pending_migrations(paths, "staging", cwd=tmp_path)
+
+    assert pending == ["0006_group_remove_player_unique_lower_name_and_more"]
+    assert calls == [
+        (
+            [
+                "ssh",
+                "-F",
+                str(paths.ssh_config),
+                "staging",
+                "cd ~/paddle/paddle && source ~/venv/bin/activate && python manage.py showmigrations --settings=config.settings.prod",
+            ],
+            tmp_path,
+            True,
+            None,
+        )
+    ]
+
+
 def test_verify_remote_version_records_success(monkeypatch):
     context = release_orchestrator.ReleaseContext(
         repo_root=Path("/tmp/repo"),
@@ -151,15 +185,26 @@ def test_verify_remote_version_records_success(monkeypatch):
         display_name="Staging",
     )
 
+    migrations_applied = []
+    monkeypatch.setattr(
+        release_orchestrator,
+        "apply_remote_migrations",
+        lambda paths, host_alias, *, cwd: migrations_applied.append((paths, host_alias, cwd)),
+    )
+    monkeypatch.setattr(release_orchestrator, "read_remote_pending_migrations", lambda *args, **kwargs: [])
     monkeypatch.setattr(release_orchestrator, "read_remote_version", lambda *args, **kwargs: "1.7.0")
 
     release_orchestrator.verify_remote_version(context, target, step_name="Staging Deploy")
 
+    assert migrations_applied == [(context.paths, "staging", Path("/tmp/repo"))]
     assert context.steps == [
         release_orchestrator.StepResult(
             name="Staging Deploy",
             status="ok",
-            detail="Executed ssh deploy via staging-update and verified staging is on 1.7.0.",
+            detail=(
+                "Executed ssh deploy via staging-update, applied remote migrations, and verified "
+                "staging is on 1.7.0 with no pending migrations."
+            ),
         )
     ]
 
@@ -177,6 +222,8 @@ def test_verify_remote_version_raises_on_mismatch(monkeypatch):
         display_name="Production",
     )
 
+    monkeypatch.setattr(release_orchestrator, "apply_remote_migrations", lambda *args, **kwargs: None)
+    monkeypatch.setattr(release_orchestrator, "read_remote_pending_migrations", lambda *args, **kwargs: [])
     monkeypatch.setattr(release_orchestrator, "read_remote_version", lambda *args, **kwargs: "1.6.1")
 
     with pytest.raises(release_orchestrator.ReleaseError) as exc_info:
@@ -185,6 +232,36 @@ def test_verify_remote_version_raises_on_mismatch(monkeypatch):
     assert (
         str(exc_info.value)
         == "Production deploy completed but prod reports version 1.6.1 instead of 1.7.0."
+    )
+
+
+def test_verify_remote_version_raises_on_pending_migrations(monkeypatch):
+    context = release_orchestrator.ReleaseContext(
+        repo_root=Path("/tmp/repo"),
+        version="1.7.0",
+        version_tag="v1.7.0",
+        paths=release_orchestrator.ReleasePaths(Path("/tmp/repo")),
+    )
+    target = release_orchestrator.DeployTarget(
+        deploy_alias="staging-update",
+        verify_alias="staging",
+        display_name="Staging",
+    )
+
+    monkeypatch.setattr(release_orchestrator, "apply_remote_migrations", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        release_orchestrator,
+        "read_remote_pending_migrations",
+        lambda *args, **kwargs: ["0006_group_remove_player_unique_lower_name_and_more"],
+    )
+
+    with pytest.raises(release_orchestrator.ReleaseError) as exc_info:
+        release_orchestrator.verify_remote_version(context, target, step_name="Staging Deploy")
+
+    assert (
+        str(exc_info.value)
+        == "Staging deploy completed but staging still has pending migrations: "
+        "0006_group_remove_player_unique_lower_name_and_more."
     )
 
 

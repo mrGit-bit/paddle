@@ -114,6 +114,9 @@ Do not commit tokens or paste secret values into tracked repository files.
 The command always uses `ssh -F .codex/private/release_ssh/config`.
 Keep `staging-update` and `prod-update` non-interactive so the SSH command
 returns to the orchestrator after `./deploy_update.sh` finishes.
+Keep the checked-in [deploy_update.sh](/workspaces/paddle/deploy_update.sh)
+aligned with the host copy so release automation has one reviewable source of
+truth for the remote deploy steps.
 
 ## GitHub Actions Used
 
@@ -138,15 +141,17 @@ returns to the orchestrator after `./deploy_update.sh` finishes.
 5. Create PR `develop -> staging`, wait for required checks from
    `.github/workflows/ci.yml`, and merge it.
 6. Deploy staging with `ssh -F .codex/private/release_ssh/config
-   staging-update`, ensuring Django migrations run as part of the deploy when
-   the release changes models; then verify the remote host reports
+   staging-update`, then have the orchestrator run `python manage.py migrate
+   --settings=config.settings.prod` on the staging host and fail if any
+   migrations remain pending; only then verify the remote host reports
    `paddle/config/__init__.py` at `X.Y.Z`.
 7. Print 3-6 manual functional checks for staging and wait for explicit user
    approval.
 8. If approved, create PR `staging -> main`, wait for CI, and merge it.
 9. Deploy production with `ssh -F .codex/private/release_ssh/config
-   prod-update`, ensuring Django migrations run as part of the deploy when the
-   release changes models; then verify the remote host reports
+   prod-update`, then have the orchestrator run `python manage.py migrate
+   --settings=config.settings.prod` on the production host and fail if any
+   migrations remain pending; only then verify the remote host reports
    `paddle/config/__init__.py` at `X.Y.Z`.
 10. Back-merge `origin/main` into local `develop`.
 11. Consolidate only the loose spec files explicitly marked with
