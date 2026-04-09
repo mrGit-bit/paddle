@@ -36,6 +36,12 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 - `Release`: The host deploy helper `deploy_update.sh` now lives in the public
   repo as a tracked operational script, keeping the remote deploy steps
   reviewable and aligned with release docs.
+- `Release`: Before opening the `develop -> staging` promotion PR, the release
+  orchestrator now runs the local CI-equivalent pytest and coverage commands
+  on `develop` and stops the release immediately if they fail.
+- `Release`: Release checklists are now split by environment: `develop`
+  prints logic-oriented manual checks before local validation, while `staging`
+  prints UI-oriented manual checks before production approval.
 - `Governance`: Synced the repository instructions to the single-spec SDD
   workflow and removed the extra active-work plan artifact from the current
   multi-group task.

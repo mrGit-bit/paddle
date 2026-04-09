@@ -75,7 +75,7 @@ def test_validate_ssh_assets_reports_unfixable_private_key_mode(monkeypatch, tmp
     assert "could not be set to 0600" in errors[0]
 
 
-def test_build_staging_checks_includes_release_specific_items():
+def test_build_develop_checks_includes_release_specific_items():
     changelog = """## [Unreleased]
 
 ## [1.6.0] - 2026-03-16
@@ -85,10 +85,10 @@ def test_build_staging_checks_includes_release_specific_items():
 - Added final release reporting.
 """
 
-    checks = release_orchestrator.build_staging_checks(changelog, "1.6.0")
+    checks = release_orchestrator.build_develop_checks(changelog, "1.6.0")
 
-    assert len(checks) == 6
-    assert "Validar el cambio liberado: Added release command automation." in checks
+    assert len(checks) == 5
+    assert "Validar la logica del cambio liberado: Added release command automation." in checks
 
 
 def test_build_staging_checks_preserves_multiline_release_items():
@@ -103,10 +103,17 @@ def test_build_staging_checks_preserves_multiline_release_items():
     checks = release_orchestrator.build_staging_checks(changelog, "1.8.1")
 
     assert (
-        "Validar el cambio liberado: `UI/UX`: `Parejas del siglo` y `Parejas catastróficas` "
+        "Validar en UI el cambio liberado: `UI/UX`: `Parejas del siglo` y `Parejas catastróficas` "
         "now require at least 5 matches instead of 3 before a pair is eligible for the rate-based tables."
         in checks
     )
+
+
+def test_build_staging_checks_are_ui_oriented():
+    checks = release_orchestrator.build_staging_checks("## [Unreleased]\n", "1.9.0")
+
+    assert checks[0] == "Iniciar sesion y cerrar sesion sin errores visibles de interfaz."
+    assert "render visual" in checks[1]
 
 
 def test_read_remote_version_uses_repo_ssh_config(tmp_path, monkeypatch):
@@ -653,7 +660,28 @@ def test_wait_for_workflow_run_accepts_single_dispatch_candidate_without_branch_
     assert run["databaseId"] == 23611535777
 
 
-def test_wait_for_required_checks_ignores_no_checks_reported(monkeypatch):
+def test_wait_for_required_checks_retries_until_checks_appear(monkeypatch):
+    calls = []
+
+    def fake_run_command(args, *, cwd, capture_output=True, input_text=None):
+        calls.append(args)
+        if len(calls) == 1:
+            raise subprocess.CalledProcessError(
+                1,
+                args,
+                output="no checks reported on the 'chore/release-v1.6.0' branch\n",
+            )
+        return subprocess.CompletedProcess(args, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(release_orchestrator, "run_command", fake_run_command)
+    monkeypatch.setattr(release_orchestrator.time, "sleep", lambda seconds: None)
+
+    release_orchestrator.wait_for_required_checks(83, cwd=Path("/tmp/repo"))
+
+    assert len(calls) == 2
+
+
+def test_wait_for_required_checks_raises_when_checks_never_appear(monkeypatch):
     def fake_run_command(args, *, cwd, capture_output=True, input_text=None):
         raise subprocess.CalledProcessError(
             1,
@@ -662,8 +690,68 @@ def test_wait_for_required_checks_ignores_no_checks_reported(monkeypatch):
         )
 
     monkeypatch.setattr(release_orchestrator, "run_command", fake_run_command)
+    monkeypatch.setattr(release_orchestrator.time, "sleep", lambda seconds: None)
+    monkeypatch.setattr(release_orchestrator, "REQUIRED_CHECK_APPEAR_TIMEOUT_SECONDS", 10)
+    monkeypatch.setattr(release_orchestrator, "REQUIRED_CHECK_APPEAR_POLL_SECONDS", 5)
 
-    release_orchestrator.wait_for_required_checks(83, cwd=Path("/tmp/repo"))
+    with pytest.raises(release_orchestrator.ReleaseError) as exc_info:
+        release_orchestrator.wait_for_required_checks(83, cwd=Path("/tmp/repo"))
+
+    assert str(exc_info.value) == "Required checks did not appear for PR #83 within 10 seconds."
+
+
+def test_run_release_validation_suite_records_success(monkeypatch):
+    commands = []
+    changelog = "## [Unreleased]\n\n## [1.9.0] - 2026-04-07\n### Changed\n- Added release validation.\n"
+    context = release_orchestrator.ReleaseContext(
+        repo_root=Path("/tmp/repo"),
+        version="1.9.0",
+        version_tag="v1.9.0",
+        paths=release_orchestrator.ReleasePaths(Path("/tmp/repo")),
+    )
+    context.paths.changelog.parent.mkdir(parents=True, exist_ok=True)
+    context.paths.changelog.write_text(changelog, encoding="utf-8")
+
+    def fake_run_subprocess(args, *, cwd, capture_output, input_text, env=None):
+        commands.append((args, cwd, capture_output, input_text, env))
+        return subprocess.CompletedProcess(args, 0, stdout="ok\n", stderr="")
+
+    monkeypatch.setattr(release_orchestrator, "run_subprocess", fake_run_subprocess)
+
+    release_orchestrator.run_release_validation_suite(context)
+
+    assert [call[0] for call in commands] == [
+        list(release_orchestrator.LOCAL_RELEASE_VALIDATION_COMMANDS[0]),
+        list(release_orchestrator.LOCAL_RELEASE_VALIDATION_COMMANDS[1]),
+    ]
+    assert context.steps[-1] == release_orchestrator.StepResult(
+        name="Local Release Validation",
+        status="ok",
+        detail="Passed the local CI-equivalent pytest and coverage commands on develop before staging promotion.",
+    )
+
+
+def test_run_release_validation_suite_raises_on_failure(monkeypatch):
+    changelog = "## [Unreleased]\n\n## [1.9.0] - 2026-04-07\n### Changed\n- Added release validation.\n"
+    context = release_orchestrator.ReleaseContext(
+        repo_root=Path("/tmp/repo"),
+        version="1.9.0",
+        version_tag="v1.9.0",
+        paths=release_orchestrator.ReleasePaths(Path("/tmp/repo")),
+    )
+    context.paths.changelog.parent.mkdir(parents=True, exist_ok=True)
+    context.paths.changelog.write_text(changelog, encoding="utf-8")
+
+    def fake_run_subprocess(args, *, cwd, capture_output, input_text, env=None):
+        raise subprocess.CalledProcessError(1, args, output="", stderr="2 failed")
+
+    monkeypatch.setattr(release_orchestrator, "run_subprocess", fake_run_subprocess)
+
+    with pytest.raises(release_orchestrator.ReleaseError) as exc_info:
+        release_orchestrator.run_release_validation_suite(context)
+
+    assert "Local release validation failed before staging promotion on command" in str(exc_info.value)
+    assert "2 failed" in str(exc_info.value)
 
 
 def test_main_prints_partial_report_when_subprocess_fails(monkeypatch, capsys):

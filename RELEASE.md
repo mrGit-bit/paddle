@@ -138,28 +138,32 @@ truth for the remote deploy steps.
    `version(release): prepare release vX.Y.Z`.
 4. Wait for required checks when they exist, squash-merge the release-prep PR,
    and delete `chore/release-vX.Y.Z`.
-5. Create PR `develop -> staging`, wait for required checks from
+5. Pull the merged release-prep changes onto local `develop`, then run the
+   local CI-equivalent pytest and coverage commands for `frontend` and
+   `americano`. If either command fails, stop the release before opening the
+   promotion PR.
+6. Create PR `develop -> staging`, wait for required checks from
    `.github/workflows/ci.yml`, and merge it.
-6. Deploy staging with `ssh -F .codex/private/release_ssh/config
+7. Deploy staging with `ssh -F .codex/private/release_ssh/config
    staging-update`, then have the orchestrator run `python manage.py migrate
    --settings=config.settings.prod` on the staging host and fail if any
    migrations remain pending; only then verify the remote host reports
    `paddle/config/__init__.py` at `X.Y.Z`.
-7. Print 3-6 manual functional checks for staging and wait for explicit user
+8. Print 3-6 manual functional checks for staging and wait for explicit user
    approval.
-8. If approved, create PR `staging -> main`, wait for CI, and merge it.
-9. Deploy production with `ssh -F .codex/private/release_ssh/config
+9. If approved, create PR `staging -> main`, wait for CI, and merge it.
+10. Deploy production with `ssh -F .codex/private/release_ssh/config
    prod-update`, then have the orchestrator run `python manage.py migrate
    --settings=config.settings.prod` on the production host and fail if any
    migrations remain pending; only then verify the remote host reports
    `paddle/config/__init__.py` at `X.Y.Z`.
-10. Back-merge `origin/main` into local `develop`.
-11. Consolidate only the loose spec files explicitly marked with
+11. Back-merge `origin/main` into local `develop`.
+12. Consolidate only the loose spec files explicitly marked with
     `Release tag: vX.Y.Z` and a closure-complete `Status`
     (`implemented` or `shipped`) into `specs/release-X.Y.Z-consolidated.md`.
-12. Review `CHANGELOG.md` for `## [X.Y.Z]` and keep that section as a simple,
+13. Review `CHANGELOG.md` for `## [X.Y.Z]` and keep that section as a simple,
     light summary of shipped changes.
-13. Print a human-readable release report.
+14. Print a human-readable release report.
 
 If the user declines at the staging gate, the command stops after staging and
 reports the paused state.
@@ -196,17 +200,27 @@ closure-complete (`implemented` or `shipped`). Also review the release
 changelog section and compress it when needed so release history stays easy to
 scan.
 
-## Manual Functional Checks for Staging
+## Manual Functional Checks
 
-The command prints a release-specific checklist. Baseline checks:
+The command now prints two different release-specific checklists:
 
-1. Sign in and sign out without errors.
-2. Open rankings and confirm pagination works.
-3. Open the match list and confirm pagination works.
-4. Create a match and confirm rankings and statistics update.
-5. Open Americano and confirm the view loads correctly.
-6. Validate release-specific changes. If the release has no UI/UX changes,
-   state `No UI/UX changes in this release.`
+- `Develop manual checks`: logic-oriented checks printed before the local
+  CI-equivalent pytest+coverage gate. These focus on business rules, data
+  integrity, scope isolation, permissions, and release-specific logic.
+- `Staging manual checks`: UI-oriented checks printed after staging deploy.
+  These focus on visible flows, pagination, rendered states, and release-
+  specific UI verification.
+
+Baseline staging checks:
+
+1. Sign in and sign out without visible UI errors.
+2. Open rankings and confirm pagination and rendering behave correctly.
+3. Open the match list and confirm cards, actions, and states display
+   correctly.
+4. Create a match and confirm the interface reflects the change correctly.
+5. Open Americano and confirm the view loads and renders correctly.
+6. Validate the release-specific UI changes. If the release has no UI/UX
+   changes, state `No UI/UX changes in this release.`
 
 ## Fallback Scripts
 
