@@ -20,9 +20,30 @@ NO_CHECKS_REPORTED_RE = re.compile(r"no checks reported on the .+ branch", re.IG
 TRACKING_LINE_RE = re.compile(
     r"^- (?P<field>Task ID|Status|Release tag):\s*`(?P<value>[^`]+)`\s*$"
 )
+PENDING_MIGRATION_RE = re.compile(r"^\s*\[\s\]\s+(?P<name>\S+)", re.M)
 SAFE_PRIVATE_KEY_GROUP_OR_WORLD_MASK = 0o077
 DEFAULT_PRIVATE_KEY_MODE = 0o600
 REMOTE_VERSION_FILE = "~/paddle/paddle/config/__init__.py"
+REMOTE_MANAGE_PY_DIR = "~/paddle/paddle"
+REMOTE_DJANGO_SETTINGS = "config.settings.prod"
+REQUIRED_CHECK_APPEAR_TIMEOUT_SECONDS = 120
+REQUIRED_CHECK_APPEAR_POLL_SECONDS = 5
+LOCAL_RELEASE_VALIDATION_COMMANDS = (
+    [
+        "pytest",
+        "paddle/frontend/tests/",
+        "--cov=frontend.views",
+        "--cov-report=term-missing",
+        "--cov-fail-under=90",
+    ],
+    [
+        "pytest",
+        "paddle/americano/tests/test_americano_views.py",
+        "--cov=americano.views",
+        "--cov-report=term-missing",
+        "--cov-fail-under=90",
+    ],
+)
 
 
 class ReleaseError(RuntimeError):
@@ -335,18 +356,37 @@ def parse_changelog_section(changelog_text: str, version: str) -> list[str]:
     return items
 
 
+def build_develop_checks(changelog_text: str, version: str) -> list[str]:
+    checks = [
+        "Validar la logica principal del release y confirmar que no haya migraciones pendientes en development.",
+        "Comprobar la integridad de datos en los flujos tocados: crear, actualizar o borrar segun aplique.",
+        "Confirmar que las reglas de negocio nuevas afectan solo al grupo, scope o dataset esperado.",
+        "Revisar permisos y autorizacion en los flujos modificados para evitar regresiones silenciosas.",
+    ]
+    release_items = parse_changelog_section(changelog_text, version)[:2]
+    for item in release_items:
+        checks.append(f"Validar la logica del cambio liberado: {item}")
+    return checks[:5]
+
+
 def build_staging_checks(changelog_text: str, version: str) -> list[str]:
     checks = [
-        "Iniciar sesion y cerrar sesion sin errores.",
-        "Abrir rankings y confirmar que la paginacion funciona.",
-        "Abrir la lista de partidos y confirmar que la paginacion funciona.",
-        "Crear un partido y confirmar que ranking y estadisticas se actualizan.",
-        "Abrir Americano y confirmar que la vista carga correctamente.",
+        "Iniciar sesion y cerrar sesion sin errores visibles de interfaz.",
+        "Abrir rankings y confirmar que la paginacion y el render visual funcionan correctamente.",
+        "Abrir la lista de partidos y confirmar que las tarjetas, acciones y estados se muestran bien.",
+        "Crear un partido y confirmar que la interfaz refleja el cambio sin inconsistencias visuales.",
+        "Abrir Americano y confirmar que la vista carga y se presenta correctamente.",
     ]
     release_items = parse_changelog_section(changelog_text, version)[:3]
     for item in release_items:
-        checks.append(f"Validar el cambio liberado: {item}")
+        checks.append(f"Validar en UI el cambio liberado: {item}")
     return checks[:6]
+
+
+def print_manual_checks(label: str, checks: list[str]) -> None:
+    print(f"\n{label}:")
+    for index, check in enumerate(checks, start=1):
+        print(f"{index}. {check}")
 
 
 def matches_workflow_run(
@@ -488,16 +528,63 @@ def create_or_reuse_promotion_pr(base: str, head: str, version_tag: str, *, cwd:
 
 
 def wait_for_required_checks(pr_number: int, *, cwd: Path) -> None:
-    try:
-        run_command(
-            ["gh", "pr", "checks", str(pr_number), "--watch", "--required"],
-            cwd=cwd,
-            capture_output=False,
-        )
-    except subprocess.CalledProcessError as exc:
-        if NO_CHECKS_REPORTED_RE.search(command_error_output(exc)):
+    attempts = max(1, REQUIRED_CHECK_APPEAR_TIMEOUT_SECONDS // REQUIRED_CHECK_APPEAR_POLL_SECONDS)
+    for _ in range(attempts):
+        try:
+            run_command(
+                ["gh", "pr", "checks", str(pr_number), "--watch", "--required"],
+                cwd=cwd,
+                capture_output=False,
+            )
             return
-        raise
+        except subprocess.CalledProcessError as exc:
+            if NO_CHECKS_REPORTED_RE.search(command_error_output(exc)):
+                time.sleep(REQUIRED_CHECK_APPEAR_POLL_SECONDS)
+                continue
+            raise
+    raise ReleaseError(
+        f"Required checks did not appear for PR #{pr_number} within "
+        f"{REQUIRED_CHECK_APPEAR_TIMEOUT_SECONDS} seconds."
+    )
+
+
+def release_validation_env() -> dict[str, str]:
+    env = os.environ.copy()
+    env.update(
+        {
+            "DJANGO_ENVIRONMENT": "dev",
+            "SECRET_KEY": "ci-secret-key",
+            "ALLOWED_HOSTS": "127.0.0.1,localhost,testserver",
+            "CSRF_TRUSTED_ORIGINS": "http://127.0.0.1:8000,http://localhost:8000",
+        }
+    )
+    return env
+
+
+def run_release_validation_suite(context: ReleaseContext) -> None:
+    changelog_text = context.paths.changelog.read_text(encoding="utf-8")
+    print_manual_checks("Develop manual checks", build_develop_checks(changelog_text, context.version))
+    env = release_validation_env()
+    for command in LOCAL_RELEASE_VALIDATION_COMMANDS:
+        try:
+            completed = run_subprocess(
+                command,
+                cwd=context.repo_root,
+                capture_output=True,
+                input_text=None,
+                env=env,
+            )
+        except subprocess.CalledProcessError as exc:
+            raise ReleaseError(
+                "Local release validation failed before staging promotion on command "
+                f"`{' '.join(command)}`.\n{command_error_output(exc)}"
+            ) from exc
+        replay_output(completed)
+    record_success(
+        context,
+        "Local Release Validation",
+        "Passed the local CI-equivalent pytest and coverage commands on develop before staging promotion.",
+    )
 
 
 def merge_pr(pr_number: int, strategy: str, *, cwd: Path, delete_branch: bool) -> None:
@@ -525,12 +612,50 @@ def read_remote_version(paths: ReleasePaths, host_alias: str, *, cwd: Path) -> s
     return completed.stdout.strip()
 
 
+def run_remote_manage_py(paths: ReleasePaths, host_alias: str, manage_args: list[str], *, cwd: Path) -> str:
+    command = (
+        f"cd {REMOTE_MANAGE_PY_DIR} && source ~/venv/bin/activate && "
+        f"python manage.py {' '.join(manage_args)} --settings={REMOTE_DJANGO_SETTINGS}"
+    )
+    completed = run_command(
+        [
+            "ssh",
+            "-F",
+            str(paths.ssh_config),
+            host_alias,
+            command,
+        ],
+        cwd=cwd,
+    )
+    return completed.stdout.strip()
+
+
+def read_remote_pending_migrations(paths: ReleasePaths, host_alias: str, *, cwd: Path) -> list[str]:
+    output = run_remote_manage_py(paths, host_alias, ["showmigrations"], cwd=cwd)
+    return PENDING_MIGRATION_RE.findall(output)
+
+
+def apply_remote_migrations(paths: ReleasePaths, host_alias: str, *, cwd: Path) -> None:
+    run_remote_manage_py(paths, host_alias, ["migrate"], cwd=cwd)
+
+
 def verify_remote_version(
     context: ReleaseContext,
     target: DeployTarget,
     *,
     step_name: str,
 ) -> None:
+    apply_remote_migrations(context.paths, target.verify_alias, cwd=context.repo_root)
+    pending_migrations = read_remote_pending_migrations(
+        context.paths,
+        target.verify_alias,
+        cwd=context.repo_root,
+    )
+    if pending_migrations:
+        raise ReleaseError(
+            f"{target.display_name} deploy completed but {target.verify_alias} still has pending migrations: "
+            f"{', '.join(pending_migrations)}."
+        )
     remote_version = read_remote_version(context.paths, target.verify_alias, cwd=context.repo_root)
     if remote_version != context.version:
         raise ReleaseError(
@@ -540,14 +665,13 @@ def verify_remote_version(
     record_success(
         context,
         step_name,
-        f"Executed ssh deploy via {target.deploy_alias} and verified {target.verify_alias} is on {context.version}.",
+        f"Executed ssh deploy via {target.deploy_alias}, applied remote migrations, and verified "
+        f"{target.verify_alias} is on {context.version} with no pending migrations.",
     )
 
 
 def prompt_continue(checks: list[str], *, input_func=input, stdin_isatty: bool | None = None) -> bool:
-    print("\nStaging manual checks:")
-    for index, check in enumerate(checks, start=1):
-        print(f"{index}. {check}")
+    print_manual_checks("Staging manual checks", checks)
 
     if stdin_isatty is None:
         stdin = getattr(sys, "stdin", None)
@@ -817,15 +941,23 @@ def resume_from_staging_approval(context: ReleaseContext, args: argparse.Namespa
             f"Cannot resume after staging approval because staging reports version "
             f"{remote_version or 'unknown'} instead of {context.version}."
         )
+    pending_migrations = read_remote_pending_migrations(
+        context.paths,
+        staging_target.verify_alias,
+        cwd=context.repo_root,
+    )
+    if pending_migrations:
+        raise ReleaseError(
+            "Cannot resume after staging approval because staging still has pending migrations: "
+            f"{', '.join(pending_migrations)}."
+        )
     record_success(
         context,
         "Staging Resume Check",
-        f"Verified staging is already on {context.version} before resume.",
+        f"Verified staging is already on {context.version} with no pending migrations before resume.",
     )
 
-    print("\nStaging manual checks:")
-    for index, check in enumerate(checks, start=1):
-        print(f"{index}. {check}")
+    print_manual_checks("Staging manual checks", checks)
 
     if args.staging_declined:
         add_step(context, "Staging Approval", "paused", "User declined production promotion after staging.")
@@ -891,6 +1023,7 @@ def run_release_flow(context: ReleaseContext, args: argparse.Namespace) -> None:
     )
 
     run_command(["git", "pull", "--ff-only", "origin", "develop"], cwd=context.repo_root)
+    run_release_validation_suite(context)
     staging_pr = create_or_reuse_promotion_pr("staging", "develop", context.version_tag, cwd=context.repo_root)
     wait_for_required_checks(int(staging_pr["number"]), cwd=context.repo_root)
     merge_pr(int(staging_pr["number"]), "--merge", cwd=context.repo_root, delete_branch=False)

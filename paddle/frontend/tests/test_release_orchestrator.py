@@ -75,7 +75,7 @@ def test_validate_ssh_assets_reports_unfixable_private_key_mode(monkeypatch, tmp
     assert "could not be set to 0600" in errors[0]
 
 
-def test_build_staging_checks_includes_release_specific_items():
+def test_build_develop_checks_includes_release_specific_items():
     changelog = """## [Unreleased]
 
 ## [1.6.0] - 2026-03-16
@@ -85,10 +85,10 @@ def test_build_staging_checks_includes_release_specific_items():
 - Added final release reporting.
 """
 
-    checks = release_orchestrator.build_staging_checks(changelog, "1.6.0")
+    checks = release_orchestrator.build_develop_checks(changelog, "1.6.0")
 
-    assert len(checks) == 6
-    assert "Validar el cambio liberado: Added release command automation." in checks
+    assert len(checks) == 5
+    assert "Validar la logica del cambio liberado: Added release command automation." in checks
 
 
 def test_build_staging_checks_preserves_multiline_release_items():
@@ -103,10 +103,17 @@ def test_build_staging_checks_preserves_multiline_release_items():
     checks = release_orchestrator.build_staging_checks(changelog, "1.8.1")
 
     assert (
-        "Validar el cambio liberado: `UI/UX`: `Parejas del siglo` y `Parejas catastróficas` "
+        "Validar en UI el cambio liberado: `UI/UX`: `Parejas del siglo` y `Parejas catastróficas` "
         "now require at least 5 matches instead of 3 before a pair is eligible for the rate-based tables."
         in checks
     )
+
+
+def test_build_staging_checks_are_ui_oriented():
+    checks = release_orchestrator.build_staging_checks("## [Unreleased]\n", "1.9.0")
+
+    assert checks[0] == "Iniciar sesion y cerrar sesion sin errores visibles de interfaz."
+    assert "render visual" in checks[1]
 
 
 def test_read_remote_version_uses_repo_ssh_config(tmp_path, monkeypatch):
@@ -138,6 +145,40 @@ def test_read_remote_version_uses_repo_ssh_config(tmp_path, monkeypatch):
     ]
 
 
+def test_read_remote_pending_migrations_uses_repo_ssh_config(tmp_path, monkeypatch):
+    paths = release_orchestrator.ReleasePaths(tmp_path)
+    calls = []
+
+    def fake_run_command(args, *, cwd, capture_output=True, input_text=None):
+        calls.append((args, cwd, capture_output, input_text))
+        return subprocess.CompletedProcess(
+            args,
+            0,
+            stdout="games\n [X] 0001_initial\n [ ] 0006_group_remove_player_unique_lower_name_and_more\n",
+            stderr="",
+        )
+
+    monkeypatch.setattr(release_orchestrator, "run_command", fake_run_command)
+
+    pending = release_orchestrator.read_remote_pending_migrations(paths, "staging", cwd=tmp_path)
+
+    assert pending == ["0006_group_remove_player_unique_lower_name_and_more"]
+    assert calls == [
+        (
+            [
+                "ssh",
+                "-F",
+                str(paths.ssh_config),
+                "staging",
+                "cd ~/paddle/paddle && source ~/venv/bin/activate && python manage.py showmigrations --settings=config.settings.prod",
+            ],
+            tmp_path,
+            True,
+            None,
+        )
+    ]
+
+
 def test_verify_remote_version_records_success(monkeypatch):
     context = release_orchestrator.ReleaseContext(
         repo_root=Path("/tmp/repo"),
@@ -151,15 +192,26 @@ def test_verify_remote_version_records_success(monkeypatch):
         display_name="Staging",
     )
 
+    migrations_applied = []
+    monkeypatch.setattr(
+        release_orchestrator,
+        "apply_remote_migrations",
+        lambda paths, host_alias, *, cwd: migrations_applied.append((paths, host_alias, cwd)),
+    )
+    monkeypatch.setattr(release_orchestrator, "read_remote_pending_migrations", lambda *args, **kwargs: [])
     monkeypatch.setattr(release_orchestrator, "read_remote_version", lambda *args, **kwargs: "1.7.0")
 
     release_orchestrator.verify_remote_version(context, target, step_name="Staging Deploy")
 
+    assert migrations_applied == [(context.paths, "staging", Path("/tmp/repo"))]
     assert context.steps == [
         release_orchestrator.StepResult(
             name="Staging Deploy",
             status="ok",
-            detail="Executed ssh deploy via staging-update and verified staging is on 1.7.0.",
+            detail=(
+                "Executed ssh deploy via staging-update, applied remote migrations, and verified "
+                "staging is on 1.7.0 with no pending migrations."
+            ),
         )
     ]
 
@@ -177,6 +229,8 @@ def test_verify_remote_version_raises_on_mismatch(monkeypatch):
         display_name="Production",
     )
 
+    monkeypatch.setattr(release_orchestrator, "apply_remote_migrations", lambda *args, **kwargs: None)
+    monkeypatch.setattr(release_orchestrator, "read_remote_pending_migrations", lambda *args, **kwargs: [])
     monkeypatch.setattr(release_orchestrator, "read_remote_version", lambda *args, **kwargs: "1.6.1")
 
     with pytest.raises(release_orchestrator.ReleaseError) as exc_info:
@@ -185,6 +239,36 @@ def test_verify_remote_version_raises_on_mismatch(monkeypatch):
     assert (
         str(exc_info.value)
         == "Production deploy completed but prod reports version 1.6.1 instead of 1.7.0."
+    )
+
+
+def test_verify_remote_version_raises_on_pending_migrations(monkeypatch):
+    context = release_orchestrator.ReleaseContext(
+        repo_root=Path("/tmp/repo"),
+        version="1.7.0",
+        version_tag="v1.7.0",
+        paths=release_orchestrator.ReleasePaths(Path("/tmp/repo")),
+    )
+    target = release_orchestrator.DeployTarget(
+        deploy_alias="staging-update",
+        verify_alias="staging",
+        display_name="Staging",
+    )
+
+    monkeypatch.setattr(release_orchestrator, "apply_remote_migrations", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        release_orchestrator,
+        "read_remote_pending_migrations",
+        lambda *args, **kwargs: ["0006_group_remove_player_unique_lower_name_and_more"],
+    )
+
+    with pytest.raises(release_orchestrator.ReleaseError) as exc_info:
+        release_orchestrator.verify_remote_version(context, target, step_name="Staging Deploy")
+
+    assert (
+        str(exc_info.value)
+        == "Staging deploy completed but staging still has pending migrations: "
+        "0006_group_remove_player_unique_lower_name_and_more."
     )
 
 
@@ -576,7 +660,28 @@ def test_wait_for_workflow_run_accepts_single_dispatch_candidate_without_branch_
     assert run["databaseId"] == 23611535777
 
 
-def test_wait_for_required_checks_ignores_no_checks_reported(monkeypatch):
+def test_wait_for_required_checks_retries_until_checks_appear(monkeypatch):
+    calls = []
+
+    def fake_run_command(args, *, cwd, capture_output=True, input_text=None):
+        calls.append(args)
+        if len(calls) == 1:
+            raise subprocess.CalledProcessError(
+                1,
+                args,
+                output="no checks reported on the 'chore/release-v1.6.0' branch\n",
+            )
+        return subprocess.CompletedProcess(args, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(release_orchestrator, "run_command", fake_run_command)
+    monkeypatch.setattr(release_orchestrator.time, "sleep", lambda seconds: None)
+
+    release_orchestrator.wait_for_required_checks(83, cwd=Path("/tmp/repo"))
+
+    assert len(calls) == 2
+
+
+def test_wait_for_required_checks_raises_when_checks_never_appear(monkeypatch):
     def fake_run_command(args, *, cwd, capture_output=True, input_text=None):
         raise subprocess.CalledProcessError(
             1,
@@ -585,8 +690,68 @@ def test_wait_for_required_checks_ignores_no_checks_reported(monkeypatch):
         )
 
     monkeypatch.setattr(release_orchestrator, "run_command", fake_run_command)
+    monkeypatch.setattr(release_orchestrator.time, "sleep", lambda seconds: None)
+    monkeypatch.setattr(release_orchestrator, "REQUIRED_CHECK_APPEAR_TIMEOUT_SECONDS", 10)
+    monkeypatch.setattr(release_orchestrator, "REQUIRED_CHECK_APPEAR_POLL_SECONDS", 5)
 
-    release_orchestrator.wait_for_required_checks(83, cwd=Path("/tmp/repo"))
+    with pytest.raises(release_orchestrator.ReleaseError) as exc_info:
+        release_orchestrator.wait_for_required_checks(83, cwd=Path("/tmp/repo"))
+
+    assert str(exc_info.value) == "Required checks did not appear for PR #83 within 10 seconds."
+
+
+def test_run_release_validation_suite_records_success(monkeypatch):
+    commands = []
+    changelog = "## [Unreleased]\n\n## [1.9.0] - 2026-04-07\n### Changed\n- Added release validation.\n"
+    context = release_orchestrator.ReleaseContext(
+        repo_root=Path("/tmp/repo"),
+        version="1.9.0",
+        version_tag="v1.9.0",
+        paths=release_orchestrator.ReleasePaths(Path("/tmp/repo")),
+    )
+    context.paths.changelog.parent.mkdir(parents=True, exist_ok=True)
+    context.paths.changelog.write_text(changelog, encoding="utf-8")
+
+    def fake_run_subprocess(args, *, cwd, capture_output, input_text, env=None):
+        commands.append((args, cwd, capture_output, input_text, env))
+        return subprocess.CompletedProcess(args, 0, stdout="ok\n", stderr="")
+
+    monkeypatch.setattr(release_orchestrator, "run_subprocess", fake_run_subprocess)
+
+    release_orchestrator.run_release_validation_suite(context)
+
+    assert [call[0] for call in commands] == [
+        list(release_orchestrator.LOCAL_RELEASE_VALIDATION_COMMANDS[0]),
+        list(release_orchestrator.LOCAL_RELEASE_VALIDATION_COMMANDS[1]),
+    ]
+    assert context.steps[-1] == release_orchestrator.StepResult(
+        name="Local Release Validation",
+        status="ok",
+        detail="Passed the local CI-equivalent pytest and coverage commands on develop before staging promotion.",
+    )
+
+
+def test_run_release_validation_suite_raises_on_failure(monkeypatch):
+    changelog = "## [Unreleased]\n\n## [1.9.0] - 2026-04-07\n### Changed\n- Added release validation.\n"
+    context = release_orchestrator.ReleaseContext(
+        repo_root=Path("/tmp/repo"),
+        version="1.9.0",
+        version_tag="v1.9.0",
+        paths=release_orchestrator.ReleasePaths(Path("/tmp/repo")),
+    )
+    context.paths.changelog.parent.mkdir(parents=True, exist_ok=True)
+    context.paths.changelog.write_text(changelog, encoding="utf-8")
+
+    def fake_run_subprocess(args, *, cwd, capture_output, input_text, env=None):
+        raise subprocess.CalledProcessError(1, args, output="", stderr="2 failed")
+
+    monkeypatch.setattr(release_orchestrator, "run_subprocess", fake_run_subprocess)
+
+    with pytest.raises(release_orchestrator.ReleaseError) as exc_info:
+        release_orchestrator.run_release_validation_suite(context)
+
+    assert "Local release validation failed before staging promotion on command" in str(exc_info.value)
+    assert "2 failed" in str(exc_info.value)
 
 
 def test_main_prints_partial_report_when_subprocess_fails(monkeypatch, capsys):
