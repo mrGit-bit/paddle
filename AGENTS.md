@@ -1,7 +1,7 @@
 # AGENTS.md — Codex Execution Rules
 
-Instruction Set Version: 2.3.5  
-Last Updated: 2026-04-02
+Instruction Set Version: 2.3.6
+Last Updated: 2026-04-11
 
 ## 1. Authority and File Roles
 
@@ -35,6 +35,12 @@ If version/date mismatch exists between `PROJECT_INSTRUCTIONS.md` and
 - Use ChatGPT only for pre-spec clarification of ambiguous work, project
   technology or design questions, governance decisions, development-concept
   clarification, or screenshot review.
+- ChatGPT pre-spec handoffs must be plain editable Markdown. Save or paste
+  them only under ignored local files in `docs/pre-specs/`, edit them manually
+  there, and paste the refined draft into Codex CLI `/plan`.
+- `docs/pre-specs/` is scratch planning input only. Do not treat files there as
+  active-work specs, do not include them in active spec discovery, and do not
+  stage, commit, release-consolidate, or mention them as shipped artifacts.
 - For external-tool or integration features that depend on current support,
   discovery rules, authentication behavior, configuration paths, or versioned
   capabilities, verify the live tool behavior or current official
@@ -100,6 +106,10 @@ Planning behavior:
 - After exploration, summarize the discovered context and ask follow-up
   questions that lock preferences or tradeoffs even when a reasonable default
   seems likely.
+- When `/plan` input came from `docs/pre-specs/`, treat it as user-editable
+  planning context only. Still explore the repository, resolve discoverable
+  facts, and ask preference-locking questions before creating or updating any
+  approved spec in `specs/`.
 - Prefer at least one round of preference-locking questions for non-trivial
   planning work and a second round when implementation choices would otherwise
   be left to inference.

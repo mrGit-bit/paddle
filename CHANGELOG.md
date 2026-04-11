@@ -12,6 +12,9 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `Governance`: ChatGPT pre-spec drafts now live as ignored editable Markdown
+  under `docs/pre-specs/` and must not be staged, committed, or treated as
+  active SDD specs.
 - `UI/UX`: Ranking sort icons now render white in table headers and no longer
   show ellipsis dots beside the arrows on small screens.
 - `Docs`: Added a `/prompts:dev` command to start the Django development
