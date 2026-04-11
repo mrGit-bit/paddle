@@ -12,6 +12,11 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `UI/UX`: Ranking sort icons now render white in table headers and no longer
+  show ellipsis dots beside the arrows on small screens.
+- `Docs`: Added a `/prompts:dev` command to start the Django development
+  server and open the local app in a new Chrome window.
+
 ## [1.9.0] - 2026-04-07
 
 ### Changed

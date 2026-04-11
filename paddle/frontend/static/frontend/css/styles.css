@@ -129,6 +129,27 @@ and replaced by an ellipsis (…) */
   font-weight: bold;  
 }
 
+.table thead th.ranking-sort-header {
+  text-overflow: clip;
+}
+
+.ranking-sort-button,
+.ranking-sort-button:hover,
+.ranking-sort-button:focus,
+.ranking-sort-button:active {
+  color: whitesmoke;
+}
+
+.ranking-sort-button:focus-visible {
+  outline: 2px solid whitesmoke;
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+.ranking-sort-icon {
+  color: inherit;
+}
+
 /* Alignments */
 /* Align all numeric table headers to the center for better readability */
 .table thead th:nth-child(3),
