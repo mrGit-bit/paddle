@@ -216,7 +216,7 @@ def players_view(request):
     group_context = get_request_group_context(request)
     _, _, all_players = build_all_players(
         group=group_context["group"],
-        include_group_labels=group_context["aggregate"],
+        include_group_labels=False,
     )
     new_match_ids = get_new_match_ids(request) or []
     return render(
@@ -242,7 +242,7 @@ def player_detail_view(request, player_id):
 
     _, _, all_players = build_all_players(
         group=group_context["group"],
-        include_group_labels=group_context["aggregate"],
+        include_group_labels=False,
     )
 
     scope_rows = [

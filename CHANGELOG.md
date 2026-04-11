@@ -19,6 +19,8 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
   show ellipsis dots beside the arrows on small screens.
 - `UI/UX`: Player detail trend stats now use three progress-wheel cards and
   mute duplicate trend progress strokes.
+- `UI/UX`: Anonymous `Jugadores` dropdowns now show only player names without
+  club or group labels.
 - `Docs`: Added a `/prompts:dev` command to start the Django development
   server and open the local app in a new Chrome window.
 

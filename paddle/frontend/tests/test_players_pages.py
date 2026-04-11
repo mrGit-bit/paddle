@@ -1,8 +1,10 @@
-import pytest
+import re
 from datetime import date, timedelta
+
+import pytest
 from django.urls import reverse
 
-from games.models import Match, Player
+from games.models import Group, Match, Player
 
 
 pytestmark = pytest.mark.django_db
@@ -46,6 +48,22 @@ def test_players_list_is_public_200(client):
     assert "<h1 class=\"display-5\">Jugadores</h1>" in content
 
 
+def test_players_list_anonymous_selector_shows_player_names_without_groups(client):
+    group_a = Group.objects.create(name="Club Norte")
+    group_b = Group.objects.create(name="Club Sur")
+    Player.objects.create(name="Jugador Norte", gender=Player.GENDER_MALE, group=group_a)
+    Player.objects.create(name="Jugador Sur", gender=Player.GENDER_FEMALE, group=group_b)
+
+    response = client.get(reverse("players"))
+    content = response.content.decode("utf-8")
+
+    assert response.status_code == 200
+    assert re.search(r"<option[^>]*>\s*Jugador Norte\s*</option>", content)
+    assert re.search(r"<option[^>]*>\s*Jugador Sur\s*</option>", content)
+    assert "Jugador Norte — Club Norte" not in content
+    assert "Jugador Sur — Club Sur" not in content
+
+
 def test_player_detail_is_public_200(client):
     player = Player.objects.create(name="Jugador Perfil", gender=Player.GENDER_MALE)
     response = client.get(reverse("player_detail", args=[player.id]))
@@ -53,6 +71,26 @@ def test_player_detail_is_public_200(client):
     assert response.status_code == 200
     assert "Jugador Perfil" in content
     assert f"<h1 class=\"display-5\">{player.name}</h1>" in content
+
+
+def test_player_detail_anonymous_selector_shows_player_names_without_groups(client):
+    group_a = Group.objects.create(name="Club Alfa")
+    group_b = Group.objects.create(name="Club Beta")
+    selected_player = Player.objects.create(
+        name="Perfil Alfa",
+        gender=Player.GENDER_MALE,
+        group=group_a,
+    )
+    Player.objects.create(name="Perfil Beta", gender=Player.GENDER_FEMALE, group=group_b)
+
+    response = client.get(reverse("player_detail", args=[selected_player.id]))
+    content = response.content.decode("utf-8")
+
+    assert response.status_code == 200
+    assert re.search(r"<option[^>]*>\s*Perfil Alfa\s*</option>", content)
+    assert re.search(r"<option[^>]*>\s*Perfil Beta\s*</option>", content)
+    assert "Perfil Alfa — Club Alfa" not in content
+    assert "Perfil Beta — Club Beta" not in content
 
 
 def test_player_detail_404(client):
