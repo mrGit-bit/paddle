@@ -38,6 +38,15 @@ def _compute_win_rate_percent(wins: int, matches: int) -> int:
     return round((wins / matches) * 100)
 
 
+def _mark_distinct_trend_progress(trend_rows):
+    seen_results = set()
+    for row in trend_rows:
+        result_key = (row["wins"], row["losses"], row["matches"], row["win_rate_percent"])
+        row["show_progress_stroke"] = result_key not in seen_results
+        seen_results.add(result_key)
+    return trend_rows
+
+
 def build_player_insights(player):
     """
     Build trend, top partners and top rivals insights for a player.
@@ -122,6 +131,7 @@ def build_player_insights(player):
         build_trend_row("Últimos 10", slice_size=10),
         build_trend_row("Total", slice_size=None),
     ]
+    _mark_distinct_trend_progress(trend_rows)
 
     partner_rows = []
     for row in partner_stats.values():

@@ -128,15 +128,42 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
 
     assert response.status_code == 200
     assert "Posición" in content
+    assert "Eficacia" in content
+    assert "Tendencias" not in content
     assert "Sin datos" in content
     assert "Sin partidos" in content
     assert insights["top_partners"] == []
     assert insights["top_rivals"] == []
     assert insights["trend_rows"] == [
-        {"label": "Últimos 5", "wins": 0, "losses": 0, "matches": 0, "win_rate_percent": 0},
-        {"label": "Últimos 10", "wins": 0, "losses": 0, "matches": 0, "win_rate_percent": 0},
-        {"label": "Total", "wins": 0, "losses": 0, "matches": 0, "win_rate_percent": 0},
+        {
+            "label": "Últimos 5",
+            "wins": 0,
+            "losses": 0,
+            "matches": 0,
+            "win_rate_percent": 0,
+            "show_progress_stroke": True,
+        },
+        {
+            "label": "Últimos 10",
+            "wins": 0,
+            "losses": 0,
+            "matches": 0,
+            "win_rate_percent": 0,
+            "show_progress_stroke": False,
+        },
+        {
+            "label": "Total",
+            "wins": 0,
+            "losses": 0,
+            "matches": 0,
+            "win_rate_percent": 0,
+            "show_progress_stroke": False,
+        },
     ]
+    assert content.count('role="progressbar"') == 3
+    assert content.count("circular-progress-active") == 1
+    assert 'aria-valuenow="0"' in content
+    assert "player-trend-meta" not in content
 
 
 def test_player_detail_trend_windows_use_available_matches_and_round_percent(client):
@@ -180,10 +207,97 @@ def test_player_detail_trend_windows_use_available_matches_and_round_percent(cli
 
     assert response.status_code == 200
     assert insights["trend_rows"] == [
-        {"label": "Últimos 5", "wins": 4, "losses": 1, "matches": 5, "win_rate_percent": 80},
-        {"label": "Últimos 10", "wins": 7, "losses": 3, "matches": 10, "win_rate_percent": 70},
-        {"label": "Total", "wins": 7, "losses": 5, "matches": 12, "win_rate_percent": 58},
+        {
+            "label": "Últimos 5",
+            "wins": 4,
+            "losses": 1,
+            "matches": 5,
+            "win_rate_percent": 80,
+            "show_progress_stroke": True,
+        },
+        {
+            "label": "Últimos 10",
+            "wins": 7,
+            "losses": 3,
+            "matches": 10,
+            "win_rate_percent": 70,
+            "show_progress_stroke": True,
+        },
+        {
+            "label": "Total",
+            "wins": 7,
+            "losses": 5,
+            "matches": 12,
+            "win_rate_percent": 58,
+            "show_progress_stroke": True,
+        },
     ]
+    content = response.content.decode("utf-8")
+    assert content.count('role="progressbar"') == 3
+    assert content.count("circular-progress-active") == 3
+    assert 'aria-valuenow="80"' in content
+    assert 'aria-valuenow="70"' in content
+    assert 'aria-valuenow="58"' in content
+
+
+def test_player_detail_trend_wheels_mute_duplicate_result_windows(client):
+    player = Player.objects.create(name="Duplicate Trend Player", gender=Player.GENDER_MALE)
+    partner = Player.objects.create(name="Duplicate Trend Partner", gender=Player.GENDER_MALE)
+    rival_1 = Player.objects.create(name="Duplicate Trend Rival 1", gender=Player.GENDER_MALE)
+    rival_2 = Player.objects.create(name="Duplicate Trend Rival 2", gender=Player.GENDER_MALE)
+
+    base_day = date(2026, 2, 1)
+    results = [False, True, False, True, False]
+    for index, won in enumerate(results, start=1):
+        create_match(
+            player,
+            partner,
+            rival_1,
+            rival_2,
+            winning_team=1 if won else 2,
+            played_on=base_day + timedelta(days=index - 1),
+        )
+
+    response = client.get(reverse("player_detail", args=[player.id]))
+    content = response.content.decode("utf-8")
+    insights = response.context["player_insights"]
+
+    assert response.status_code == 200
+    assert [row["show_progress_stroke"] for row in insights["trend_rows"]] == [True, False, False]
+    assert content.count('role="progressbar"') == 3
+    assert content.count("circular-progress-active") == 1
+    assert content.count('aria-valuenow="40"') == 3
+
+
+def test_player_detail_partial_history_marks_total_duplicate_of_last_10(client):
+    player = Player.objects.create(name="Partial Trend Player", gender=Player.GENDER_MALE)
+    partner = Player.objects.create(name="Partial Trend Partner", gender=Player.GENDER_MALE)
+    rival_1 = Player.objects.create(name="Partial Trend Rival 1", gender=Player.GENDER_MALE)
+    rival_2 = Player.objects.create(name="Partial Trend Rival 2", gender=Player.GENDER_MALE)
+
+    base_day = date(2026, 2, 1)
+    results = [False, False, False, True, True, True, True, True]
+    for index, won in enumerate(results, start=1):
+        create_match(
+            player,
+            partner,
+            rival_1,
+            rival_2,
+            winning_team=1 if won else 2,
+            played_on=base_day + timedelta(days=index - 1),
+        )
+
+    response = client.get(reverse("player_detail", args=[player.id]))
+    content = response.content.decode("utf-8")
+    insights = response.context["player_insights"]
+
+    assert response.status_code == 200
+    assert insights["trend_rows"][0]["win_rate_percent"] == 100
+    assert insights["trend_rows"][1]["win_rate_percent"] == 62
+    assert insights["trend_rows"][2]["win_rate_percent"] == 62
+    assert [row["show_progress_stroke"] for row in insights["trend_rows"]] == [True, True, False]
+    assert content.count('role="progressbar"') == 3
+    assert content.count("circular-progress-active") == 2
 
 
 def test_player_detail_partner_and_rivals_tiebreakers_and_clickable_links(client):

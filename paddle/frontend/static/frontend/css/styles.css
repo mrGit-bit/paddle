@@ -150,6 +150,92 @@ and replaced by an ellipsis (…) */
   color: inherit;
 }
 
+/* Player detail trend wheels */
+.player-trend-card {
+  border-radius: 0.5rem;
+}
+
+.player-trend-card .card-body {
+  padding: 0.75rem 0.5rem;
+}
+
+.player-trend-title {
+  font-size: 0.95rem;
+  line-height: 1.2;
+  min-height: 2.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+  white-space: normal;
+}
+
+.circular-progress {
+  --progress-size: 5rem;
+  --progress-track: var(--bs-border-color);
+  --progress-stroke: var(--bs-success);
+  position: relative;
+  width: var(--progress-size);
+  height: var(--progress-size);
+  margin: 0 auto;
+}
+
+.circular-progress-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.circular-progress-track,
+.circular-progress-stroke {
+  fill: none;
+  stroke-width: 3.25;
+}
+
+.circular-progress-track {
+  stroke: var(--progress-track);
+}
+
+.circular-progress-stroke {
+  stroke: var(--progress-stroke);
+  stroke-linecap: round;
+}
+
+.circular-progress-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+@media (max-width: 359.98px) {
+  .player-trend-cards {
+    --bs-gutter-x: 0.25rem;
+  }
+
+  .player-trend-card .card-body {
+    padding-right: 0.25rem;
+    padding-left: 0.25rem;
+  }
+
+  .player-trend-title {
+    font-size: 0.8rem;
+  }
+
+  .circular-progress {
+    --progress-size: 4rem;
+  }
+
+  .circular-progress-label {
+    font-size: 0.85rem;
+  }
+}
+
 /* Alignments */
 /* Align all numeric table headers to the center for better readability */
 .table thead th:nth-child(3),

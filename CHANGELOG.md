@@ -17,6 +17,8 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
   active SDD specs.
 - `UI/UX`: Ranking sort icons now render white in table headers and no longer
   show ellipsis dots beside the arrows on small screens.
+- `UI/UX`: Player detail trend stats now use three progress-wheel cards and
+  mute duplicate trend progress strokes.
 - `Docs`: Added a `/prompts:dev` command to start the Django development
   server and open the local app in a new Chrome window.
 
