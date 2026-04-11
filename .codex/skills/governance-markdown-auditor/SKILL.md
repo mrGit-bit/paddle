@@ -1,6 +1,6 @@
 ---
 name: governance-markdown-auditor
-description: Audit governance markdown for duplication, unclear ownership, coordination gaps, prose-only rules, and low-value spec/plan overhead; export a reviewable governance audit report with prioritized findings and a consolidation-first rewrite plan.
+description: Audit governance markdown for duplication, unclear ownership, coordination gaps, prose-only rules, and low-value SDD artifact overhead; export a reviewable governance audit report with prioritized findings and a consolidation-first rewrite plan.
 ---
 
 # Governance Markdown Auditor
@@ -17,8 +17,6 @@ Default review scope:
 - `BACKLOG.md`
 - `RELEASE.md`
 - `specs/`
-- `plans/`
-- `plans/TEMPLATE.md`
 - `.codex/commands/`
 
 If the user gives a narrower scope, stay inside it.
@@ -32,7 +30,7 @@ Find and explain:
 - verbosity that reduces agent readability
 - coordination gaps between related markdown artifacts
 - rules that exist only in prose and are not operationalized anywhere
-- spec/plan detail that does not create clear execution value
+- SDD artifact detail that does not create clear execution value
 - release-consolidation or workflow rules that appear inconsistently enforced
 
 Bias toward simplifying the current governance set. Prefer clarifying or
@@ -55,7 +53,7 @@ shrinking existing files before proposing new governance files.
    - automation scripts
    - release workflow docs
    - repository conventions actually visible in the tree
-6. For `specs/` and `plans/`, assess both:
+6. For `specs/`, assess both:
    - governance intent
    - practical value in the observed workflow
 7. Recommend consolidation-first fixes that make each file easier for agents to
@@ -76,8 +74,8 @@ Treat these as strong signals of governance debt:
   current-state repository orientation
 - `CHANGELOG.md` and `BACKLOG.md` depending on manual coordination with no clear
   trigger, checklist, or automation support
-- specs or plans required by governance but not reliably retrieved, referenced,
-  or enforced during execution
+- specs required by governance but not reliably retrieved, referenced, or
+  enforced during execution
 - consolidation rules that exist in governance but are only partially reflected
   in commands or current repository state
 - templates or commands that preserve obsolete process detail after governance

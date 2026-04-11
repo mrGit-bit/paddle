@@ -9,6 +9,7 @@ Integration:
 - Exported through `frontend.views` facade.
 """
 
+from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 
@@ -19,6 +20,7 @@ from .common import (
     build_player_participation_queryset,
     fetch_paginated_data,
     get_new_match_ids,
+    get_request_group_context,
 )
 from .ranking import get_scoped_player_and_page
 
@@ -201,7 +203,11 @@ def players_view(request):
     """
     Public players landing page with selector.
     """
-    _, _, all_players = build_all_players()
+    group_context = get_request_group_context(request)
+    _, _, all_players = build_all_players(
+        group=group_context["group"],
+        include_group_labels=group_context["aggregate"],
+    )
     new_match_ids = get_new_match_ids(request) or []
     return render(
         request,
@@ -210,6 +216,7 @@ def players_view(request):
             "all_players": all_players,
             "selected_player_id": None,
             "new_matches_number": len(new_match_ids),
+            "group_display_name": group_context["display_name"],
         },
     )
 
@@ -219,7 +226,14 @@ def player_detail_view(request, player_id):
     Public player profile page with scoped stats and match history.
     """
     profile_player = get_object_or_404(Player, id=player_id)
-    _, _, all_players = build_all_players()
+    group_context = get_request_group_context(request)
+    if group_context["group"] is not None and profile_player.group_id != group_context["group"].id:
+        raise Http404("Jugador no encontrado.")
+
+    _, _, all_players = build_all_players(
+        group=group_context["group"],
+        include_group_labels=group_context["aggregate"],
+    )
 
     scope_rows = [
         {"label": "Todos", "scope": "all", "url_name": "hall_of_fame"},
@@ -231,7 +245,11 @@ def player_detail_view(request, player_id):
     scope_rows.append({"label": "Mixtos", "scope": "mixed", "url_name": "ranking_mixed"})
 
     for row in scope_rows:
-        scoped_player, page = get_scoped_player_and_page(row["scope"], profile_player.id)
+        scoped_player, page = get_scoped_player_and_page(
+            row["scope"],
+            profile_player.id,
+            group=profile_player.group,
+        )
         row["scoped_player"] = scoped_player
         if not scoped_player:
             row["href"] = None
@@ -261,5 +279,6 @@ def player_detail_view(request, player_id):
             "new_match_ids": [],
             "user_matches": [],
             "new_matches_number": len(new_match_ids),
+            "group_display_name": profile_player.group.name if not group_context["aggregate"] else f"{profile_player.group.name} · Hall of Fame",
         },
     )

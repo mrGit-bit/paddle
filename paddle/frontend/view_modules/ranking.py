@@ -15,7 +15,7 @@ from games.models import Player
 
 from frontend.services.ranking import build_pairs_ranking_sections, compute_ranking
 
-from .common import get_new_match_ids, get_ranking_redirect, paginate_list
+from .common import get_new_match_ids, get_ranking_redirect, get_request_group_context, get_user_player, paginate_list
 
 
 def ranking_home_view(request):
@@ -35,7 +35,8 @@ def ranking_view(request, scope):
     """
     Renders scoped ranking pages: all/male/female/mixed.
     """
-    ranked_players, unranked_players, scope = compute_ranking(scope)
+    group_context = get_request_group_context(request)
+    ranked_players, unranked_players, scope = compute_ranking(scope, group=group_context["group"])
 
     request.session["last_ranking_scope"] = scope
 
@@ -50,7 +51,7 @@ def ranking_view(request, scope):
     following_player = None
 
     if request.user.is_authenticated:
-        db_user_player = Player.objects.filter(registered_user=request.user).first()
+        db_user_player = get_user_player(request)
 
         if db_user_player:
             scoped_user_player = next((p for p in ranked_players if p.id == db_user_player.id), None)
@@ -69,10 +70,10 @@ def ranking_view(request, scope):
                     )
 
     titles = {
-        "all": "Ranking — Todos los partidos",
-        "male": "Ranking — Partidos masculinos",
-        "female": "Ranking — Partidos femeninos",
-        "mixed": "Ranking — Partidos mixtos",
+        "all": f'{group_context["display_name"]} — Todos los partidos',
+        "male": f'{group_context["display_name"]} — Partidos masculinos',
+        "female": f'{group_context["display_name"]} — Partidos femeninos',
+        "mixed": f'{group_context["display_name"]} — Partidos mixtos',
     }
 
     return render(
@@ -89,6 +90,8 @@ def ranking_view(request, scope):
             "following_player": following_player,
             "ranking_scope": scope,
             "page_title": titles.get(scope, titles["all"]),
+            "group_display_name": group_context["display_name"],
+            "is_aggregate_context": group_context["aggregate"],
         },
     )
 
@@ -97,7 +100,8 @@ def pairs_ranking_view(request):
     """
     Renders the all-matches pairs ranking page.
     """
-    sections = build_pairs_ranking_sections()
+    group_context = get_request_group_context(request)
+    sections = build_pairs_ranking_sections(group=group_context["group"])
     new_match_ids = get_new_match_ids(request) or []
 
     return render(
@@ -109,23 +113,25 @@ def pairs_ranking_view(request):
             "catastrophic_pairs": sections["catastrophic_pairs"],
             "new_matches_number": len(new_match_ids),
             "page_title": "Parejas",
+            "group_display_name": group_context["display_name"],
+            "is_aggregate_context": group_context["aggregate"],
         },
     )
 
 
-def get_scoped_player_row(scope: str, player_id: int):
+def get_scoped_player_row(scope: str, player_id: int, *, group=None):
     """
     Returns the scoped ranked player object with display_* fields or None.
     """
-    ranked_players, _, _ = compute_ranking(scope)
+    ranked_players, _, _ = compute_ranking(scope, group=group)
     return next((player for player in ranked_players if player.id == player_id), None)
 
 
-def get_player_page_in_scope(scope: str, player_id: int, page_size: int = 12):
+def get_player_page_in_scope(scope: str, player_id: int, page_size: int = 12, *, group=None):
     """
     Returns the pagination page number where player_id appears for a ranking scope.
     """
-    ranked_players, _, _ = compute_ranking(scope)
+    ranked_players, _, _ = compute_ranking(scope, group=group)
     scoped_player = next((p for p in ranked_players if p.id == player_id), None)
     if not scoped_player:
         return None
@@ -133,11 +139,11 @@ def get_player_page_in_scope(scope: str, player_id: int, page_size: int = 12):
     return ((ordinal_index - 1) // page_size) + 1
 
 
-def get_scoped_player_and_page(scope: str, player_id: int, page_size: int = 12):
+def get_scoped_player_and_page(scope: str, player_id: int, page_size: int = 12, *, group=None):
     """
     Returns (scoped_player, page) from a single ranking computation.
     """
-    ranked_players, _, _ = compute_ranking(scope)
+    ranked_players, _, _ = compute_ranking(scope, group=group)
     scoped_player = next((p for p in ranked_players if p.id == player_id), None)
     if not scoped_player:
         return None, None

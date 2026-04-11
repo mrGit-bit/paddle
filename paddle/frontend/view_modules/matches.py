@@ -22,8 +22,10 @@ from .common import (
     build_all_players,
     build_player_participation_queryset,
     fetch_paginated_data,
+    filter_matches_for_group,
     get_new_match_ids,
     get_ranking_redirect,
+    get_user_player,
 )
 
 
@@ -66,7 +68,7 @@ def match_view(request, client=None):
     GET: Renders the match page with a form to add new matches and a table of all matches.
     POST: Creates a new match if the data is valid and not duplicated. Also manages deletion of matches.
     """
-    user_player = Player.objects.filter(registered_user=request.user).first()
+    user_player = get_user_player(request)
 
     if not user_player:
         messages.error(request, "Error: el usuario no está asociado a ningún jugador.")
@@ -82,7 +84,7 @@ def match_view(request, client=None):
                 return redirect("match")
 
             try:
-                match = Match.objects.get(id=match_id)
+                match = Match.objects.get(id=match_id, group=user_player.group)
             except Match.DoesNotExist:
                 messages.error(request, "Error: el partido no existe.")
                 return redirect("match")
@@ -122,16 +124,16 @@ def match_view(request, client=None):
             if choice in ("NEW_M", "NEW_F"):
                 if not new_name:
                     return None, "Por favor, introduce el nombre del nuevo jugador."
-                existing = Player.objects.filter(name__iexact=new_name).first()
+                existing = Player.objects.filter(name__iexact=new_name, group=user_player.group).first()
                 if existing:
                     return existing, None
 
                 gender = Player.GENDER_MALE if choice == "NEW_M" else Player.GENDER_FEMALE
-                created = Player.objects.create(name=new_name, gender=gender)
+                created = Player.objects.create(name=new_name, gender=gender, group=user_player.group)
                 return created, None
 
             try:
-                return Player.objects.get(id=int(choice)), None
+                return Player.objects.get(id=int(choice), group=user_player.group), None
             except (ValueError, Player.DoesNotExist):
                 return None, "Jugador seleccionado no válido."
 
@@ -178,7 +180,7 @@ def match_view(request, client=None):
         team1_sorted = sorted([team1_player1.id, team1_player2.id])
         team2_sorted = sorted([team2_player1.id, team2_player2.id])
 
-        existing_matches = Match.objects.filter(date_played=date_played)
+        existing_matches = Match.objects.filter(date_played=date_played, group=user_player.group)
 
         for match in existing_matches:
             existing_team1_sorted = sorted([match.team1_player1.id, match.team1_player2.id])
@@ -196,6 +198,7 @@ def match_view(request, client=None):
             return redirect("match")
 
         Match.objects.create(
+            group=user_player.group,
             team1_player1=team1_player1,
             team1_player2=team1_player2,
             team2_player1=team2_player1,
@@ -207,9 +210,9 @@ def match_view(request, client=None):
         scope = request.session.get("last_ranking_scope", "all")
         return get_ranking_redirect(scope)
 
-    registered_players, non_registered_players, all_players = build_all_players()
+    registered_players, non_registered_players, all_players = build_all_players(group=user_player.group)
 
-    matches_qs = _with_match_players(Match.objects.all()).order_by("-date_played")
+    matches_qs = _with_match_players(filter_matches_for_group(group=user_player.group)).order_by("-date_played")
     matches, pagination = fetch_paginated_data(matches_qs, request)
 
     user_matches_qs = _with_match_players(

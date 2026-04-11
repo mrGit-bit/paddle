@@ -1,10 +1,9 @@
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.2.30  
-Last Updated: 2026-03-31
+Instruction Set Version: 2.3.5  
+Last Updated: 2026-04-02
 
-This file mirrors the governance subset intended for ChatGPT Project
-instructions and must stay small enough to load there reliably.
+This is the compact governance subset for ChatGPT Project instructions.
 
 ## 1. Product and Stack
 
@@ -33,9 +32,8 @@ Rules:
 - `Instruction Set Version` and `Last Updated` must stay aligned here and in
   `AGENTS.md`.
 - Keep this file under 7000 characters when possible and never above 7800.
-- If a governance addition would push this file past that budget, keep only the
-  minimum portable rule here and move the detail to `AGENTS.md` or another
-  owner doc.
+- If a governance addition would exceed that budget, keep only the portable
+  rule here and move the detail to `AGENTS.md` or another owner doc.
 
 ## 3. Repository Constraints
 
@@ -44,11 +42,11 @@ Rules:
 - Backend owns business logic; templates render only.
 - No frontend ranking logic.
 - UI text in Spanish.
-- Code, comments, docs, specs, and plans in English.
+- Code, comments, docs, and specs in English.
 - Keep deprecated API/DRF policy centralized in governance; do not restate it
   in feature specs unless the task directly touches that surface.
-- For external-tool or integration-dependent features, verify current supported
-  behavior before relying on it in repository guidance or automation.
+- Verify current supported behavior before relying on external-tool or
+  integration-dependent guidance or automation.
 
 ## 4. Mandatory SDD Gates
 
@@ -57,44 +55,50 @@ Before any development or code change:
 1. Check the current git branch.
 2. If it is not `develop`, warn clearly, ask which branch should receive the
    work, and wait for confirmation before editing files.
-3. Create or update an approved active-work spec in `specs/###-short-title.md`.
-4. Create or update an approved active-work plan in
-   `plans/YYYY-MM-DD_short-description.md`.
-5. Start implementation only after both the current spec and current plan are
-   explicitly approved.
+3. Create or update an approved active-work spec in
+   `specs/###-short-title.md`.
+4. Start implementation only after the current active-work spec is explicitly
+   approved.
 
 Simple-change exception:
 
-- For small, low-risk changes with narrow scope, such as straightforward
-  documentation, governance, or repository-guidance edits, Codex CLI may skip
-  creating spec and plan files.
+- For small, low-risk documentation, governance, or repository-guidance edits,
+  Codex CLI may skip creating an active-work spec.
 - If the request is clearly minor, Codex may proceed directly without an extra
   confirmation turn.
 - If the scope expands beyond that narrow change set, return to the standard
-  approved spec and plan flow before continuing implementation.
+  approved-spec flow before continuing implementation.
 
 Active-work rule:
 
-- The active spec and plan for a task are the latest approved non-release files
+- The active spec for a task is the latest approved non-release spec file
   created for that task.
-- Pair loose specs and plans by shared `Task ID` tracking metadata and explicit
-  `Plan` / `Spec` references instead of filename similarity alone.
-- `specs/release-*.md` and `plans/release-*.md` are historical release
-  artifacts, not active-work inputs.
-- Loose non-release specs and plans must carry explicit `Release tag` tracking
-  metadata and default to `unreleased` while work is still pending release.
-  Before release consolidation, mark only the actually shipped loose files with
-  the target `vX.Y.Z`. During consolidation,
+- `specs/release-*.md` files are historical release artifacts, not active-work
+  inputs.
+- Loose non-release specs must carry explicit tracking metadata:
+  `Status: approved|implemented` and `Release tag: unreleased`.
+- Use `Status: approved` for approved work that has not yet completed its
+  development cycle closure.
+- Move a loose spec from `approved` to `implemented` only when the scoped work
+  is done and that spec's development cycle is being closed.
+- Use `Status: implemented` for work whose development cycle was closed on
+  `develop` but is not yet shipped.
+- Reserve `Release tag` for shipment tracking only. Before release
+  consolidation, mark only the actually shipped loose files with the target
+  `vX.Y.Z` and update them to `Status: shipped`. During consolidation,
   `python scripts/release_orchestrator.py <version>` folds only those
   exact-match files into the shipped release record and keeps that changelog
   section as a light shipped summary. If a planned release never reaches
   production, roll its unshipped loose files and changelog notes into the next
-  production release that actually ships them.
+  production release that actually ships them. A loose task must not remain
+  loose after any scoped behavior from that task reaches production; any
+  post-release follow-up must move to a new loose spec instead of extending
+  the shipped file.
 
 Additional rules:
 
-- `/plan` may help shape a spec request before spec approval but does not bypass
-  the approved-spec requirement.
+- `/plan` may shape a spec request before approval but does not bypass the
+  approved-spec requirement.
 - In Plan Mode, product code stays frozen; requested Markdown updates are
   allowed.
 - In `/plan` or other planning-only workflows, explore first, then bias toward
@@ -102,8 +106,8 @@ Additional rules:
 - After exploration, lock product, UX, or implementation preferences with
   follow-up questions unless the remaining choices are purely mechanical or
   already settled.
-- Evaluate whether `/review` or `$audit` should be used for each non-trivial
-  spec or implementation task.
+- Evaluate whether `/review` or `$audit` fits each non-trivial spec or
+  implementation task.
 - Prefer `/review` first when both checkpoints could fit the approved scope.
 - If neither checkpoint is used, say so explicitly in the working response and
   give a brief reason for skipping it or discarding it for that scope.
@@ -114,11 +118,14 @@ Additional rules:
   review/audit record accordingly.
 - Do not fix findings directly just because they were found; implement fixes
   only after the user chooses to address them.
+- When Django model/schema changes are introduced, generate and apply the
+  required migrations in development before treating the task as complete.
 - After a successful tagged release and back-merge from `main` to `develop`,
-  consolidate the released SDD files into `specs/release-X.Y.Z-consolidated.md`
-  and `plans/release-X.Y.Z-consolidated.md` before new SDD work begins, using
-  only loose files explicitly marked with the shipped `vX.Y.Z`. Review the
-  release changelog section in the same step and keep it simple and light.
+  consolidate the released SDD files before new SDD work begins, using only
+  loose spec files explicitly marked with the shipped `vX.Y.Z`. Keep that
+  release changelog section simple and light. A release is not reconciled
+  while any loose non-release file still describes shipped behavior; retag,
+  consolidate, and delete those superseded files before new SDD work starts.
 
 ## 5. Delivery and Coordination
 
@@ -130,10 +137,15 @@ Additional rules:
   when that keeps mixed releases scannable.
 - Before closing a development cycle, reconcile completed scoped items in
   `BACKLOG.md` and reflect them in `CHANGELOG.md`.
-- Backlog reconciliation is owned by development-cycle closure. Release
-  automation does not perform it unless the release workflow explicitly says so.
+- During development-cycle closure, move each in-scope loose spec from
+  `Status: approved` to `Status: implemented` when the scoped work is complete
+  and that cycle is being closed, before staging and committing the closure.
+- Backlog reconciliation belongs to development-cycle closure unless the
+  release workflow explicitly says otherwise.
 - Closure is complete only after all requested-work changes are staged,
   committed, pushed, and `git status --short` is clean.
+- Run closure git operations sequentially; do not overlap `git add`,
+  `git commit`, and `git push`.
 - If the user wants to continue developing, do not commit yet.
 - If the user confirms commit/push/closure, do it in the same turn.
 - Treat direct user commands such as `close cycle` or `close specification` as
@@ -145,17 +157,13 @@ Additional rules:
 - Prefer short sections, direct bullets, and compact summaries.
 - `CHANGELOG.md` should record outcomes, not process narration.
 - Keep `CHANGELOG.md` categories stable; prefer product or workflow domains.
-- Specs/plans should capture only scope, constraints, and checks needed for
-  execution.
+- Active-work specs should capture only scope, constraints, and checks needed
+  for execution.
 - Consolidated release files should stay as compact provenance summaries.
 - Do not add `markdownlint-disable` directives unless explicitly requested.
 - Enforce `MD022` and `MD032`; treat `MD013` as non-blocking.
 - `CHANGELOG.md` may keep an `MD024` disable because repeated Keep a Changelog
   category headings are intentional there.
-- Use `-` for unordered lists.
-- Keep ordered lists explicit and sequential.
-- Avoid trailing spaces.
-- End files with a single newline.
 - Run markdownlint on changed Markdown files when available and fix violations
   in the same change set, except `MD013`.
 

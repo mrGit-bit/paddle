@@ -113,7 +113,7 @@ Check at least these issues:
 - weak reuse of existing helpers or forms
 - unnecessary DRF or deprecated API use or references
 - missing or weak automated test coverage
-- scope drift versus approved spec or plan when detectable
+- scope drift versus approved spec when detectable
 - Spanish UI text rule violations in templates
 
 ### Architecture Review Report

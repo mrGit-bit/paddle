@@ -184,7 +184,7 @@ def test_match_view_get_exposes_match_window_bounds():
 
     assert resp.status_code == 200
     assert f'min="{(date.today() - timedelta(days=30)).isoformat()}"' in resp.content.decode("utf-8")
-    assert "últimos 30 días" in resp.content.decode("utf-8")
+    assert f'max="{date.today().isoformat()}"' in resp.content.decode("utf-8")
 
 
 def test_match_view_resolve_player_new_missing_name_covers_448_449():
@@ -252,7 +252,7 @@ def test_match_view_get_hides_delete_button_for_locked_user_match():
     body = resp.content.decode("utf-8")
 
     assert resp.status_code == 200
-    assert "Aprobado automáticamente" in body
+    assert 'class="btn btn-secondary btn-sm" disabled' in body
     assert f'name="match_id" value="{locked_match.id}"' not in body
 
 

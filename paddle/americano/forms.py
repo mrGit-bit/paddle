@@ -67,6 +67,14 @@ class AmericanoTournamentForm(forms.ModelForm):
             "num_players": "Nº jugadores*",            
         }
 
+    def __init__(self, *args, group=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        queryset = Player.objects.all().select_related("group").order_by(Lower("name"))
+        if group is not None:
+            queryset = queryset.filter(group=group)
+        self.fields["players"].queryset = queryset
+        self.group = group
+
     def clean(self):
         cleaned = super().clean()
         players = cleaned.get("players")
@@ -122,7 +130,7 @@ class AmericanoTournamentForm(forms.ModelForm):
                 self.add_error(None, f"'{name}' está repetido con distinto género.")
             typed_by_name[name_l] = gender
 
-            existing = Player.objects.filter(name__iexact=name).first()
+            existing = Player.objects.filter(name__iexact=name, group=self.group).first() if self.group else Player.objects.filter(name__iexact=name).first()
             if existing and existing.gender and existing.gender != gender:
                 self.add_error(
                     None,

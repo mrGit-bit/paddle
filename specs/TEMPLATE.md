@@ -5,8 +5,12 @@ Use for active SDD work only.
 ## Tracking
 
 - Task ID: `short-task-id`
-- Spec: `specs/###-short-title.md`
+- Status: `approved`
 - Release tag: `unreleased`
+
+`approved` stays in place until the scoped work is finished and the
+development cycle for that spec is being closed. Only then move the spec to
+`implemented`.
 
 ## Summary
 
@@ -28,7 +32,7 @@ Use for active SDD work only.
 
 - List explicitly.
 
-## Plan
+## Implementation Plan
 
 - [ ] Step 1
 - [ ] Step 2
@@ -42,5 +46,7 @@ Use for active SDD work only.
 
 ## Validation
 
-- Commands to run.
-- 3-6 manual functional checks.
+- Command or check 1.
+- Command or check 2.
+- Manual functional check 1.
+- Manual functional check 2.
