@@ -74,44 +74,44 @@
   {% endfor %}
 </div>
 
-<h4 class="mb-2">Pareja habitual</h4>  
-<div class="table-responsive mb-3">
-  <table class="table table-striped table-hover">
-    <colgroup>          
-      <col style="width: 40%;">
-      <col style="width: 20%;">
-      <col style="width: 20%;">
-      <col style="width: 20%;">
-    </colgroup>
-    <thead>
-      <tr>
-        <th scope="col">Jugador/a</th>
-        <th scope="col" class="text-center">🏆-🌴</th>
-        <th scope="col" class="text-center">🏓</th>
-        <th scope="col" class="text-center">🎯</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% if player_insights.top_partners %}
-        {% for row in player_insights.top_partners %}
-        <tr class="clickable-row" data-href="{% url 'player_detail' row.player.id %}">
-          <td>
-            <a href="{% url 'player_detail' row.player.id %}" class="text-body text-decoration-none">
-              {{ row.player.name }}
-            </a>
-          </td>
-          <td class="text-center">{{ row.wins_together }}-{{ row.losses_together }}</td>
-          <td class="text-center">{{ row.matches_together }}</td>
-          <td class="text-center">{{ row.win_rate_percent }}%</td>
-        </tr>
-        {% endfor %}
-      {% else %}
-        <tr>
-          <td colspan="4" class="text-center text-muted">Sin datos</td>
-        </tr>
-      {% endif %}
-    </tbody>
-  </table>
+<h4 class="mb-2">Pareja habitual</h4>
+<div class="mb-3">
+  {% if player_insights.partner_distribution %}
+    <div class="progress-stacked player-partner-progress mb-2">
+      {% for row in player_insights.partner_distribution %}
+        <div
+          class="progress"
+          role="progressbar"
+          aria-label="{{ row.aria_label }}"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="{{ row.display_percent }}"
+          style="width: {{ row.width_percent }}%;">
+          {% if not row.is_empty_segment %}
+            <div class="progress-bar {{ row.color_class }}">
+              {% if row.show_label %}{{ row.display_percent }}%{% endif %}
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+    <div class="player-partner-legend">
+      {% for row in player_insights.partner_distribution %}
+        {% if row.player %}
+          <div class="player-partner-legend-item">
+            <span class="player-partner-swatch {{ row.color_class }}" aria-hidden="true"></span>
+            <span class="player-partner-name">
+              <a href="{% url 'player_detail' row.player.id %}" class="text-body text-decoration-none">
+                {{ row.label }}
+              </a>
+            </span>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-center text-muted mb-0">Sin datos</p>
+  {% endif %}
 </div>
   
 <h4 class="mb-2">Rivales frecuentes</h4>  

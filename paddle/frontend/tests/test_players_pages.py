@@ -39,6 +39,10 @@ def create_match(
     )
 
 
+def count_trend_wheels(content):
+    return len(re.findall(r'class="circular-progress(?:\s|")', content))
+
+
 def test_players_list_is_public_200(client):
     Player.objects.create(name="Jugador Uno", gender=Player.GENDER_MALE)
     response = client.get(reverse("players"))
@@ -171,6 +175,7 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
     assert "Sin datos" in content
     assert "Sin partidos" in content
     assert insights["top_partners"] == []
+    assert insights["partner_distribution"] == []
     assert insights["top_rivals"] == []
     assert insights["trend_rows"] == [
         {
@@ -198,7 +203,7 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
             "show_progress_stroke": False,
         },
     ]
-    assert content.count('role="progressbar"') == 3
+    assert count_trend_wheels(content) == 3
     assert content.count("circular-progress-active") == 1
     assert 'aria-valuenow="0"' in content
     assert "player-trend-meta" not in content
@@ -271,7 +276,7 @@ def test_player_detail_trend_windows_use_available_matches_and_round_percent(cli
         },
     ]
     content = response.content.decode("utf-8")
-    assert content.count('role="progressbar"') == 3
+    assert count_trend_wheels(content) == 3
     assert content.count("circular-progress-active") == 3
     assert 'aria-valuenow="80"' in content
     assert 'aria-valuenow="70"' in content
@@ -302,7 +307,7 @@ def test_player_detail_trend_wheels_mute_duplicate_result_windows(client):
 
     assert response.status_code == 200
     assert [row["show_progress_stroke"] for row in insights["trend_rows"]] == [True, False, False]
-    assert content.count('role="progressbar"') == 3
+    assert count_trend_wheels(content) == 3
     assert content.count("circular-progress-active") == 1
     assert content.count('aria-valuenow="40"') == 3
 
@@ -334,7 +339,7 @@ def test_player_detail_partial_history_marks_total_duplicate_of_last_10(client):
     assert insights["trend_rows"][1]["win_rate_percent"] == 62
     assert insights["trend_rows"][2]["win_rate_percent"] == 62
     assert [row["show_progress_stroke"] for row in insights["trend_rows"]] == [True, True, False]
-    assert content.count('role="progressbar"') == 3
+    assert count_trend_wheels(content) == 3
     assert content.count("circular-progress-active") == 2
 
 
@@ -380,6 +385,41 @@ def test_player_detail_partner_and_rivals_tiebreakers_and_clickable_links(client
     assert top_partners[2]["player"].id == partner_c.id
     assert top_partners[2]["matches_together"] == 2
     assert top_partners[2]["win_rate_percent"] == 50
+    assert insights["partner_distribution"] == [
+        {
+            "label": "Partner A",
+            "player": partner_a,
+            "matches": 5,
+            "color_class": "bg-primary",
+            "is_empty_segment": False,
+            "display_percent": 50,
+            "width_percent": "50",
+            "show_label": True,
+            "aria_label": "Partner A: 50% de partidos",
+        },
+        {
+            "label": "Partner B",
+            "player": partner_b,
+            "matches": 3,
+            "color_class": "bg-success",
+            "is_empty_segment": False,
+            "display_percent": 30,
+            "width_percent": "30",
+            "show_label": True,
+            "aria_label": "Partner B: 30% de partidos",
+        },
+        {
+            "label": "Partner C",
+            "player": partner_c,
+            "matches": 2,
+            "color_class": "bg-warning",
+            "is_empty_segment": False,
+            "display_percent": 20,
+            "width_percent": "20",
+            "show_label": True,
+            "aria_label": "Partner C: 20% de partidos",
+        },
+    ]
 
     top_rivals = insights["top_rivals"]
     assert len(top_rivals) == 3
@@ -398,6 +438,18 @@ def test_player_detail_partner_and_rivals_tiebreakers_and_clickable_links(client
     assert f'href="/players/{partner_a.id}/"' in content
     assert f'href="/players/{partner_b.id}/"' in content
     assert f'href="/players/{partner_c.id}/"' in content
+    assert "progress-stacked player-partner-progress" in content
+    assert 'style="width: 50%;"' in content
+    assert 'style="width: 30%;"' in content
+    assert 'style="width: 20%;"' in content
+    assert 'aria-label="Partner A: 50% de partidos"' in content
+    assert 'aria-label="Partner B: 30% de partidos"' in content
+    assert 'aria-label="Partner C: 20% de partidos"' in content
+    assert "Otros" not in content
+    assert content.count("player-partner-legend-item") == 3
+    assert '<span class="text-muted">50%</span>' not in content
+    assert '<span class="text-muted">30%</span>' not in content
+    assert '<span class="text-muted">20%</span>' not in content
     assert f'href="/players/{rival_1.id}/"' in content
     assert f'href="/players/{rival_2.id}/"' in content
     assert f'<div>\n              <a href="/players/{rival_1.id}/"' in content
@@ -441,9 +493,64 @@ def test_player_detail_shows_only_available_partner_rows_when_fewer_than_three(c
 
     response = client.get(reverse("player_detail", args=[player.id]))
     content = response.content.decode("utf-8")
+    insights = response.context["player_insights"]
 
     assert response.status_code == 200
-    assert len(response.context["player_insights"]["top_partners"]) == 2
-    assert content.count("clickable-row") >= 2
+    assert len(insights["top_partners"]) == 2
+    assert [row["display_percent"] for row in insights["partner_distribution"]] == [50, 50]
+    assert [row["width_percent"] for row in insights["partner_distribution"]] == ["50", "50"]
+    assert len(insights["partner_distribution"]) == 2
+    assert "progress-stacked player-partner-progress" in content
+    assert 'aria-label="Few Partner A: 50% de partidos"' in content
+    assert 'aria-label="Few Partner B: 50% de partidos"' in content
+    assert "Otros" not in content
     assert f'href="/players/{partner_a.id}/"' in content
     assert f'href="/players/{partner_b.id}/"' in content
+
+
+def test_player_detail_groups_remaining_partners_as_otros_in_distribution(client):
+    player = Player.objects.create(name="Many Partners", gender=Player.GENDER_MALE)
+    partners = [
+        Player.objects.create(name="Distribution Partner A", gender=Player.GENDER_MALE),
+        Player.objects.create(name="Distribution Partner B", gender=Player.GENDER_MALE),
+        Player.objects.create(name="Distribution Partner C", gender=Player.GENDER_MALE),
+        Player.objects.create(name="Distribution Partner D", gender=Player.GENDER_MALE),
+    ]
+    rival_1 = Player.objects.create(name="Distribution Rival 1", gender=Player.GENDER_MALE)
+    rival_2 = Player.objects.create(name="Distribution Rival 2", gender=Player.GENDER_MALE)
+
+    match_counts = [4, 3, 2, 1]
+    played_on = date(2026, 4, 1)
+    for partner, match_count in zip(partners, match_counts):
+        for _ in range(match_count):
+            create_match(player, partner, rival_1, rival_2, winning_team=1, played_on=played_on)
+            played_on += timedelta(days=1)
+
+    response = client.get(reverse("player_detail", args=[player.id]))
+    content = response.content.decode("utf-8")
+    insights = response.context["player_insights"]
+
+    assert response.status_code == 200
+    assert [row["label"] for row in insights["partner_distribution"]] == [
+        "Distribution Partner A",
+        "Distribution Partner B",
+        "Distribution Partner C",
+        "Otros",
+    ]
+    assert [row["matches"] for row in insights["partner_distribution"]] == [4, 3, 2, 1]
+    assert [row["display_percent"] for row in insights["partner_distribution"]] == [40, 30, 20, 10]
+    assert [row["width_percent"] for row in insights["partner_distribution"]] == ["40", "30", "20", "10"]
+    assert [row["color_class"] for row in insights["partner_distribution"]] == ["bg-primary", "bg-success", "bg-warning", ""]
+    assert [row["is_empty_segment"] for row in insights["partner_distribution"]] == [False, False, False, True]
+    assert insights["partner_distribution"][3]["player"] is None
+    assert "progress-stacked player-partner-progress" in content
+    assert 'aria-label="Otros: 10% de partidos"' in content
+    assert '<div class="progress-bar bg-secondary">' not in content
+    assert "player-partner-swatch bg-secondary" not in content
+    assert "player-partner-swatch-empty" not in content
+    assert 'class="text-muted">10%</span>' not in content
+    assert f'href="/players/{partners[0].id}/"' in content
+    assert f'href="/players/{partners[1].id}/"' in content
+    assert f'href="/players/{partners[2].id}/"' in content
+    assert f'href="/players/{partners[3].id}/"' not in content
+    assert ">Otros<" not in content

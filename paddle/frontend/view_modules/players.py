@@ -47,6 +47,77 @@ def _mark_distinct_trend_progress(trend_rows):
     return trend_rows
 
 
+def _compute_display_percents(rows, total_matches):
+    if total_matches <= 0:
+        return []
+
+    percent_rows = []
+    floor_total = 0
+    for index, row in enumerate(rows):
+        exact_percent = (row["matches"] / total_matches) * 100
+        display_percent = int(exact_percent)
+        floor_total += display_percent
+        percent_rows.append(
+            {
+                "index": index,
+                "display_percent": display_percent,
+                "remainder": exact_percent - display_percent,
+            }
+        )
+
+    points_to_assign = 100 - floor_total
+    percent_rows.sort(key=lambda row: (-row["remainder"], row["index"]))
+    for row in percent_rows[:points_to_assign]:
+        row["display_percent"] += 1
+
+    percent_rows.sort(key=lambda row: row["index"])
+    return [row["display_percent"] for row in percent_rows]
+
+
+def _format_css_percent(value):
+    return f"{value:.4f}".rstrip("0").rstrip(".")
+
+
+def _build_partner_distribution(partner_rows):
+    total_matches = sum(row["matches_together"] for row in partner_rows)
+    if total_matches <= 0:
+        return []
+
+    distribution_rows = []
+    color_classes = ["bg-primary", "bg-success", "bg-warning"]
+    for index, row in enumerate(partner_rows[:3]):
+        distribution_rows.append(
+            {
+                "label": row["player"].name,
+                "player": row["player"],
+                "matches": row["matches_together"],
+                "color_class": color_classes[index],
+                "is_empty_segment": False,
+            }
+        )
+
+    other_matches = sum(row["matches_together"] for row in partner_rows[3:])
+    if other_matches:
+        distribution_rows.append(
+            {
+                "label": "Otros",
+                "player": None,
+                "matches": other_matches,
+                "color_class": "",
+                "is_empty_segment": True,
+            }
+        )
+
+    display_percents = _compute_display_percents(distribution_rows, total_matches)
+    for row, display_percent in zip(distribution_rows, display_percents):
+        row["display_percent"] = display_percent
+        row["width_percent"] = _format_css_percent((row["matches"] / total_matches) * 100)
+        row["show_label"] = display_percent >= 10
+        row["aria_label"] = f"{row['label']}: {display_percent}% de partidos"
+
+    return distribution_rows
+
+
 def build_player_insights(player):
     """
     Build trend, top partners and top rivals insights for a player.
@@ -190,6 +261,7 @@ def build_player_insights(player):
     return {
         "trend_rows": trend_rows,
         "top_partners": partner_rows[:3],
+        "partner_distribution": _build_partner_distribution(partner_rows),
         "top_rivals": rival_rows[:3],
     }
 

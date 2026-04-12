@@ -12,6 +12,8 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `UI/UX`: Player detail habitual partner stats now use a stacked progress bar
+  with a linked top-partner legend and grouped empty `Otros` segment.
 - `Governance`: ChatGPT pre-spec drafts now live as ignored editable Markdown
   under `docs/pre-specs/` and must not be staged, committed, or treated as
   active SDD specs.

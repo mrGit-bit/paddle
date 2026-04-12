@@ -236,6 +236,53 @@ and replaced by an ellipsis (…) */
   }
 }
 
+/* Player detail partner distribution */
+.player-partner-progress {
+  height: 2rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.player-partner-progress .progress,
+.player-partner-progress .progress-bar {
+  height: 100%;
+}
+
+.player-partner-progress .progress-bar {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.player-partner-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  align-items: flex-start;
+}
+
+.player-partner-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.player-partner-swatch {
+  flex: 0 0 auto;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 0.2rem;
+}
+
+.player-partner-swatch-empty {
+  background-color: var(--bs-progress-bg);
+  border: 1px solid var(--bs-border-color);
+}
+
+.player-partner-name {
+  overflow-wrap: anywhere;
+}
+
 /* Alignments */
 /* Align all numeric table headers to the center for better readability */
 .table thead th:nth-child(3),
