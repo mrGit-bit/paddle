@@ -153,6 +153,66 @@ and replaced by an ellipsis (…) */
 /* Player detail trend wheels */
 .player-trend-card {
   border-radius: 0.5rem;
+  border-width: 1px;
+}
+
+.player-efficiency-selector-card {
+  appearance: none;
+  cursor: pointer;
+  text-align: inherit;
+  background-color: var(--bs-body-bg);
+  border-color: var(--bs-border-color);
+  transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+}
+
+.player-efficiency-selector-card .card-body {
+  display: block;
+}
+
+.player-efficiency-selector-card:hover {
+  border-color: var(--bs-success);
+  box-shadow: 0 0 0 0.12rem rgba(var(--bs-success-rgb), 0.18);
+  transform: translateY(-1px);
+}
+
+.player-efficiency-selector-card:focus-visible {
+  outline: 2px solid var(--bs-success);
+  outline-offset: 2px;
+}
+
+.player-efficiency-selector-card-active {
+  border-color: var(--bs-success);
+  border-top-width: 0.25rem;
+  box-shadow: 0 0 0 0.16rem rgba(var(--bs-success-rgb), 0.22);
+}
+
+.player-efficiency-action-row {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 1.25rem;
+  margin: -0.35rem -0.05rem 0.05rem 0;
+}
+
+.player-efficiency-action {
+  display: block;
+  padding: 0.15rem 0.45rem;
+  border: 1px solid var(--bs-success);
+  border-radius: 0.35rem;
+  background-color: var(--bs-body-bg);
+  color: var(--bs-success);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.player-efficiency-selector-card-active .player-efficiency-action {
+  background-color: var(--bs-success);
+  color: var(--bs-white);
+}
+
+.player-efficiency-trend-card {
+  border-color: var(--bs-success);
+  border-top-width: 0.25rem;
 }
 
 .player-trend-card .card-body {
@@ -160,6 +220,7 @@ and replaced by an ellipsis (…) */
 }
 
 .player-trend-title {
+  font-family: 'Montserrat', sans-serif;
   font-size: 0.95rem;
   line-height: 1.2;
   min-height: 2.3rem;
@@ -225,6 +286,10 @@ and replaced by an ellipsis (…) */
 
   .player-trend-title {
     font-size: 0.8rem;
+  }
+
+  .player-efficiency-action {
+    font-size: 0.68rem;
   }
 
   .circular-progress {

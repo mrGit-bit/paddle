@@ -47,6 +47,69 @@ def _mark_distinct_trend_progress(trend_rows):
     return trend_rows
 
 
+def _build_efficiency_result_row(label: str, results: list[bool]) -> dict:
+    wins = sum(1 for is_win in results if is_win)
+    matches_count = len(results)
+    losses = matches_count - wins
+    return {
+        "label": label,
+        "wins": wins,
+        "losses": losses,
+        "matches": matches_count,
+        "win_rate_percent": _compute_win_rate_percent(wins, matches_count),
+    }
+
+
+def _build_efficiency_scope(scope_key: str, label: str, match_results: list[dict]) -> dict:
+    results = [row["is_win"] for row in match_results]
+    selector_row = _build_efficiency_result_row(label, results)
+    selector_row["show_progress_stroke"] = selector_row["matches"] > 0
+
+    trend_rows = [
+        _build_efficiency_result_row("Últimos 5", results[:5]),
+        _build_efficiency_result_row("Últimos 10", results[:10]),
+        _build_efficiency_result_row("Últimos 20", results[:20]),
+    ]
+    _mark_distinct_trend_progress(trend_rows)
+
+    return {
+        "key": scope_key,
+        "label": label,
+        "selector": selector_row,
+        "trend_rows": trend_rows,
+    }
+
+
+def _build_efficiency_scopes(player, match_results: list[dict]) -> list[dict]:
+    from games.models import Match
+
+    if player.gender == Player.GENDER_MALE:
+        gender_label = "Masc."
+        gender_type = Match.GENDER_TYPE_MALE
+    elif player.gender == Player.GENDER_FEMALE:
+        gender_label = "Fem."
+        gender_type = Match.GENDER_TYPE_FEMALE
+    else:
+        gender_label = "Categoría"
+        gender_type = None
+
+    gender_results = (
+        [row for row in match_results if row["match_gender_type"] == gender_type]
+        if gender_type
+        else []
+    )
+
+    return [
+        _build_efficiency_scope("all", "Todos", match_results),
+        _build_efficiency_scope("gender", gender_label, gender_results),
+        _build_efficiency_scope(
+            "mixed",
+            "Mixtos",
+            [row for row in match_results if row["match_gender_type"] == Match.GENDER_TYPE_MIXED],
+        ),
+    ]
+
+
 def _compute_display_percents(rows, total_matches):
     if total_matches <= 0:
         return []
@@ -131,7 +194,7 @@ def build_player_insights(player):
         )
     )
 
-    results = []
+    match_results = []
     partner_stats = {}
     rival_stats = {}
 
@@ -153,7 +216,12 @@ def build_player_insights(player):
             rivals = (match.team1_player1, match.team1_player2)
             is_win = match.winning_team == 2
 
-        results.append(is_win)
+        match_results.append(
+            {
+                "is_win": is_win,
+                "match_gender_type": match.match_gender_type,
+            }
+        )
 
         partner_row = partner_stats.setdefault(
             teammate.id,
@@ -184,25 +252,8 @@ def build_player_insights(player):
         if match.date_played > rival_row["last_date"]:
             rival_row["last_date"] = match.date_played
 
-    def build_trend_row(label: str, slice_size=None):
-        scoped_results = results if slice_size is None else results[:slice_size]
-        wins = sum(1 for is_win in scoped_results if is_win)
-        matches_count = len(scoped_results)
-        losses = matches_count - wins
-        return {
-            "label": label,
-            "wins": wins,
-            "losses": losses,
-            "matches": matches_count,
-            "win_rate_percent": _compute_win_rate_percent(wins, matches_count),
-        }
-
-    trend_rows = [
-        build_trend_row("Últimos 5", slice_size=5),
-        build_trend_row("Últimos 10", slice_size=10),
-        build_trend_row("Total", slice_size=None),
-    ]
-    _mark_distinct_trend_progress(trend_rows)
+    efficiency_scopes = _build_efficiency_scopes(player, match_results)
+    trend_rows = efficiency_scopes[0]["trend_rows"]
 
     partner_rows = []
     for row in partner_stats.values():
@@ -259,6 +310,7 @@ def build_player_insights(player):
     )
 
     return {
+        "efficiency_scopes": efficiency_scopes,
         "trend_rows": trend_rows,
         "top_partners": partner_rows[:3],
         "partner_distribution": _build_partner_distribution(partner_rows),

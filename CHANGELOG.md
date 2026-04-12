@@ -12,6 +12,8 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `UI/UX`: Player detail efficiency wheels now support all, gender, and mixed
+  scopes with scoped recent-trend rows.
 - `Governance`: Reduced duplication between project instructions, agent
   guidance, README, backlog, and release docs, and added a governance
   validation check for instruction headers and size.

@@ -61,15 +61,41 @@
 </div>
 
 <h4 class="mb-2">Eficacia</h4>
-<div class="row g-2 mb-4 player-trend-cards">
-  {% for row in player_insights.trend_rows %}
-    <div class="col-4">
-      <div class="card h-100 player-trend-card">
-        <div class="card-body text-center">
-          <h5 class="card-title player-trend-title">{{ row.label }}</h5>
-          {% include "frontend/_circular_progress.html" with value=row.win_rate_percent label=row.label show_progress_stroke=row.show_progress_stroke %}
-        </div>
+<div class="mb-4 player-efficiency-block">
+  <div class="row g-2 mb-2 player-trend-cards player-efficiency-selector-row" role="group" aria-label="Filtro de eficacia">
+    {% for scope in player_insights.efficiency_scopes %}
+      <div class="col-4">
+        <button
+          type="button"
+          class="card h-100 w-100 player-trend-card player-efficiency-card player-efficiency-selector-card{% if forloop.first %} player-efficiency-selector-card-active{% endif %}"
+          data-efficiency-scope="{{ scope.key }}"
+          aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}">
+          <div class="card-body text-center">
+            <div class="player-efficiency-action-row">
+              <span class="player-efficiency-action">Ver</span>
+            </div>
+            <div class="card-title player-trend-title">{{ scope.label }}</div>
+            {% include "frontend/_circular_progress.html" with value=scope.selector.win_rate_percent label=scope.label show_progress_stroke=scope.selector.show_progress_stroke %}
+          </div>
+        </button>
       </div>
+    {% endfor %}
+  </div>
+
+  {% for scope in player_insights.efficiency_scopes %}
+    <div
+      class="row g-2 player-trend-cards player-efficiency-trend-row{% if not forloop.first %} d-none{% endif %}"
+      data-efficiency-trends="{{ scope.key }}">
+      {% for row in scope.trend_rows %}
+        <div class="col-4">
+          <div class="card h-100 player-trend-card player-efficiency-card player-efficiency-trend-card">
+            <div class="card-body text-center">
+              <div class="card-title player-trend-title">{{ row.label }}</div>
+              {% include "frontend/_circular_progress.html" with value=row.win_rate_percent label=row.label show_progress_stroke=row.show_progress_stroke %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
     </div>
   {% endfor %}
 </div>
@@ -186,6 +212,31 @@
         // Allow only expected player IDs (digits); ignore unexpected values
         if (!/^\d+$/.test(value)) return;
         window.location.href = "{% url 'players' %}" + value + "/";
+      });
+    });
+  </script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const scopeButtons = document.querySelectorAll("[data-efficiency-scope]");
+      const trendRows = document.querySelectorAll("[data-efficiency-trends]");
+      if (!scopeButtons.length || !trendRows.length) return;
+
+      function selectScope(scopeKey) {
+        scopeButtons.forEach(function (button) {
+          const isSelected = button.dataset.efficiencyScope === scopeKey;
+          button.classList.toggle("player-efficiency-selector-card-active", isSelected);
+          button.setAttribute("aria-pressed", isSelected ? "true" : "false");
+        });
+
+        trendRows.forEach(function (row) {
+          row.classList.toggle("d-none", row.dataset.efficiencyTrends !== scopeKey);
+        });
+      }
+
+      scopeButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          selectScope(button.dataset.efficiencyScope);
+        });
       });
     });
   </script>

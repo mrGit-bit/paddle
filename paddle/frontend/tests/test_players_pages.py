@@ -43,6 +43,10 @@ def count_trend_wheels(content):
     return len(re.findall(r'class="circular-progress(?:\s|")', content))
 
 
+def scope_by_key(insights, key):
+    return next(scope for scope in insights["efficiency_scopes"] if scope["key"] == key)
+
+
 def test_players_list_is_public_200(client):
     Player.objects.create(name="Jugador Uno", gender=Player.GENDER_MALE)
     response = client.get(reverse("players"))
@@ -177,6 +181,8 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
     assert insights["top_partners"] == []
     assert insights["partner_distribution"] == []
     assert insights["top_rivals"] == []
+    assert [scope["key"] for scope in insights["efficiency_scopes"]] == ["all", "gender", "mixed"]
+    assert [scope["label"] for scope in insights["efficiency_scopes"]] == ["Todos", "Masc.", "Mixtos"]
     assert insights["trend_rows"] == [
         {
             "label": "Últimos 5",
@@ -195,7 +201,7 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
             "show_progress_stroke": False,
         },
         {
-            "label": "Total",
+            "label": "Últimos 20",
             "wins": 0,
             "losses": 0,
             "matches": 0,
@@ -203,8 +209,21 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
             "show_progress_stroke": False,
         },
     ]
-    assert count_trend_wheels(content) == 3
-    assert content.count("circular-progress-active") == 1
+    assert count_trend_wheels(content) == 12
+    assert content.count("circular-progress-active") == 3
+    assert 'data-efficiency-scope="all"' in content
+    assert 'data-efficiency-scope="gender"' in content
+    assert 'data-efficiency-scope="mixed"' in content
+    assert 'aria-pressed="true"' in content
+    assert re.search(
+        r'class="[^"]*player-efficiency-selector-card-active[^"]*"[^>]*data-efficiency-scope="all"',
+        content,
+    )
+    assert "Seleccionado" not in content
+    assert content.count(">Ver<") == 3
+    assert "player-efficiency-title-stack" not in content
+    assert "text-bg-success player-efficiency-selector-card" not in content
+    assert "player-efficiency-card text-bg-success" not in content
     assert 'aria-valuenow="0"' in content
     assert "player-trend-meta" not in content
 
@@ -267,7 +286,7 @@ def test_player_detail_trend_windows_use_available_matches_and_round_percent(cli
             "show_progress_stroke": True,
         },
         {
-            "label": "Total",
+            "label": "Últimos 20",
             "wins": 7,
             "losses": 5,
             "matches": 12,
@@ -276,8 +295,9 @@ def test_player_detail_trend_windows_use_available_matches_and_round_percent(cli
         },
     ]
     content = response.content.decode("utf-8")
-    assert count_trend_wheels(content) == 3
-    assert content.count("circular-progress-active") == 3
+    assert count_trend_wheels(content) == 12
+    assert "Total" not in content
+    assert "Últimos 20" in content
     assert 'aria-valuenow="80"' in content
     assert 'aria-valuenow="70"' in content
     assert 'aria-valuenow="58"' in content
@@ -307,9 +327,8 @@ def test_player_detail_trend_wheels_mute_duplicate_result_windows(client):
 
     assert response.status_code == 200
     assert [row["show_progress_stroke"] for row in insights["trend_rows"]] == [True, False, False]
-    assert count_trend_wheels(content) == 3
-    assert content.count("circular-progress-active") == 1
-    assert content.count('aria-valuenow="40"') == 3
+    assert count_trend_wheels(content) == 12
+    assert [row["win_rate_percent"] for row in insights["trend_rows"]] == [40, 40, 40]
 
 
 def test_player_detail_partial_history_marks_total_duplicate_of_last_10(client):
@@ -339,8 +358,98 @@ def test_player_detail_partial_history_marks_total_duplicate_of_last_10(client):
     assert insights["trend_rows"][1]["win_rate_percent"] == 62
     assert insights["trend_rows"][2]["win_rate_percent"] == 62
     assert [row["show_progress_stroke"] for row in insights["trend_rows"]] == [True, True, False]
-    assert count_trend_wheels(content) == 3
-    assert content.count("circular-progress-active") == 2
+    assert count_trend_wheels(content) == 12
+
+
+def test_player_detail_efficiency_scopes_use_gender_and_mixed_matches(client):
+    player = Player.objects.create(name="Scoped Efficiency", gender=Player.GENDER_MALE)
+    male_partner = Player.objects.create(name="Male Partner", gender=Player.GENDER_MALE)
+    male_rival_1 = Player.objects.create(name="Male Rival 1", gender=Player.GENDER_MALE)
+    male_rival_2 = Player.objects.create(name="Male Rival 2", gender=Player.GENDER_MALE)
+    female_partner = Player.objects.create(name="Female Partner", gender=Player.GENDER_FEMALE)
+    female_rival = Player.objects.create(name="Female Rival", gender=Player.GENDER_FEMALE)
+
+    create_match(
+        player,
+        male_partner,
+        male_rival_1,
+        male_rival_2,
+        winning_team=1,
+        played_on=date(2026, 3, 1),
+    )
+    create_match(
+        player,
+        male_partner,
+        male_rival_1,
+        male_rival_2,
+        winning_team=2,
+        played_on=date(2026, 3, 2),
+    )
+    create_match(
+        player,
+        female_partner,
+        male_rival_1,
+        female_rival,
+        winning_team=1,
+        played_on=date(2026, 3, 3),
+    )
+    create_match(
+        player,
+        female_partner,
+        male_rival_2,
+        female_rival,
+        winning_team=2,
+        played_on=date(2026, 3, 4),
+    )
+    create_match(
+        player,
+        female_partner,
+        male_rival_1,
+        female_rival,
+        winning_team=1,
+        played_on=date(2026, 3, 5),
+    )
+
+    response = client.get(reverse("player_detail", args=[player.id]))
+    insights = response.context["player_insights"]
+    all_scope = scope_by_key(insights, "all")
+    gender_scope = scope_by_key(insights, "gender")
+    mixed_scope = scope_by_key(insights, "mixed")
+
+    assert response.status_code == 200
+    assert all_scope["selector"]["matches"] == 5
+    assert all_scope["selector"]["win_rate_percent"] == 60
+    assert gender_scope["label"] == "Masc."
+    assert gender_scope["selector"]["matches"] == 2
+    assert gender_scope["selector"]["win_rate_percent"] == 50
+    assert mixed_scope["selector"]["matches"] == 3
+    assert mixed_scope["selector"]["win_rate_percent"] == 67
+    assert [row["label"] for row in mixed_scope["trend_rows"]] == [
+        "Últimos 5",
+        "Últimos 10",
+        "Últimos 20",
+    ]
+    assert mixed_scope["trend_rows"][0]["matches"] == 3
+    assert mixed_scope["trend_rows"][0]["win_rate_percent"] == 67
+
+
+def test_player_detail_efficiency_gender_labels_and_unknown_fallback(client):
+    female_player = Player.objects.create(name="Female Efficiency", gender=Player.GENDER_FEMALE)
+    unknown_player = Player.objects.create(name="Unknown Efficiency", gender=None)
+
+    female_response = client.get(reverse("player_detail", args=[female_player.id]))
+    unknown_response = client.get(reverse("player_detail", args=[unknown_player.id]))
+
+    female_scopes = female_response.context["player_insights"]["efficiency_scopes"]
+    unknown_scopes = unknown_response.context["player_insights"]["efficiency_scopes"]
+
+    assert female_response.status_code == 200
+    assert unknown_response.status_code == 200
+    assert [scope["label"] for scope in female_scopes] == ["Todos", "Fem.", "Mixtos"]
+    assert [scope["label"] for scope in unknown_scopes] == ["Todos", "Categoría", "Mixtos"]
+    assert scope_by_key(unknown_response.context["player_insights"], "gender")["selector"][
+        "win_rate_percent"
+    ] == 0
 
 
 def test_player_detail_partner_and_rivals_tiebreakers_and_clickable_links(client):
