@@ -1,6 +1,6 @@
 # AGENTS.md — Codex Execution Rules
 
-Instruction Set Version: 2.3.8
+Instruction Set Version: 2.3.9
 Last Updated: 2026-04-12
 
 ## 1. Authority and File Roles
@@ -18,8 +18,9 @@ Document roles:
 - `AGENTS.md`: Codex execution behavior, workflow mechanics, and handoff rules.
 - `README.md`: repository orientation, architecture context, and owner-doc
   pointers.
+- Run `python scripts/validate_governance.py` after governance edits.
 - Keep `docs/PROJECT_INSTRUCTIONS.md` compact enough for ChatGPT Project
-  instructions: target under 7000 characters and never above 7800.
+  instructions: target under 7000 characters and never above 7800 characters.
 - If a governance addition would exceed that budget, keep only the portable
   rule in `docs/PROJECT_INSTRUCTIONS.md` and move the detail here or to another
   owner doc instead of expanding the project-instructions file further.
@@ -35,9 +36,9 @@ If version/date mismatch exists between `PROJECT_INSTRUCTIONS.md` and
 - Use ChatGPT only for pre-spec clarification of ambiguous work, project
   technology or design questions, governance decisions, development-concept
   clarification, or screenshot review.
-- ChatGPT pre-spec handoffs must be plain editable Markdown. Save or paste
-  them only under ignored local files in `docs/pre-specs/`, edit them manually
-  there, and paste the refined draft into Codex CLI `/plan`.
+- For ChatGPT pre-spec handoffs, follow `docs/PROJECT_INSTRUCTIONS.md`; save or
+  paste them only under ignored local files in `docs/pre-specs/`, edit them
+  manually there, and paste the refined draft into Codex CLI `/plan`.
 - `docs/pre-specs/` is scratch planning input only. Do not treat files there as
   active-work specs, do not include them in active spec discovery, and do not
   stage, commit, release-consolidate, or mention them as shipped artifacts.
@@ -65,26 +66,8 @@ Execution rules:
 3. Treat `specs/release-*.md` as historical release records only.
 4. Do not implement before the current active-work spec is approved.
 5. Keep implementation aligned with the approved scope; no scope expansion.
-6. Loose non-release specs must carry explicit tracking metadata:
-   `Status: approved|implemented` and `Release tag: unreleased`.
-   Use `Status: approved` for approved work that has not yet completed its
-   development cycle closure. Move a loose spec from `approved` to
-   `implemented` only when the scoped work is done and that spec's
-   development cycle is being closed. Use `Status: implemented` for work whose
-   development cycle was closed on `develop` but is not yet shipped. Reserve
-   `Release tag` for shipment tracking only. Before release
-   consolidation, mark only the actually shipped loose files with the target
-   `vX.Y.Z` and update them to `Status: shipped`. During consolidation,
-   `python scripts/release_orchestrator.py <version>` folds only those
-   exact-match files into the shipped release record, reviews the changelog
-   section for that release, and keeps that section as a light summary of
-   shipped changes. If a planned release never reaches production, do not keep
-   a standalone release record for it; roll its unshipped loose files and
-   changelog notes into the next production release that actually ships them.
-   A loose task must not stay loose once any scoped behavior from that task has
-   reached production; consolidate the shipped file for that release, and if
-   more work is needed afterward, create a new loose spec for the follow-up
-   instead of reopening or extending the shipped file.
+6. Follow the active-work and loose-spec lifecycle defined in
+   `docs/PROJECT_INSTRUCTIONS.md`; do not restate or reinterpret it.
 
 Simple-change exception:
 
@@ -141,18 +124,12 @@ Quality checkpoints:
 Post-release:
 
 - After a successful tagged release and back-merge from `main` to `develop`,
-  perform any pending spec consolidation for that release before starting new
-  SDD work. Use the shipped production release as the historical record: only
-  loose files explicitly marked with the shipped `vX.Y.Z` are consolidated for
-  that release. Review the changelog section for that release in the same step
-  and rewrite it as a simple, light summary when needed. When a planned
-  version never entered production, its unshipped loose spec files and notes
-  must be absorbed into the next production release that actually shipped them
-  instead of being archived under the non-shipped version. Post-release
-  reconciliation is not complete while any loose non-release file still
-  describes behavior already in production; retag those files to the shipped
-  version if needed, consolidate them immediately, and delete the superseded
-  loose files before new SDD work begins.
+  perform pending spec consolidation before starting new SDD work. Use the
+  shipped production release as history: consolidate only loose files marked
+  with the shipped `vX.Y.Z`, keep the changelog section light, roll unshipped
+  planned-version work into the next production release that ships it, and
+  create a new loose spec for post-release follow-up instead of extending a
+  shipped file.
 
 ## 4. Handoff Requirements
 

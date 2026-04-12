@@ -12,6 +12,9 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `Governance`: Reduced duplication between project instructions, agent
+  guidance, README, backlog, and release docs, and added a governance
+  validation check for instruction headers and size.
 - `Governance`: Closure commits now use `git commit --no-gpg-sign` in this
   environment to avoid known unavailable GPG key failures.
 - `Governance`: ChatGPT pre-spec guidance now requires concise repository-aware
