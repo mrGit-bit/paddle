@@ -12,6 +12,11 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `Governance`: Closure commits now use `git commit --no-gpg-sign` in this
+  environment to avoid known unavailable GPG key failures.
+- `Governance`: ChatGPT pre-spec guidance now requires concise repository-aware
+  starting points for Codex CLI Plan Mode and forbids code generation unless
+  explicitly requested.
 - `UI/UX`: Player detail habitual partner stats now use a stacked progress bar
   with a linked top-partner legend and grouped empty `Otros` segment.
 - `Governance`: ChatGPT pre-spec drafts now live as ignored editable Markdown

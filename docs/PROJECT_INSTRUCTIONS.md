@@ -1,7 +1,7 @@
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.3.6
-Last Updated: 2026-04-11
+Instruction Set Version: 2.3.8
+Last Updated: 2026-04-12
 
 ## 1. Product and Stack
 
@@ -89,9 +89,11 @@ Additional rules:
   approved-spec requirement.
 - In Plan Mode, product code stays frozen; requested Markdown updates are
   allowed.
-- ChatGPT pre-spec drafts must be plain editable Markdown under ignored local
-  files in `docs/pre-specs/`. They are planning inputs only, never active-work
-  specs, and must not be staged, committed, or released.
+- ChatGPT pre-spec drafts must be concise plain Markdown under ignored
+  `docs/pre-specs/`. They are Codex CLI `/plan` starting points, not
+  active-work specs; do not stage, commit, release, over-explain, assume
+  unseen repo facts, answer Plan Mode questions, or generate code unless
+  explicitly requested.
 - In `/plan` or other planning-only workflows, explore first, then bias toward
   a question-heavy planning loop before finalizing the plan.
 - After exploration, lock product, UX, or implementation preferences unless
@@ -132,6 +134,7 @@ Additional rules:
   pushed, and `git status --short` is clean.
 - Run closure git operations sequentially; do not overlap `git add`,
   `git commit`, and `git push`.
+- Use `git commit --no-gpg-sign` to avoid unavailable GPG key failures.
 - If the user wants to continue developing, do not commit yet.
 - If the user confirms commit/push/closure, do it in the same turn.
 - Treat `close cycle`, `close specification`, or equivalent as direct
@@ -155,4 +158,4 @@ Additional rules:
 
 When `PROJECT_INSTRUCTIONS.md` changes, include this reminder in the handoff:
 
-`Reminder: update ChatGPT Project Instructions version/date to match this repository.`
+`Reminder: sync ChatGPT Project Instructions version with PROJECT_INSTRUCTIONS.md.`

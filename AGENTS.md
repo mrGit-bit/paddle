@@ -1,7 +1,7 @@
 # AGENTS.md — Codex Execution Rules
 
-Instruction Set Version: 2.3.6
-Last Updated: 2026-04-11
+Instruction Set Version: 2.3.8
+Last Updated: 2026-04-12
 
 ## 1. Authority and File Roles
 
@@ -185,6 +185,8 @@ If the user confirms closure:
 - Stage, commit, and push in the same flow.
 - Run closure git operations sequentially, never in parallel; `git add`,
   `git commit`, and `git push` must each finish before the next one starts.
+- Use `git commit --no-gpg-sign` for commits in this environment; do not first
+  try signed commits when the local GPG key is unavailable.
 - Reconcile any completed backlog items in `BACKLOG.md` that belong to the
   requested scope by removing them from backlog and ensuring the implemented
   outcome is reflected in `CHANGELOG.md`.
