@@ -160,9 +160,61 @@ def test_player_detail_scope_rows_render_data_href_only_when_applicable(client):
     content = response.content.decode("utf-8")
 
     assert response.status_code == 200
+    assert "player-ranking-progress-list" in content
+    assert '<th scope="col">Rkg.</th>' not in content
+    assert 'href="/?page=1#top"' in content
+    assert 'href="/ranking/male/?page=1#top"' in content
     assert 'data-href="/?page=1#top"' in content
     assert 'data-href="/ranking/male/?page=1#top"' in content
     assert 'data-href="/ranking/mixed/' not in content
+    assert "Todos" in content
+    assert "Masc." in content
+    assert "Mixtos" in content
+    assert "#1 de 4" in content
+    assert 'aria-label="#1 de 4"' in content
+    assert 'style="width: 100%;"' in content
+    assert "--player-ranking-progress-percent: 100%;" in content
+    assert "player-ranking-bar-labels" in content
+    assert "player-ranking-bar-labels-track" in content
+    assert "player-ranking-bar-labels-fill" in content
+    assert "player-ranking-rank" not in content
+    assert "player-ranking-medal" not in content
+    assert "🥇" not in content
+    assert "Sin datos" in content
+
+
+def test_player_detail_ranking_progress_uses_display_rank_and_ranked_total(client):
+    player_a = Player.objects.create(name="Progress A", gender=Player.GENDER_MALE)
+    player_b = Player.objects.create(name="Progress B", gender=Player.GENDER_MALE)
+    player_c = Player.objects.create(name="Progress C", gender=Player.GENDER_MALE)
+    player_d = Player.objects.create(name="Progress D", gender=Player.GENDER_MALE)
+
+    Match.objects.create(
+        team1_player1=player_a,
+        team1_player2=player_b,
+        team2_player1=player_c,
+        team2_player2=player_d,
+        winning_team=1,
+        date_played=date(2026, 1, 13),
+    )
+
+    response = client.get(reverse("player_detail", args=[player_c.id]))
+    content = response.content.decode("utf-8")
+    scope_rows = response.context["scope_rows"]
+    all_scope = next(row for row in scope_rows if row["scope"] == "all")
+
+    assert response.status_code == 200
+    assert all_scope["scoped_player"].display_position == 3
+    assert all_scope["ranking_total"] == 4
+    assert all_scope["rank_label"] == "🥉"
+    assert all_scope["rank_is_medal"] is True
+    assert all_scope["progress_percent"] == 50
+    assert all_scope["support_text"] == "#3 de 4"
+    assert "🥉" not in content
+    assert "#3 de 4" in content
+    assert 'aria-valuenow="50"' in content
+    assert 'style="width: 50%;"' in content
+    assert "--player-ranking-progress-percent: 50%;" in content
 
 
 def test_player_detail_insights_defaults_with_zero_matches(client):

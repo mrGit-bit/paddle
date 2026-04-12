@@ -14,6 +14,7 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 
 from games.models import Match, Player
+from frontend.services.ranking import compute_ranking
 
 from .common import (
     build_all_players,
@@ -22,7 +23,6 @@ from .common import (
     get_new_match_ids,
     get_request_group_context,
 )
-from .ranking import get_scoped_player_and_page
 
 
 def build_player_matches_queryset(player):
@@ -45,6 +45,47 @@ def _mark_distinct_trend_progress(trend_rows):
         row["show_progress_stroke"] = result_key not in seen_results
         seen_results.add(result_key)
     return trend_rows
+
+
+def _build_ranking_progress_fields(scoped_player, ranking_total: int) -> dict:
+    if not scoped_player or ranking_total <= 0:
+        return {
+            "rank_label": "Sin datos",
+            "rank_is_medal": False,
+            "ranking_total": 0,
+            "progress_percent": 0,
+            "support_text": "Sin datos",
+            "progress_aria_label": "Sin datos de ranking",
+        }
+
+    rank = scoped_player.display_position
+    medal_map = {
+        1: "🥇",
+        2: "🥈",
+        3: "🥉",
+    }
+    progress_percent = round(((ranking_total - rank + 1) / ranking_total) * 100)
+    progress_percent = max(0, min(100, progress_percent))
+    support_text = f"#{rank} de {ranking_total}"
+
+    return {
+        "rank_label": medal_map.get(rank, f"#{rank}"),
+        "rank_is_medal": rank in medal_map,
+        "ranking_total": ranking_total,
+        "progress_percent": progress_percent,
+        "support_text": support_text,
+        "progress_aria_label": support_text,
+    }
+
+
+def _get_scoped_player_page_and_total(scope: str, player_id: int, page_size: int = 12, *, group=None):
+    ranked_players, _, _ = compute_ranking(scope, group=group)
+    scoped_player = next((player for player in ranked_players if player.id == player_id), None)
+    if not scoped_player:
+        return None, None, len(ranked_players)
+    ordinal_index = ranked_players.index(scoped_player) + 1
+    page = ((ordinal_index - 1) // page_size) + 1
+    return scoped_player, page, len(ranked_players)
 
 
 def _build_efficiency_result_row(label: str, results: list[bool]) -> dict:
@@ -379,12 +420,13 @@ def player_detail_view(request, player_id):
     scope_rows.append({"label": "Mixtos", "scope": "mixed", "url_name": "ranking_mixed"})
 
     for row in scope_rows:
-        scoped_player, page = get_scoped_player_and_page(
+        scoped_player, page, ranking_total = _get_scoped_player_page_and_total(
             row["scope"],
             profile_player.id,
             group=profile_player.group,
         )
         row["scoped_player"] = scoped_player
+        row.update(_build_ranking_progress_fields(scoped_player, ranking_total))
         if not scoped_player:
             row["href"] = None
             continue

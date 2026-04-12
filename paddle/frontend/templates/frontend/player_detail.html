@@ -14,50 +14,43 @@
   </div>
 </div>
 
-<!-- Tabla de posiciones -->
 <h4 class="mb-2">Posición en los rankings</h4>
-<div class="table-responsive mb-2">
-  <table class="table table-striped table-hover">
-    <thead>
-      <tr>
-        <th scope="col">Rkg.</th>
-        <th scope="col" class="text-center">Pos.</th>
-        <th scope="col" class="text-center">🏆</th>
-        <th scope="col" class="text-center">🏓</th>
-        <th scope="col" class="text-center">🎯</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for row in scope_rows %}
-        <tr{% if row.href %} class="clickable-row" data-href="{{ row.href }}"{% endif %}>
-          <td>{{ row.label }}</td>
-          {% if row.scoped_player %}
-            {% with rank=row.scoped_player.display_position %}
-              <td class="text-center">
-                {% if rank == 1 %}
-                  <strong class="rank-1">🥇</strong>
-                {% elif rank == 2 %}
-                  <strong class="rank-2">🥈</strong>
-                {% elif rank == 3 %}
-                  <strong class="rank-3">🥉</strong>
-                {% else %}
-                  {{ rank }}
-                {% endif %}
-              </td>
-              <td class="text-center">{{ row.scoped_player.display_wins }}</td>
-              <td class="text-center">{{ row.scoped_player.display_matches }}</td>
-              <td class="text-center">{{ row.scoped_player.display_win_rate|floatformat:0 }}%</td>
-            {% endwith %}
-          {% else %}
-            <td class="text-center">-</td>
-            <td class="text-center">-</td>
-            <td class="text-center">-</td>
-            <td class="text-center">-</td>
-          {% endif %}
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<div class="player-ranking-progress-list mb-3">
+  {% for row in scope_rows %}
+    {% if row.href %}
+      <a
+        href="{{ row.href }}"
+        class="player-ranking-progress-row clickable-row text-body text-decoration-none"
+        data-href="{{ row.href }}">
+    {% else %}
+      <div class="player-ranking-progress-row player-ranking-progress-row-empty">
+    {% endif %}
+      <div
+        class="progress player-ranking-progress"
+        role="progressbar"
+        aria-label="{{ row.progress_aria_label }}"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="{{ row.progress_percent }}"
+        style="--player-ranking-progress-percent: {{ row.progress_percent }}%;">
+        {% if row.scoped_player %}
+          <div class="progress-bar bg-success" style="width: {{ row.progress_percent }}%;"></div>
+        {% endif %}
+        <div class="player-ranking-bar-labels player-ranking-bar-labels-track">
+          <span class="player-ranking-scope">{{ row.label }}</span>
+          <span class="player-ranking-support">{{ row.support_text }}</span>
+        </div>
+        <div class="player-ranking-bar-labels player-ranking-bar-labels-fill" aria-hidden="true">
+          <span class="player-ranking-scope">{{ row.label }}</span>
+          <span class="player-ranking-support">{{ row.support_text }}</span>
+        </div>
+      </div>
+    {% if row.href %}
+      </a>
+    {% else %}
+      </div>
+    {% endif %}
+  {% endfor %}
 </div>
 
 <h4 class="mb-2">Eficacia</h4>

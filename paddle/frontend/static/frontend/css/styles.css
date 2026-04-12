@@ -150,6 +150,64 @@ and replaced by an ellipsis (…) */
   color: inherit;
 }
 
+/* Player detail ranking progress */
+.player-ranking-progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.player-ranking-progress-row {
+  display: block;
+}
+
+.player-ranking-progress-row.clickable-row {
+  cursor: pointer;
+}
+
+.player-ranking-progress {
+  position: relative;
+  height: 2rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.player-ranking-progress .progress-bar {
+  height: 100%;
+}
+
+.player-ranking-bar-labels {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0 0.75rem;
+}
+
+.player-ranking-bar-labels-track {
+  color: #000;
+}
+
+.player-ranking-bar-labels-fill {
+  color: #fff;
+  clip-path: inset(0 calc(100% - var(--player-ranking-progress-percent)) 0 0);
+}
+
+.player-ranking-scope,
+.player-ranking-support {
+  min-width: 0;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.player-ranking-support {
+  flex: 0 0 auto;
+  text-align: right;
+}
+
 /* Player detail trend wheels */
 .player-trend-card {
   border-radius: 0.5rem;

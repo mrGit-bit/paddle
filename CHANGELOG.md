@@ -12,6 +12,8 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `UI/UX`: Player detail ranking positions now use graphical progress bars
+  with exact scoped rank text instead of a table.
 - `UI/UX`: Player detail efficiency wheels now support all, gender, and mixed
   scopes with scoped recent-trend rows.
 - `Governance`: Reduced duplication between project instructions, agent
