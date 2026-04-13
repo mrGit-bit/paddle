@@ -25,6 +25,14 @@ from .common import (
 )
 
 
+PARTNER_COLOR_CLASSES = ["bg-primary", "bg-success", "bg-warning"]
+PARTNER_PROGRESS_COLOR_CLASSES = [
+    "circular-progress-primary",
+    "circular-progress-success",
+    "circular-progress-warning",
+]
+
+
 def build_player_matches_queryset(player):
     """
     Returns matches where player participates, ordered latest first.
@@ -188,14 +196,13 @@ def _build_partner_distribution(partner_rows):
         return []
 
     distribution_rows = []
-    color_classes = ["bg-primary", "bg-success", "bg-warning"]
     for index, row in enumerate(partner_rows[:3]):
         distribution_rows.append(
             {
                 "label": row["player"].name,
                 "player": row["player"],
                 "matches": row["matches_together"],
-                "color_class": color_classes[index],
+                "color_class": PARTNER_COLOR_CLASSES[index],
                 "is_empty_segment": False,
             }
         )
@@ -220,6 +227,44 @@ def _build_partner_distribution(partner_rows):
         row["aria_label"] = f"{row['label']}: {display_percent}% de partidos"
 
     return distribution_rows
+
+
+def _build_partner_efficiency_cards(partner_rows):
+    if not partner_rows:
+        return []
+
+    card_rows = []
+    for index in range(3):
+        if index < len(partner_rows):
+            row = partner_rows[index]
+            label = row["player"].name
+            card_rows.append(
+                {
+                    "label": label,
+                    "player": row["player"],
+                    "color_class": PARTNER_COLOR_CLASSES[index],
+                    "progress_color_class": PARTNER_PROGRESS_COLOR_CLASSES[index],
+                    "win_rate_percent": row["win_rate_percent"],
+                    "show_progress_stroke": row["matches_together"] > 0,
+                    "is_placeholder": False,
+                    "aria_label": f"Efectividad con {label}: {row['win_rate_percent']}%",
+                }
+            )
+        else:
+            card_rows.append(
+                {
+                    "label": "Sin datos",
+                    "player": None,
+                    "color_class": "",
+                    "progress_color_class": "",
+                    "win_rate_percent": 0,
+                    "show_progress_stroke": False,
+                    "is_placeholder": True,
+                    "aria_label": "Efectividad sin datos: 0%",
+                }
+            )
+
+    return card_rows
 
 
 def build_player_insights(player):
@@ -355,6 +400,7 @@ def build_player_insights(player):
         "trend_rows": trend_rows,
         "top_partners": partner_rows[:3],
         "partner_distribution": _build_partner_distribution(partner_rows),
+        "partner_efficiency_cards": _build_partner_efficiency_cards(partner_rows),
         "top_rivals": rival_rows[:3],
     }
 

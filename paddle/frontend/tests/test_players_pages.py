@@ -1,5 +1,6 @@
 import re
 from datetime import date, timedelta
+from pathlib import Path
 
 import pytest
 from django.urls import reverse
@@ -232,6 +233,7 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
     assert "Sin partidos" in content
     assert insights["top_partners"] == []
     assert insights["partner_distribution"] == []
+    assert insights["partner_efficiency_cards"] == []
     assert insights["top_rivals"] == []
     assert [scope["key"] for scope in insights["efficiency_scopes"]] == ["all", "gender", "mixed"]
     assert [scope["label"] for scope in insights["efficiency_scopes"]] == ["Todos", "Masc.", "Mixtos"]
@@ -347,7 +349,7 @@ def test_player_detail_trend_windows_use_available_matches_and_round_percent(cli
         },
     ]
     content = response.content.decode("utf-8")
-    assert count_trend_wheels(content) == 12
+    assert count_trend_wheels(content) == 15
     assert "Total" not in content
     assert "Últimos 20" in content
     assert 'aria-valuenow="80"' in content
@@ -379,7 +381,7 @@ def test_player_detail_trend_wheels_mute_duplicate_result_windows(client):
 
     assert response.status_code == 200
     assert [row["show_progress_stroke"] for row in insights["trend_rows"]] == [True, False, False]
-    assert count_trend_wheels(content) == 12
+    assert count_trend_wheels(content) == 15
     assert [row["win_rate_percent"] for row in insights["trend_rows"]] == [40, 40, 40]
 
 
@@ -410,7 +412,7 @@ def test_player_detail_partial_history_marks_total_duplicate_of_last_10(client):
     assert insights["trend_rows"][1]["win_rate_percent"] == 62
     assert insights["trend_rows"][2]["win_rate_percent"] == 62
     assert [row["show_progress_stroke"] for row in insights["trend_rows"]] == [True, True, False]
-    assert count_trend_wheels(content) == 12
+    assert count_trend_wheels(content) == 15
 
 
 def test_player_detail_efficiency_scopes_use_gender_and_mixed_matches(client):
@@ -581,6 +583,38 @@ def test_player_detail_partner_and_rivals_tiebreakers_and_clickable_links(client
             "aria_label": "Partner C: 20% de partidos",
         },
     ]
+    assert insights["partner_efficiency_cards"] == [
+        {
+            "label": "Partner A",
+            "player": partner_a,
+            "color_class": "bg-primary",
+            "progress_color_class": "circular-progress-primary",
+            "win_rate_percent": 60,
+            "show_progress_stroke": True,
+            "is_placeholder": False,
+            "aria_label": "Efectividad con Partner A: 60%",
+        },
+        {
+            "label": "Partner B",
+            "player": partner_b,
+            "color_class": "bg-success",
+            "progress_color_class": "circular-progress-success",
+            "win_rate_percent": 67,
+            "show_progress_stroke": True,
+            "is_placeholder": False,
+            "aria_label": "Efectividad con Partner B: 67%",
+        },
+        {
+            "label": "Partner C",
+            "player": partner_c,
+            "color_class": "bg-warning",
+            "progress_color_class": "circular-progress-warning",
+            "win_rate_percent": 50,
+            "show_progress_stroke": True,
+            "is_placeholder": False,
+            "aria_label": "Efectividad con Partner C: 50%",
+        },
+    ]
 
     top_rivals = insights["top_rivals"]
     assert len(top_rivals) == 3
@@ -606,7 +640,33 @@ def test_player_detail_partner_and_rivals_tiebreakers_and_clickable_links(client
     assert 'aria-label="Partner A: 50% de partidos"' in content
     assert 'aria-label="Partner B: 30% de partidos"' in content
     assert 'aria-label="Partner C: 20% de partidos"' in content
+    assert "Frecuencia de juego" in content
+    assert "Eficacia por pareja" in content
+    assert "player-partner-cards" in content
+    assert content.count('class="card h-100 player-trend-card player-partner-card') == 3
+    assert (
+        f'<a href="/players/{partner_a.id}/" '
+        'class="card h-100 player-trend-card player-partner-card '
+        'player-partner-card-link text-body text-decoration-none">'
+    ) in content
+    assert (
+        f'<a href="/players/{partner_b.id}/" '
+        'class="card h-100 player-trend-card player-partner-card '
+        'player-partner-card-link text-body text-decoration-none">'
+    ) in content
+    assert (
+        f'<a href="/players/{partner_c.id}/" '
+        'class="card h-100 player-trend-card player-partner-card '
+        'player-partner-card-link text-body text-decoration-none">'
+    ) in content
+    assert 'aria-label="Efectividad con Partner A: 60%"' in content
+    assert 'aria-label="Efectividad con Partner B: 67%"' in content
+    assert 'aria-label="Efectividad con Partner C: 50%"' in content
+    assert "circular-progress-primary" in content
+    assert "circular-progress-success" in content
+    assert "circular-progress-warning" in content
     assert "Otros" not in content
+    assert "player-partner-legend\">" not in content
     assert content.count("player-partner-legend-item") == 3
     assert '<span class="text-muted">50%</span>' not in content
     assert '<span class="text-muted">30%</span>' not in content
@@ -661,9 +721,27 @@ def test_player_detail_shows_only_available_partner_rows_when_fewer_than_three(c
     assert [row["display_percent"] for row in insights["partner_distribution"]] == [50, 50]
     assert [row["width_percent"] for row in insights["partner_distribution"]] == ["50", "50"]
     assert len(insights["partner_distribution"]) == 2
+    assert [row["label"] for row in insights["partner_efficiency_cards"]] == [
+        "Few Partner A",
+        "Few Partner B",
+        "Sin datos",
+    ]
+    assert [row["win_rate_percent"] for row in insights["partner_efficiency_cards"]] == [100, 0, 0]
+    assert [row["is_placeholder"] for row in insights["partner_efficiency_cards"]] == [
+        False,
+        False,
+        True,
+    ]
     assert "progress-stacked player-partner-progress" in content
     assert 'aria-label="Few Partner A: 50% de partidos"' in content
     assert 'aria-label="Few Partner B: 50% de partidos"' in content
+    assert 'aria-label="Efectividad con Few Partner A: 100%"' in content
+    assert 'aria-label="Efectividad con Few Partner B: 0%"' in content
+    assert 'aria-label="Efectividad sin datos: 0%"' in content
+    assert "player-partner-card-empty" in content
+    assert '<a href="" class="card h-100 player-trend-card player-partner-card' not in content
+    assert '<a class="card h-100 player-trend-card player-partner-card player-partner-card-empty' not in content
+    assert content.count('class="card h-100 player-trend-card player-partner-card') == 3
     assert "Otros" not in content
     assert f'href="/players/{partner_a.id}/"' in content
     assert f'href="/players/{partner_b.id}/"' in content
@@ -704,6 +782,16 @@ def test_player_detail_groups_remaining_partners_as_otros_in_distribution(client
     assert [row["color_class"] for row in insights["partner_distribution"]] == ["bg-primary", "bg-success", "bg-warning", ""]
     assert [row["is_empty_segment"] for row in insights["partner_distribution"]] == [False, False, False, True]
     assert insights["partner_distribution"][3]["player"] is None
+    assert [row["label"] for row in insights["partner_efficiency_cards"]] == [
+        "Distribution Partner A",
+        "Distribution Partner B",
+        "Distribution Partner C",
+    ]
+    assert [row["color_class"] for row in insights["partner_efficiency_cards"]] == [
+        "bg-primary",
+        "bg-success",
+        "bg-warning",
+    ]
     assert "progress-stacked player-partner-progress" in content
     assert 'aria-label="Otros: 10% de partidos"' in content
     assert '<div class="progress-bar bg-secondary">' not in content
@@ -715,3 +803,41 @@ def test_player_detail_groups_remaining_partners_as_otros_in_distribution(client
     assert f'href="/players/{partners[2].id}/"' in content
     assert f'href="/players/{partners[3].id}/"' not in content
     assert ">Otros<" not in content
+    assert "Efectividad con Distribution Partner A" in content
+    assert "Efectividad con Distribution Partner B" in content
+    assert "Efectividad con Distribution Partner C" in content
+    assert "Efectividad con Distribution Partner D" not in content
+
+
+def test_player_detail_partner_card_names_use_single_line_ellipsis(client):
+    player = Player.objects.create(name="Long Name Main", gender=Player.GENDER_MALE)
+    long_partner = Player.objects.create(
+        name="Very Long Partner Name That Should Not Wrap In The Card",
+        gender=Player.GENDER_MALE,
+    )
+    rival_1 = Player.objects.create(name="Long Name Rival 1", gender=Player.GENDER_MALE)
+    rival_2 = Player.objects.create(name="Long Name Rival 2", gender=Player.GENDER_MALE)
+
+    create_match(
+        player,
+        long_partner,
+        rival_1,
+        rival_2,
+        winning_team=1,
+        played_on=date(2026, 5, 1),
+    )
+
+    response = client.get(reverse("player_detail", args=[player.id]))
+    content = response.content.decode("utf-8")
+    css = Path("paddle/frontend/static/frontend/css/styles.css").read_text()
+
+    assert response.status_code == 200
+    assert long_partner.name in content
+    assert "player-partner-card-title" in content
+    assert ".player-partner-card-title .player-partner-name" in css
+    assert "font-family: 'Montserrat', sans-serif;" in css
+    assert "font-size: 0.95rem;" in css
+    assert "text-overflow: ellipsis;" in css
+    assert "white-space: nowrap;" in css
+    assert ".player-partner-metric-label {\n  margin-bottom: 0.125rem;" in css
+    assert ".player-partner-cards {\n  margin-top: 0;\n}" in css

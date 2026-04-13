@@ -321,6 +321,18 @@ and replaced by an ellipsis (…) */
   stroke-linecap: round;
 }
 
+.circular-progress-primary {
+  --progress-stroke: var(--bs-primary);
+}
+
+.circular-progress-success {
+  --progress-stroke: var(--bs-success);
+}
+
+.circular-progress-warning {
+  --progress-stroke: var(--bs-warning);
+}
+
 .circular-progress-label {
   position: absolute;
   inset: 0;
@@ -376,6 +388,12 @@ and replaced by an ellipsis (…) */
   white-space: nowrap;
 }
 
+.player-partner-metric-label {
+  margin-bottom: 0.125rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
 .player-partner-legend {
   display: flex;
   flex-direction: column;
@@ -383,11 +401,49 @@ and replaced by an ellipsis (…) */
   align-items: flex-start;
 }
 
+.player-partner-cards {
+  margin-top: 0;
+}
+
+.player-partner-card .card-body {
+  padding: 0.75rem 0.5rem;
+}
+
+.player-partner-card-link {
+  cursor: pointer;
+  transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+}
+
+.player-partner-card-link:hover {
+  border-color: var(--bs-success);
+  box-shadow: 0 0 0 0.12rem rgba(var(--bs-success-rgb), 0.18);
+  transform: translateY(-1px);
+}
+
+.player-partner-card-link:focus-visible {
+  outline: 2px solid var(--bs-success);
+  outline-offset: 2px;
+}
+
+.player-partner-card-empty {
+  border-color: var(--bs-border-color);
+  background-color: var(--bs-tertiary-bg);
+}
+
 .player-partner-legend-item {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
   min-width: 0;
+}
+
+.player-partner-card-title {
+  justify-content: center;
+  width: 100%;
+  min-height: 2.3rem;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+  flex-wrap: nowrap;
 }
 
 .player-partner-swatch {
@@ -404,6 +460,17 @@ and replaced by an ellipsis (…) */
 
 .player-partner-name {
   overflow-wrap: anywhere;
+}
+
+.player-partner-card-title .player-partner-name {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow-wrap: normal;
 }
 
 /* Alignments */

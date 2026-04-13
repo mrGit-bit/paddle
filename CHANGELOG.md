@@ -12,6 +12,8 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `UI/UX`: Player detail habitual partner stats now distinguish play frequency
+  from partner efficiency with labeled, full-card partner links.
 - `Governance`: ChatGPT pre-spec handoffs now require one concise Markdown
   file with a short descriptive filename, a minimal planning schema, no status
   or release metadata, and no questions, checks, or assumptions Codex CLI can
