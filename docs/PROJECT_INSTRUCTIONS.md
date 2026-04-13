@@ -1,7 +1,7 @@
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.3.9
-Last Updated: 2026-04-12
+Instruction Set Version: 2.3.11
+Last Updated: 2026-04-13
 
 ## 1. Product and Stack
 
@@ -73,11 +73,16 @@ Additional rules:
   marked for the shipped `vX.Y.Z`.
 - `/plan` may shape a spec request before approval but does not bypass the
   approved-spec requirement.
-- ChatGPT pre-spec drafts must be concise plain Markdown under ignored
-  `docs/pre-specs/`. They are Codex CLI `/plan` starting points, not
-  active-work specs; do not stage, commit, release, over-explain, assume
-  unseen repo facts, answer Plan Mode questions, or generate code unless
-  explicitly requested.
+- ChatGPT pre-spec handoffs must produce one concise Markdown file under
+  ignored `docs/pre-specs/`. Use a short descriptive task filename without
+  `pre-spec`, for example `player-ranking-chart.md`.
+- Pre-specs are Codex CLI `/plan` starting points, not active-work specs. Do
+  not include `Status`, `Release tag`, current-behavior sections, repeated
+  instructions, code, or answers to questions Codex CLI can ask in Plan Mode.
+- Pre-specs should use only this minimal schema: `# Title`, `Goal`,
+  `Requested outcome`, and `Known constraints`. Keep them concise, avoid
+  assumptions about unseen repository behavior, and leave questions,
+  implementation discovery, and test planning for Codex CLI.
 - Evaluate whether `/review` or `$audit` fits each non-trivial spec or
   implementation task before advancing.
 - When Django model/schema changes are introduced, generate and apply the

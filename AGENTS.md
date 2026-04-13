@@ -1,7 +1,7 @@
 # AGENTS.md — Codex Execution Rules
 
-Instruction Set Version: 2.3.9
-Last Updated: 2026-04-12
+Instruction Set Version: 2.3.11
+Last Updated: 2026-04-13
 
 ## 1. Authority and File Roles
 

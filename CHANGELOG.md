@@ -12,6 +12,10 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `Governance`: ChatGPT pre-spec handoffs now require one concise Markdown
+  file with a short descriptive filename, a minimal planning schema, no status
+  or release metadata, and no questions, checks, or assumptions Codex CLI can
+  resolve later.
 - `UI/UX`: Player detail ranking positions now use graphical progress bars
   with exact scoped rank text instead of a table.
 - `UI/UX`: Player detail efficiency wheels now support all, gender, and mixed
