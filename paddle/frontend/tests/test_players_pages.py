@@ -3,12 +3,14 @@ from datetime import date, timedelta
 from pathlib import Path
 
 import pytest
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 
 from games.models import Group, Match, Player
 
 
 pytestmark = pytest.mark.django_db
+User = get_user_model()
 
 
 def create_match(
@@ -71,6 +73,34 @@ def test_players_list_anonymous_selector_shows_player_names_without_groups(clien
     assert re.search(r"<option[^>]*>\s*Jugador Sur\s*</option>", content)
     assert "Jugador Norte — Club Norte" not in content
     assert "Jugador Sur — Club Sur" not in content
+
+
+def test_players_list_redirects_authenticated_user_to_linked_player_detail(client):
+    user = User.objects.create_user(username="perfil", password="pass")
+    player = Player.objects.create(
+        name="Perfil Propio",
+        gender=Player.GENDER_MALE,
+        registered_user=user,
+    )
+
+    client.login(username="perfil", password="pass")
+    response = client.get(reverse("players"))
+
+    assert response.status_code == 302
+    assert response.url == reverse("player_detail", args=[player.id])
+
+
+def test_players_list_authenticated_user_without_player_keeps_empty_selector(client):
+    User.objects.create_user(username="sinperfil", password="pass")
+    Player.objects.create(name="Jugador Disponible", gender=Player.GENDER_MALE)
+
+    client.login(username="sinperfil", password="pass")
+    response = client.get(reverse("players"))
+    content = response.content.decode("utf-8")
+
+    assert response.status_code == 200
+    assert "<h1 class=\"display-5\">Jugadores</h1>" in content
+    assert "Jugador Disponible" in content
 
 
 def test_player_detail_is_public_200(client):

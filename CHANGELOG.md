@@ -12,6 +12,8 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `UI/UX`: Logged-in users opening the players page now default to their own
+  linked player detail, while anonymous users keep the empty selector view.
 - `UI/UX`: Player detail habitual partner stats now distinguish play frequency
   from partner efficiency with labeled, full-card partner links.
 - `Governance`: ChatGPT pre-spec handoffs now require one concise Markdown

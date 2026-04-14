@@ -10,7 +10,7 @@ Integration:
 """
 
 from django.http import Http404
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from games.models import Match, Player
@@ -22,6 +22,7 @@ from .common import (
     fetch_paginated_data,
     get_new_match_ids,
     get_request_group_context,
+    get_user_player,
 )
 
 
@@ -424,6 +425,10 @@ def players_view(request):
     """
     Public players landing page with selector.
     """
+    user_player = get_user_player(request)
+    if user_player:
+        return redirect("player_detail", player_id=user_player.id)
+
     group_context = get_request_group_context(request)
     _, _, all_players = build_all_players(
         group=group_context["group"],
