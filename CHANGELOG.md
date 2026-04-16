@@ -12,6 +12,44 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+## [1.9.1] - 2026-04-16
+
+- `UI/UX`: Player detail partner efficiency cards now show each partner's
+  compact win and match record below the partner name.
+- `UI/UX`: Logged-in users opening the players page now default to their own
+  linked player detail, while anonymous users keep the empty selector view.
+- `UI/UX`: Player detail habitual partner stats now distinguish play frequency
+  from partner efficiency with labeled, full-card partner links.
+- `Governance`: ChatGPT pre-spec handoffs now require one concise Markdown
+  file with a short descriptive filename, a minimal planning schema, no status
+  or release metadata, and no questions, checks, or assumptions Codex CLI can
+  resolve later.
+- `UI/UX`: Player detail ranking positions now use graphical progress bars
+  with exact scoped rank text instead of a table.
+- `UI/UX`: Player detail efficiency wheels now support all, gender, and mixed
+  scopes with scoped recent-trend rows.
+- `Governance`: Reduced duplication between project instructions, agent
+  guidance, README, backlog, and release docs, and added a governance
+  validation check for instruction headers and size.
+- `Governance`: Closure commits now use `git commit --no-gpg-sign` in this
+  environment to avoid known unavailable GPG key failures.
+- `Governance`: ChatGPT pre-spec guidance now requires concise repository-aware
+  starting points for Codex CLI Plan Mode and forbids code generation unless
+  explicitly requested.
+- `UI/UX`: Player detail habitual partner stats now use a stacked progress bar
+  with a linked top-partner legend and grouped empty `Otros` segment.
+- `Governance`: ChatGPT pre-spec drafts now live as ignored editable Markdown
+  under `docs/pre-specs/` and must not be staged, committed, or treated as
+  active SDD specs.
+- `UI/UX`: Ranking sort icons now render white in table headers and no longer
+  show ellipsis dots beside the arrows on small screens.
+- `UI/UX`: Player detail trend stats now use three progress-wheel cards and
+  mute duplicate trend progress strokes.
+- `UI/UX`: Anonymous `Jugadores` dropdowns now show only player names without
+  club or group labels.
+- `Docs`: Added a `/prompts:dev` command to start the Django development
+  server and open the local app in a new Chrome window.
+
 ## [1.9.0] - 2026-04-07
 
 ### Changed

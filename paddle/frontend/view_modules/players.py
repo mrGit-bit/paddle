@@ -10,10 +10,11 @@ Integration:
 """
 
 from django.http import Http404
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from games.models import Match, Player
+from frontend.services.ranking import compute_ranking
 
 from .common import (
     build_all_players,
@@ -21,8 +22,16 @@ from .common import (
     fetch_paginated_data,
     get_new_match_ids,
     get_request_group_context,
+    get_user_player,
 )
-from .ranking import get_scoped_player_and_page
+
+
+PARTNER_COLOR_CLASSES = ["bg-primary", "bg-success", "bg-warning"]
+PARTNER_PROGRESS_COLOR_CLASSES = [
+    "circular-progress-primary",
+    "circular-progress-success",
+    "circular-progress-warning",
+]
 
 
 def build_player_matches_queryset(player):
@@ -38,6 +47,229 @@ def _compute_win_rate_percent(wins: int, matches: int) -> int:
     return round((wins / matches) * 100)
 
 
+def _mark_distinct_trend_progress(trend_rows):
+    seen_results = set()
+    for row in trend_rows:
+        result_key = (row["wins"], row["losses"], row["matches"], row["win_rate_percent"])
+        row["show_progress_stroke"] = result_key not in seen_results
+        seen_results.add(result_key)
+    return trend_rows
+
+
+def _build_ranking_progress_fields(scoped_player, ranking_total: int) -> dict:
+    if not scoped_player or ranking_total <= 0:
+        return {
+            "rank_label": "Sin datos",
+            "rank_is_medal": False,
+            "ranking_total": 0,
+            "progress_percent": 0,
+            "support_text": "Sin datos",
+            "progress_aria_label": "Sin datos de ranking",
+        }
+
+    rank = scoped_player.display_position
+    medal_map = {
+        1: "🥇",
+        2: "🥈",
+        3: "🥉",
+    }
+    progress_percent = round(((ranking_total - rank + 1) / ranking_total) * 100)
+    progress_percent = max(0, min(100, progress_percent))
+    support_text = f"#{rank} de {ranking_total}"
+
+    return {
+        "rank_label": medal_map.get(rank, f"#{rank}"),
+        "rank_is_medal": rank in medal_map,
+        "ranking_total": ranking_total,
+        "progress_percent": progress_percent,
+        "support_text": support_text,
+        "progress_aria_label": support_text,
+    }
+
+
+def _get_scoped_player_page_and_total(scope: str, player_id: int, page_size: int = 12, *, group=None):
+    ranked_players, _, _ = compute_ranking(scope, group=group)
+    scoped_player = next((player for player in ranked_players if player.id == player_id), None)
+    if not scoped_player:
+        return None, None, len(ranked_players)
+    ordinal_index = ranked_players.index(scoped_player) + 1
+    page = ((ordinal_index - 1) // page_size) + 1
+    return scoped_player, page, len(ranked_players)
+
+
+def _build_efficiency_result_row(label: str, results: list[bool]) -> dict:
+    wins = sum(1 for is_win in results if is_win)
+    matches_count = len(results)
+    losses = matches_count - wins
+    return {
+        "label": label,
+        "wins": wins,
+        "losses": losses,
+        "matches": matches_count,
+        "win_rate_percent": _compute_win_rate_percent(wins, matches_count),
+    }
+
+
+def _build_efficiency_scope(scope_key: str, label: str, match_results: list[dict]) -> dict:
+    results = [row["is_win"] for row in match_results]
+    selector_row = _build_efficiency_result_row(label, results)
+    selector_row["show_progress_stroke"] = selector_row["matches"] > 0
+
+    trend_rows = [
+        _build_efficiency_result_row("Últimos 5", results[:5]),
+        _build_efficiency_result_row("Últimos 10", results[:10]),
+        _build_efficiency_result_row("Últimos 20", results[:20]),
+    ]
+    _mark_distinct_trend_progress(trend_rows)
+
+    return {
+        "key": scope_key,
+        "label": label,
+        "selector": selector_row,
+        "trend_rows": trend_rows,
+    }
+
+
+def _build_efficiency_scopes(player, match_results: list[dict]) -> list[dict]:
+    from games.models import Match
+
+    if player.gender == Player.GENDER_MALE:
+        gender_label = "Masc."
+        gender_type = Match.GENDER_TYPE_MALE
+    elif player.gender == Player.GENDER_FEMALE:
+        gender_label = "Fem."
+        gender_type = Match.GENDER_TYPE_FEMALE
+    else:
+        gender_label = "Categoría"
+        gender_type = None
+
+    gender_results = (
+        [row for row in match_results if row["match_gender_type"] == gender_type]
+        if gender_type
+        else []
+    )
+
+    return [
+        _build_efficiency_scope("all", "Todos", match_results),
+        _build_efficiency_scope("gender", gender_label, gender_results),
+        _build_efficiency_scope(
+            "mixed",
+            "Mixtos",
+            [row for row in match_results if row["match_gender_type"] == Match.GENDER_TYPE_MIXED],
+        ),
+    ]
+
+
+def _compute_display_percents(rows, total_matches):
+    if total_matches <= 0:
+        return []
+
+    percent_rows = []
+    floor_total = 0
+    for index, row in enumerate(rows):
+        exact_percent = (row["matches"] / total_matches) * 100
+        display_percent = int(exact_percent)
+        floor_total += display_percent
+        percent_rows.append(
+            {
+                "index": index,
+                "display_percent": display_percent,
+                "remainder": exact_percent - display_percent,
+            }
+        )
+
+    points_to_assign = 100 - floor_total
+    percent_rows.sort(key=lambda row: (-row["remainder"], row["index"]))
+    for row in percent_rows[:points_to_assign]:
+        row["display_percent"] += 1
+
+    percent_rows.sort(key=lambda row: row["index"])
+    return [row["display_percent"] for row in percent_rows]
+
+
+def _format_css_percent(value):
+    return f"{value:.4f}".rstrip("0").rstrip(".")
+
+
+def _build_partner_distribution(partner_rows):
+    total_matches = sum(row["matches_together"] for row in partner_rows)
+    if total_matches <= 0:
+        return []
+
+    distribution_rows = []
+    for index, row in enumerate(partner_rows[:3]):
+        distribution_rows.append(
+            {
+                "label": row["player"].name,
+                "player": row["player"],
+                "matches": row["matches_together"],
+                "color_class": PARTNER_COLOR_CLASSES[index],
+                "is_empty_segment": False,
+            }
+        )
+
+    other_matches = sum(row["matches_together"] for row in partner_rows[3:])
+    if other_matches:
+        distribution_rows.append(
+            {
+                "label": "Otros",
+                "player": None,
+                "matches": other_matches,
+                "color_class": "",
+                "is_empty_segment": True,
+            }
+        )
+
+    display_percents = _compute_display_percents(distribution_rows, total_matches)
+    for row, display_percent in zip(distribution_rows, display_percents):
+        row["display_percent"] = display_percent
+        row["width_percent"] = _format_css_percent((row["matches"] / total_matches) * 100)
+        row["show_label"] = display_percent >= 10
+        row["aria_label"] = f"{row['label']}: {display_percent}% de partidos"
+
+    return distribution_rows
+
+
+def _build_partner_efficiency_cards(partner_rows):
+    if not partner_rows:
+        return []
+
+    card_rows = []
+    for index in range(3):
+        if index < len(partner_rows):
+            row = partner_rows[index]
+            label = row["player"].name
+            card_rows.append(
+                {
+                    "label": label,
+                    "player": row["player"],
+                    "color_class": PARTNER_COLOR_CLASSES[index],
+                    "progress_color_class": PARTNER_PROGRESS_COLOR_CLASSES[index],
+                    "win_rate_percent": row["win_rate_percent"],
+                    "record_label": f"{row['wins_together']}🏆/{row['matches_together']}🏓",
+                    "show_progress_stroke": row["matches_together"] > 0,
+                    "is_placeholder": False,
+                    "aria_label": f"Efectividad con {label}: {row['win_rate_percent']}%",
+                }
+            )
+        else:
+            card_rows.append(
+                {
+                    "label": "Sin datos",
+                    "player": None,
+                    "color_class": "",
+                    "progress_color_class": "",
+                    "win_rate_percent": 0,
+                    "record_label": "0🏆/0🏓",
+                    "show_progress_stroke": False,
+                    "is_placeholder": True,
+                    "aria_label": "Efectividad sin datos: 0%",
+                }
+            )
+
+    return card_rows
+
+
 def build_player_insights(player):
     """
     Build trend, top partners and top rivals insights for a player.
@@ -51,7 +283,7 @@ def build_player_insights(player):
         )
     )
 
-    results = []
+    match_results = []
     partner_stats = {}
     rival_stats = {}
 
@@ -73,7 +305,12 @@ def build_player_insights(player):
             rivals = (match.team1_player1, match.team1_player2)
             is_win = match.winning_team == 2
 
-        results.append(is_win)
+        match_results.append(
+            {
+                "is_win": is_win,
+                "match_gender_type": match.match_gender_type,
+            }
+        )
 
         partner_row = partner_stats.setdefault(
             teammate.id,
@@ -104,24 +341,8 @@ def build_player_insights(player):
         if match.date_played > rival_row["last_date"]:
             rival_row["last_date"] = match.date_played
 
-    def build_trend_row(label: str, slice_size=None):
-        scoped_results = results if slice_size is None else results[:slice_size]
-        wins = sum(1 for is_win in scoped_results if is_win)
-        matches_count = len(scoped_results)
-        losses = matches_count - wins
-        return {
-            "label": label,
-            "wins": wins,
-            "losses": losses,
-            "matches": matches_count,
-            "win_rate_percent": _compute_win_rate_percent(wins, matches_count),
-        }
-
-    trend_rows = [
-        build_trend_row("Últimos 5", slice_size=5),
-        build_trend_row("Últimos 10", slice_size=10),
-        build_trend_row("Total", slice_size=None),
-    ]
+    efficiency_scopes = _build_efficiency_scopes(player, match_results)
+    trend_rows = efficiency_scopes[0]["trend_rows"]
 
     partner_rows = []
     for row in partner_stats.values():
@@ -178,8 +399,11 @@ def build_player_insights(player):
     )
 
     return {
+        "efficiency_scopes": efficiency_scopes,
         "trend_rows": trend_rows,
         "top_partners": partner_rows[:3],
+        "partner_distribution": _build_partner_distribution(partner_rows),
+        "partner_efficiency_cards": _build_partner_efficiency_cards(partner_rows),
         "top_rivals": rival_rows[:3],
     }
 
@@ -203,10 +427,14 @@ def players_view(request):
     """
     Public players landing page with selector.
     """
+    user_player = get_user_player(request)
+    if user_player:
+        return redirect("player_detail", player_id=user_player.id)
+
     group_context = get_request_group_context(request)
     _, _, all_players = build_all_players(
         group=group_context["group"],
-        include_group_labels=group_context["aggregate"],
+        include_group_labels=False,
     )
     new_match_ids = get_new_match_ids(request) or []
     return render(
@@ -232,7 +460,7 @@ def player_detail_view(request, player_id):
 
     _, _, all_players = build_all_players(
         group=group_context["group"],
-        include_group_labels=group_context["aggregate"],
+        include_group_labels=False,
     )
 
     scope_rows = [
@@ -245,12 +473,13 @@ def player_detail_view(request, player_id):
     scope_rows.append({"label": "Mixtos", "scope": "mixed", "url_name": "ranking_mixed"})
 
     for row in scope_rows:
-        scoped_player, page = get_scoped_player_and_page(
+        scoped_player, page, ranking_total = _get_scoped_player_page_and_total(
             row["scope"],
             profile_player.id,
             group=profile_player.group,
         )
         row["scoped_player"] = scoped_player
+        row.update(_build_ranking_progress_fields(scoped_player, ranking_total))
         if not scoped_player:
             row["href"] = None
             continue

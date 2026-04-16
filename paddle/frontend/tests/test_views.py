@@ -46,6 +46,7 @@ class TestFrontendViews:
         assert 'data-sort-key="wins"' in content
         assert 'data-sort-key="matches"' in content
         assert 'data-sort-key="win-rate"' in content
+        assert content.count("ranking-sort-header") == 4
         assert 'frontend/js/rankingTableSort.js' in content
         assert 'data-canonical-show-position=' in content
 
