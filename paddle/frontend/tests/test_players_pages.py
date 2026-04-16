@@ -620,6 +620,7 @@ def test_player_detail_partner_and_rivals_tiebreakers_and_clickable_links(client
             "color_class": "bg-primary",
             "progress_color_class": "circular-progress-primary",
             "win_rate_percent": 60,
+            "record_label": "3🏆/5🏓",
             "show_progress_stroke": True,
             "is_placeholder": False,
             "aria_label": "Efectividad con Partner A: 60%",
@@ -630,6 +631,7 @@ def test_player_detail_partner_and_rivals_tiebreakers_and_clickable_links(client
             "color_class": "bg-success",
             "progress_color_class": "circular-progress-success",
             "win_rate_percent": 67,
+            "record_label": "2🏆/3🏓",
             "show_progress_stroke": True,
             "is_placeholder": False,
             "aria_label": "Efectividad con Partner B: 67%",
@@ -640,6 +642,7 @@ def test_player_detail_partner_and_rivals_tiebreakers_and_clickable_links(client
             "color_class": "bg-warning",
             "progress_color_class": "circular-progress-warning",
             "win_rate_percent": 50,
+            "record_label": "1🏆/2🏓",
             "show_progress_stroke": True,
             "is_placeholder": False,
             "aria_label": "Efectividad con Partner C: 50%",
@@ -692,6 +695,9 @@ def test_player_detail_partner_and_rivals_tiebreakers_and_clickable_links(client
     assert 'aria-label="Efectividad con Partner A: 60%"' in content
     assert 'aria-label="Efectividad con Partner B: 67%"' in content
     assert 'aria-label="Efectividad con Partner C: 50%"' in content
+    assert "3🏆/5🏓" in content
+    assert "2🏆/3🏓" in content
+    assert "1🏆/2🏓" in content
     assert "circular-progress-primary" in content
     assert "circular-progress-success" in content
     assert "circular-progress-warning" in content
@@ -757,6 +763,11 @@ def test_player_detail_shows_only_available_partner_rows_when_fewer_than_three(c
         "Sin datos",
     ]
     assert [row["win_rate_percent"] for row in insights["partner_efficiency_cards"]] == [100, 0, 0]
+    assert [row["record_label"] for row in insights["partner_efficiency_cards"]] == [
+        "1🏆/1🏓",
+        "0🏆/1🏓",
+        "0🏆/0🏓",
+    ]
     assert [row["is_placeholder"] for row in insights["partner_efficiency_cards"]] == [
         False,
         False,
@@ -768,6 +779,10 @@ def test_player_detail_shows_only_available_partner_rows_when_fewer_than_three(c
     assert 'aria-label="Efectividad con Few Partner A: 100%"' in content
     assert 'aria-label="Efectividad con Few Partner B: 0%"' in content
     assert 'aria-label="Efectividad sin datos: 0%"' in content
+    assert "1🏆/1🏓" in content
+    assert "0🏆/1🏓" in content
+    assert "0🏆/0🏓" in content
+    assert '<div class="player-partner-record text-muted" aria-hidden="true"></div>' not in content
     assert "player-partner-card-empty" in content
     assert '<a href="" class="card h-100 player-trend-card player-partner-card' not in content
     assert '<a class="card h-100 player-trend-card player-partner-card player-partner-card-empty' not in content

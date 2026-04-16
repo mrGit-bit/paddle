@@ -473,6 +473,13 @@ and replaced by an ellipsis (…) */
   overflow-wrap: normal;
 }
 
+.player-partner-record {
+  margin-top: -0.25rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  line-height: 1.2;
+}
+
 /* Alignments */
 /* Align all numeric table headers to the center for better readability */
 .table thead th:nth-child(3),

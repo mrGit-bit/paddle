@@ -126,6 +126,7 @@
                   <span class="player-partner-swatch {{ row.color_class }}" aria-hidden="true"></span>
                   <span class="player-partner-name">{{ row.label }}</span>
                 </div>
+                <div class="player-partner-record text-muted">{{ row.record_label }}</div>
                 {% include "frontend/_circular_progress.html" with value=row.win_rate_percent label=row.label show_progress_stroke=row.show_progress_stroke progress_color_class=row.progress_color_class aria_label=row.aria_label %}
               </div>
             </a>
@@ -136,6 +137,7 @@
                   <span class="player-partner-swatch player-partner-swatch-empty" aria-hidden="true"></span>
                   <span class="player-partner-name text-muted">{{ row.label }}</span>
                 </div>
+                <div class="player-partner-record text-muted">{{ row.record_label }}</div>
                 {% include "frontend/_circular_progress.html" with value=row.win_rate_percent label=row.label show_progress_stroke=row.show_progress_stroke progress_color_class=row.progress_color_class aria_label=row.aria_label %}
               </div>
             </div>

@@ -12,6 +12,8 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `UI/UX`: Player detail partner efficiency cards now show each partner's
+  compact win and match record below the partner name.
 - `UI/UX`: Logged-in users opening the players page now default to their own
   linked player detail, while anonymous users keep the empty selector view.
 - `UI/UX`: Player detail habitual partner stats now distinguish play frequency
