@@ -88,17 +88,9 @@ reintroduced.
   notes about the view-module split.
 - [specs](/workspaces/paddle/specs): active work specs, the task template, and
   consolidated release specs.
-- Consolidated release files represent shipped production history only. If a
-  planned version never ships, its loose historical artifacts roll into the
-  next production release that actually shipped them.
-- Loose active specs should stay on `Status: approved` until their
-  development cycle is closed, then move to `Status: implemented` while they
-  remain unreleased.
-- `Release tag` is shipment tracking only: keep `Release tag: unreleased`
-  until a closed loose spec is intentionally included in a real shipped
-  release.
-- Active specs and consolidated release files are intentionally schematic; keep
-  them compact instead of using them as long-form narrative docs.
+- SDD lifecycle rules live in
+  [docs/PROJECT_INSTRUCTIONS.md](/workspaces/paddle/docs/PROJECT_INSTRUCTIONS.md);
+  release consolidation rules live in [RELEASE.md](/workspaces/paddle/RELEASE.md).
 
 ## Codex CLI Guide
 

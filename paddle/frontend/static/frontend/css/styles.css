@@ -129,6 +129,357 @@ and replaced by an ellipsis (…) */
   font-weight: bold;  
 }
 
+.table thead th.ranking-sort-header {
+  text-overflow: clip;
+}
+
+.ranking-sort-button,
+.ranking-sort-button:hover,
+.ranking-sort-button:focus,
+.ranking-sort-button:active {
+  color: whitesmoke;
+}
+
+.ranking-sort-button:focus-visible {
+  outline: 2px solid whitesmoke;
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+.ranking-sort-icon {
+  color: inherit;
+}
+
+/* Player detail ranking progress */
+.player-ranking-progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.player-ranking-progress-row {
+  display: block;
+}
+
+.player-ranking-progress-row.clickable-row {
+  cursor: pointer;
+}
+
+.player-ranking-progress {
+  position: relative;
+  height: 2rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.player-ranking-progress .progress-bar {
+  height: 100%;
+}
+
+.player-ranking-bar-labels {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0 0.75rem;
+}
+
+.player-ranking-bar-labels-track {
+  color: #000;
+}
+
+.player-ranking-bar-labels-fill {
+  color: #fff;
+  clip-path: inset(0 calc(100% - var(--player-ranking-progress-percent)) 0 0);
+}
+
+.player-ranking-scope,
+.player-ranking-support {
+  min-width: 0;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.player-ranking-support {
+  flex: 0 0 auto;
+  text-align: right;
+}
+
+/* Player detail trend wheels */
+.player-trend-card {
+  border-radius: 0.5rem;
+  border-width: 1px;
+}
+
+.player-efficiency-selector-card {
+  appearance: none;
+  cursor: pointer;
+  text-align: inherit;
+  background-color: var(--bs-body-bg);
+  border-color: var(--bs-border-color);
+  transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+}
+
+.player-efficiency-selector-card .card-body {
+  display: block;
+}
+
+.player-efficiency-selector-card:hover {
+  border-color: var(--bs-success);
+  box-shadow: 0 0 0 0.12rem rgba(var(--bs-success-rgb), 0.18);
+  transform: translateY(-1px);
+}
+
+.player-efficiency-selector-card:focus-visible {
+  outline: 2px solid var(--bs-success);
+  outline-offset: 2px;
+}
+
+.player-efficiency-selector-card-active {
+  border-color: var(--bs-success);
+  border-top-width: 0.25rem;
+  box-shadow: 0 0 0 0.16rem rgba(var(--bs-success-rgb), 0.22);
+}
+
+.player-efficiency-action-row {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 1.25rem;
+  margin: -0.35rem -0.05rem 0.05rem 0;
+}
+
+.player-efficiency-action {
+  display: block;
+  padding: 0.15rem 0.45rem;
+  border: 1px solid var(--bs-success);
+  border-radius: 0.35rem;
+  background-color: var(--bs-body-bg);
+  color: var(--bs-success);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.player-efficiency-selector-card-active .player-efficiency-action {
+  background-color: var(--bs-success);
+  color: var(--bs-white);
+}
+
+.player-efficiency-trend-card {
+  border-color: var(--bs-success);
+  border-top-width: 0.25rem;
+}
+
+.player-trend-card .card-body {
+  padding: 0.75rem 0.5rem;
+}
+
+.player-trend-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  min-height: 2.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+  white-space: normal;
+}
+
+.circular-progress {
+  --progress-size: 5rem;
+  --progress-track: var(--bs-border-color);
+  --progress-stroke: var(--bs-success);
+  position: relative;
+  width: var(--progress-size);
+  height: var(--progress-size);
+  margin: 0 auto;
+}
+
+.circular-progress-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.circular-progress-track,
+.circular-progress-stroke {
+  fill: none;
+  stroke-width: 3.25;
+}
+
+.circular-progress-track {
+  stroke: var(--progress-track);
+}
+
+.circular-progress-stroke {
+  stroke: var(--progress-stroke);
+  stroke-linecap: round;
+}
+
+.circular-progress-primary {
+  --progress-stroke: var(--bs-primary);
+}
+
+.circular-progress-success {
+  --progress-stroke: var(--bs-success);
+}
+
+.circular-progress-warning {
+  --progress-stroke: var(--bs-warning);
+}
+
+.circular-progress-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+@media (max-width: 359.98px) {
+  .player-trend-cards {
+    --bs-gutter-x: 0.25rem;
+  }
+
+  .player-trend-card .card-body {
+    padding-right: 0.25rem;
+    padding-left: 0.25rem;
+  }
+
+  .player-trend-title {
+    font-size: 0.8rem;
+  }
+
+  .player-efficiency-action {
+    font-size: 0.68rem;
+  }
+
+  .circular-progress {
+    --progress-size: 4rem;
+  }
+
+  .circular-progress-label {
+    font-size: 0.85rem;
+  }
+}
+
+/* Player detail partner distribution */
+.player-partner-progress {
+  height: 2rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.player-partner-progress .progress,
+.player-partner-progress .progress-bar {
+  height: 100%;
+}
+
+.player-partner-progress .progress-bar {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.player-partner-metric-label {
+  margin-bottom: 0.125rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.player-partner-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  align-items: flex-start;
+}
+
+.player-partner-cards {
+  margin-top: 0;
+}
+
+.player-partner-card .card-body {
+  padding: 0.75rem 0.5rem;
+}
+
+.player-partner-card-link {
+  cursor: pointer;
+  transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+}
+
+.player-partner-card-link:hover {
+  border-color: var(--bs-success);
+  box-shadow: 0 0 0 0.12rem rgba(var(--bs-success-rgb), 0.18);
+  transform: translateY(-1px);
+}
+
+.player-partner-card-link:focus-visible {
+  outline: 2px solid var(--bs-success);
+  outline-offset: 2px;
+}
+
+.player-partner-card-empty {
+  border-color: var(--bs-border-color);
+  background-color: var(--bs-tertiary-bg);
+}
+
+.player-partner-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.player-partner-card-title {
+  justify-content: center;
+  width: 100%;
+  min-height: 2.3rem;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+  flex-wrap: nowrap;
+}
+
+.player-partner-swatch {
+  flex: 0 0 auto;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 0.2rem;
+}
+
+.player-partner-swatch-empty {
+  background-color: var(--bs-progress-bg);
+  border: 1px solid var(--bs-border-color);
+}
+
+.player-partner-name {
+  overflow-wrap: anywhere;
+}
+
+.player-partner-card-title .player-partner-name {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+
+.player-partner-record {
+  margin-top: -0.25rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  line-height: 1.2;
+}
+
 /* Alignments */
 /* Align all numeric table headers to the center for better readability */
 .table thead th:nth-child(3),

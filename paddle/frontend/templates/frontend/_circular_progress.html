@@ -1,0 +1,20 @@
+<div
+  class="circular-progress{% if show_progress_stroke %} circular-progress-active{% endif %}{% if progress_color_class %} {{ progress_color_class }}{% endif %}"
+  role="progressbar"
+  aria-label="{% if aria_label %}{{ aria_label }}{% else %}Efectividad {{ label }}{% endif %}"
+  aria-valuemin="0"
+  aria-valuemax="100"
+  aria-valuenow="{{ value }}">
+  <svg class="circular-progress-svg" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+    <circle class="circular-progress-track" cx="18" cy="18" r="15.9155"></circle>
+    {% if show_progress_stroke %}
+      <circle
+        class="circular-progress-stroke"
+        cx="18"
+        cy="18"
+        r="15.9155"
+        stroke-dasharray="{{ value }}, 100"></circle>
+    {% endif %}
+  </svg>
+  <span class="circular-progress-label">{{ value }}%</span>
+</div>

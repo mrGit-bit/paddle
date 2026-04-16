@@ -182,9 +182,7 @@ If a remote deploy command returns but the host still reports the wrong app
 version, the orchestrator aborts instead of continuing to the next release
 step.
 
-`BACKLOG.md` reconciliation is not owned by this command. It remains part of
-development-cycle closure unless a future release workflow explicitly
-implements it.
+Backlog reconciliation is owned by development-cycle closure, not this command.
 
 If a planned version never reaches production, do not keep a synthetic release
 record for it. Fold its unshipped specs and changelog notes into the next
