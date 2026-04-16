@@ -4,7 +4,7 @@
 
 - Task ID: `ranking-sort-header-icons`
 - Status: `implemented`
-- Release tag: `unreleased`
+- Release tag: `v1.9.1`
 
 ## Summary
 

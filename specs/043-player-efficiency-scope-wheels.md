@@ -6,7 +6,7 @@ Use for active SDD work only.
 
 - Task ID: `player-efficiency-scope-wheels`
 - Status: `implemented`
-- Release tag: `unreleased`
+- Release tag: `v1.9.1`
 
 `approved` stays in place until the scoped work is finished and the
 development cycle for that spec is being closed. Only then move the spec to
