@@ -13,6 +13,7 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 ## [Unreleased]
 
 ## [1.9.1] - 2026-04-16
+
 - `UI/UX`: Player detail partner efficiency cards now show each partner's
   compact win and match record below the partner name.
 - `UI/UX`: Logged-in users opening the players page now default to their own
