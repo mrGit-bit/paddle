@@ -302,6 +302,63 @@ def test_build_consolidated_markdown_builds_compact_summary_sections(tmp_path):
     assert "- `pytest paddle/frontend/tests/test_release_orchestrator.py -q`" in output
 
 
+def test_build_changelog_consolidation_review_flags_repeated_categories():
+    changelog = """## [Unreleased]
+
+## [1.9.1] - 2026-04-16
+
+- `UI/UX`: First player detail change.
+- `UI/UX`: Second player detail change.
+- `UI/UX`: Third player detail change.
+- `UI/UX`: Fourth player detail change.
+- `Governance`: One governance change.
+"""
+    consolidated = """# Release 1.9.1 Consolidated Spec
+
+## Shipped Scope
+
+- Reworked player detail statistics.
+- Cleaned ranking sort icons.
+"""
+    backlog = """| Requirement | IMP. | SIMP. | PRI. |
+| --- | --- | --- | --- |
+| Improve player detail statistics | 2 | 2 | 4 |
+"""
+
+    review = release_orchestrator.build_changelog_consolidation_review(
+        "1.9.1",
+        changelog,
+        consolidated,
+        backlog,
+    )
+
+    assert review == [
+        "Changelog consolidation review for 1.9.1:",
+        "- Release notes: 5 bullets; categories: UI/UX 4, Governance 1.",
+        "- Consolidated shipped scope: 2 bullets available as source material.",
+        "- Backlog requirements available for comparison: 1.",
+        (
+            "- Action: compress repetitive same-category bullets into grouped outcome summaries: "
+            "UI/UX (4)."
+        ),
+    ]
+
+
+def test_build_changelog_consolidation_review_accepts_compact_grouped_section():
+    changelog = """## [Unreleased]
+
+## [1.9.0] - 2026-04-07
+
+- `Data`: Added group ownership.
+- `UI/UX`: Scoped authenticated browsing.
+- `Release`: Hardened release automation.
+"""
+
+    review = release_orchestrator.build_changelog_consolidation_review("1.9.0", changelog)
+
+    assert review[-1] == "- Action: confirm the release notes are already compact and grouped by category."
+
+
 def test_render_report_lists_step_statuses():
     context = release_orchestrator.ReleaseContext(
         repo_root=Path("/tmp/repo"),
@@ -495,10 +552,22 @@ def test_collect_release_sources_skips_tagged_specs_until_cycle_is_closed(tmp_pa
     assert selection.skipped == [source]
 
 
-def test_commit_consolidation_writes_single_release_spec(monkeypatch, tmp_path):
+def test_commit_consolidation_writes_single_release_spec(monkeypatch, tmp_path, capsys):
     repo_root = tmp_path
     specs_dir = repo_root / "specs"
     specs_dir.mkdir()
+    (repo_root / "CHANGELOG.md").write_text(
+        "## [Unreleased]\n\n"
+        "## [1.6.0] - 2026-03-16\n\n"
+        "- `Governance`: Added one approved spec file per task.\n",
+        encoding="utf-8",
+    )
+    (repo_root / "BACKLOG.md").write_text(
+        "| Requirement | IMP. | SIMP. | PRI. |\n"
+        "| --- | --- | --- | --- |\n"
+        "| Simplify SDD release records | 2 | 2 | 4 |\n",
+        encoding="utf-8",
+    )
     source = specs_dir / "037-example.md"
     source.write_text(
         "# Example\n\n"
@@ -540,6 +609,9 @@ def test_commit_consolidation_writes_single_release_spec(monkeypatch, tmp_path):
     assert target.read_text(encoding="utf-8").startswith("# Release 1.6.0 Consolidated Spec")
     assert ["git", "add", str(target)] in commands
     assert ["git", "commit", "-m", "docs(release): consolidate specs for v1.6.0"] in commands
+    captured = capsys.readouterr()
+    assert "Changelog consolidation review for 1.6.0:" in captured.out
+    assert "- Backlog requirements available for comparison: 1." in captured.out
 
 
 def test_run_command_retries_gh_without_invalid_env_tokens(monkeypatch):

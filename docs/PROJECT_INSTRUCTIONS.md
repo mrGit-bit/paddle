@@ -1,7 +1,7 @@
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.3.11
-Last Updated: 2026-04-13
+Instruction Set Version: 2.3.12
+Last Updated: 2026-04-19
 
 ## 1. Product and Stack
 
@@ -89,6 +89,9 @@ Additional rules:
   required migrations in development before treating the task as complete.
 - After a successful tagged release and back-merge from `main` to `develop`,
   consolidate released SDD files before new SDD work.
+- Release consolidation must leave `CHANGELOG.md` as compact grouped category
+  summaries built from shipped specs, completed backlog outcomes, and existing
+  changelog notes.
 
 ## 5. Delivery and Coordination
 

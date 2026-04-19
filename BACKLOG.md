@@ -23,6 +23,9 @@ Rules:
   first.
 - During development-cycle closure, remove completed in-scope items and ensure
   [CHANGELOG.md](CHANGELOG.md) reflects the outcome.
+- During release consolidation, use recently completed backlog descriptions as
+  source material for compact grouped release-summary bullets when they are
+  still available.
 
 | Requirement | IMP. | SIMP. | PRI. |
 | --- | --- | --- | --- |
@@ -45,4 +48,5 @@ enhancements.
 ## Completed Tasks
 
 Leave empty. Completed tasks are removed during closure or release
-reconciliation and reflected in `CHANGELOG.md`.
+reconciliation and reflected in compact grouped `CHANGELOG.md` release
+summaries.
