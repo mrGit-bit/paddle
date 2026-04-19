@@ -12,6 +12,12 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `UI/UX`: Player detail rankings now group position and efficiency with
+  scoped color legends, compact win/match records, and inactive empty-history
+  wheels.
+- `Governance`: UI guidance now requires reusing established presentation
+  classes for matching sections and guarding state styles against CSS cascade
+  overrides.
 - `Governance`: Release consolidation now reviews shipped specs, completed
   backlog wording, and changelog notes so final release summaries stay compact
   and grouped by category.

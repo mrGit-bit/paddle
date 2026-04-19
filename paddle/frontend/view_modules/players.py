@@ -32,6 +32,20 @@ PARTNER_PROGRESS_COLOR_CLASSES = [
     "circular-progress-success",
     "circular-progress-warning",
 ]
+SCOPE_COLOR_CLASSES = PARTNER_COLOR_CLASSES
+SCOPE_PROGRESS_COLOR_CLASSES = PARTNER_PROGRESS_COLOR_CLASSES
+SCOPE_STYLE_CLASSES = [
+    "player-scope-primary",
+    "player-scope-success",
+    "player-scope-warning",
+]
+SCOPE_CLASS_BY_KEY = {
+    "all": (SCOPE_COLOR_CLASSES[0], SCOPE_PROGRESS_COLOR_CLASSES[0], SCOPE_STYLE_CLASSES[0]),
+    "male": (SCOPE_COLOR_CLASSES[1], SCOPE_PROGRESS_COLOR_CLASSES[1], SCOPE_STYLE_CLASSES[1]),
+    "female": (SCOPE_COLOR_CLASSES[1], SCOPE_PROGRESS_COLOR_CLASSES[1], SCOPE_STYLE_CLASSES[1]),
+    "gender": (SCOPE_COLOR_CLASSES[1], SCOPE_PROGRESS_COLOR_CLASSES[1], SCOPE_STYLE_CLASSES[1]),
+    "mixed": (SCOPE_COLOR_CLASSES[2], SCOPE_PROGRESS_COLOR_CLASSES[2], SCOPE_STYLE_CLASSES[2]),
+}
 
 
 def build_player_matches_queryset(player):
@@ -47,9 +61,19 @@ def _compute_win_rate_percent(wins: int, matches: int) -> int:
     return round((wins / matches) * 100)
 
 
+def _add_scope_classes(row: dict, key: str) -> None:
+    color_class, progress_color_class, style_class = SCOPE_CLASS_BY_KEY[key]
+    row["color_class"] = color_class
+    row["progress_color_class"] = progress_color_class
+    row["style_class"] = style_class
+
+
 def _mark_distinct_trend_progress(trend_rows):
     seen_results = set()
     for row in trend_rows:
+        if not row.get("is_eligible", True):
+            row["show_progress_stroke"] = False
+            continue
         result_key = (row["wins"], row["losses"], row["matches"], row["win_rate_percent"])
         row["show_progress_stroke"] = result_key not in seen_results
         seen_results.add(result_key)
@@ -63,8 +87,9 @@ def _build_ranking_progress_fields(scoped_player, ranking_total: int) -> dict:
             "rank_is_medal": False,
             "ranking_total": 0,
             "progress_percent": 0,
-            "support_text": "Sin datos",
-            "progress_aria_label": "Sin datos de ranking",
+            "support_text": "Sin partidos",
+            "record_label": "0🏆/0🏓",
+            "progress_aria_label": "Sin partidos de ranking",
         }
 
     rank = scoped_player.display_position
@@ -83,6 +108,7 @@ def _build_ranking_progress_fields(scoped_player, ranking_total: int) -> dict:
         "ranking_total": ranking_total,
         "progress_percent": progress_percent,
         "support_text": support_text,
+        "record_label": f"{scoped_player.display_wins}🏆/{scoped_player.display_matches}🏓",
         "progress_aria_label": support_text,
     }
 
@@ -114,13 +140,23 @@ def _build_efficiency_scope(scope_key: str, label: str, match_results: list[dict
     results = [row["is_win"] for row in match_results]
     selector_row = _build_efficiency_result_row(label, results)
     selector_row["show_progress_stroke"] = selector_row["matches"] > 0
+    selector_row["display_value"] = "" if selector_row["matches"] > 0 else "--%"
+    selector_row["is_inactive"] = selector_row["matches"] == 0
+    selector_row["record_label"] = f"{selector_row['wins']}🏆/{selector_row['matches']}🏓"
 
     trend_rows = [
         _build_efficiency_result_row("Últimos 5", results[:5]),
         _build_efficiency_result_row("Últimos 10", results[:10]),
         _build_efficiency_result_row("Últimos 20", results[:20]),
     ]
+    total_matches = len(results)
+    for row, minimum_matches in zip(trend_rows, [1, 6, 11]):
+        row["is_eligible"] = total_matches >= minimum_matches
+        row["is_inactive"] = not row["is_eligible"]
+        row["display_value"] = "" if row["is_eligible"] else "--%"
     _mark_distinct_trend_progress(trend_rows)
+    for row in trend_rows:
+        row["record_label"] = f"{row['wins']}🏆/{row['matches']}🏓"
 
     return {
         "key": scope_key,
@@ -149,7 +185,7 @@ def _build_efficiency_scopes(player, match_results: list[dict]) -> list[dict]:
         else []
     )
 
-    return [
+    scopes = [
         _build_efficiency_scope("all", "Todos", match_results),
         _build_efficiency_scope("gender", gender_label, gender_results),
         _build_efficiency_scope(
@@ -158,6 +194,9 @@ def _build_efficiency_scopes(player, match_results: list[dict]) -> list[dict]:
             [row for row in match_results if row["match_gender_type"] == Match.GENDER_TYPE_MIXED],
         ),
     ]
+    for scope in scopes:
+        _add_scope_classes(scope, scope["key"])
+    return scopes
 
 
 def _compute_display_percents(rows, total_matches):
@@ -246,9 +285,11 @@ def _build_partner_efficiency_cards(partner_rows):
                     "color_class": PARTNER_COLOR_CLASSES[index],
                     "progress_color_class": PARTNER_PROGRESS_COLOR_CLASSES[index],
                     "win_rate_percent": row["win_rate_percent"],
+                    "display_value": "",
                     "record_label": f"{row['wins_together']}🏆/{row['matches_together']}🏓",
                     "show_progress_stroke": row["matches_together"] > 0,
                     "is_placeholder": False,
+                    "is_inactive": False,
                     "aria_label": f"Efectividad con {label}: {row['win_rate_percent']}%",
                 }
             )
@@ -260,10 +301,12 @@ def _build_partner_efficiency_cards(partner_rows):
                     "color_class": "",
                     "progress_color_class": "",
                     "win_rate_percent": 0,
+                    "display_value": "--%",
                     "record_label": "0🏆/0🏓",
                     "show_progress_stroke": False,
                     "is_placeholder": True,
-                    "aria_label": "Efectividad sin datos: 0%",
+                    "is_inactive": True,
+                    "aria_label": "Efectividad sin datos: sin porcentaje",
                 }
             )
 
@@ -473,6 +516,7 @@ def player_detail_view(request, player_id):
     scope_rows.append({"label": "Mixtos", "scope": "mixed", "url_name": "ranking_mixed"})
 
     for row in scope_rows:
+        _add_scope_classes(row, row["scope"])
         scoped_player, page, ranking_total = _get_scoped_player_page_and_total(
             row["scope"],
             profile_player.id,

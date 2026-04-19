@@ -203,8 +203,17 @@ def test_player_detail_scope_rows_render_data_href_only_when_applicable(client):
     assert "Mixtos" in content
     assert "#1 de 4" in content
     assert 'aria-label="#1 de 4"' in content
-    assert 'style="width: 100%;"' in content
+    assert '<div class="progress-bar bg-primary" style="width: 100%;"></div>' in content
+    assert '<div class="progress-bar bg-success" style="width: 100%;"></div>' in content
     assert "--player-ranking-progress-percent: 100%;" in content
+    assert "1🏆/1🏓" in content
+    assert "0🏆/0🏓" in content
+    assert "player-ranking-cards" not in content
+    assert "player-ranking-card" not in content
+    assert "player-scope-primary" in content
+    assert "player-scope-success" in content
+    assert "player-scope-warning" in content
+    assert "player-scope-danger" not in content
     assert "player-ranking-bar-labels" in content
     assert "player-ranking-bar-labels-track" in content
     assert "player-ranking-bar-labels-fill" in content
@@ -253,11 +262,14 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
 
     response = client.get(reverse("player_detail", args=[player.id]))
     content = response.content.decode("utf-8")
+    css = Path("paddle/frontend/static/frontend/css/styles.css").read_text()
     insights = response.context["player_insights"]
 
     assert response.status_code == 200
+    assert "Rankings" in content
     assert "Posición" in content
-    assert "Eficacia" in content
+    assert "Posición en los rankings" not in content
+    assert "Eficacia por ranking" in content
     assert "Tendencias" not in content
     assert "Sin datos" in content
     assert "Sin partidos" in content
@@ -274,7 +286,11 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
             "losses": 0,
             "matches": 0,
             "win_rate_percent": 0,
-            "show_progress_stroke": True,
+            "is_eligible": False,
+            "display_value": "--%",
+            "is_inactive": True,
+            "show_progress_stroke": False,
+            "record_label": "0🏆/0🏓",
         },
         {
             "label": "Últimos 10",
@@ -282,7 +298,11 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
             "losses": 0,
             "matches": 0,
             "win_rate_percent": 0,
+            "is_eligible": False,
+            "display_value": "--%",
+            "is_inactive": True,
             "show_progress_stroke": False,
+            "record_label": "0🏆/0🏓",
         },
         {
             "label": "Últimos 20",
@@ -290,11 +310,30 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
             "losses": 0,
             "matches": 0,
             "win_rate_percent": 0,
+            "is_eligible": False,
+            "display_value": "--%",
+            "is_inactive": True,
             "show_progress_stroke": False,
+            "record_label": "0🏆/0🏓",
         },
     ]
+    assert all(scope["selector"]["is_inactive"] for scope in insights["efficiency_scopes"])
     assert count_trend_wheels(content) == 12
-    assert content.count("circular-progress-active") == 3
+    assert "circular-progress-active" not in content
+    assert content.count("--%") >= 12
+    assert content.count("player-efficiency-card-disabled") >= 12
+    assert content.count('aria-disabled="true"') == 3
+    assert re.search(r"<button[^>]*\sdisabled(?:\s|>|=)", content) is None
+    assert content.count("0🏆/0🏓") >= 6
+    assert "circular-progress-primary" in content
+    assert "circular-progress-success" in content
+    assert "circular-progress-warning" in content
+    assert "circular-progress-danger" not in content
+    assert "player-partner-card-title" in content
+    assert "player-partner-name" in content
+    assert "player-partner-swatch bg-primary" in content
+    assert "player-partner-swatch bg-success" in content
+    assert "player-partner-swatch bg-warning" in content
     assert 'data-efficiency-scope="all"' in content
     assert 'data-efficiency-scope="gender"' in content
     assert 'data-efficiency-scope="mixed"' in content
@@ -359,7 +398,11 @@ def test_player_detail_trend_windows_use_available_matches_and_round_percent(cli
             "losses": 1,
             "matches": 5,
             "win_rate_percent": 80,
+            "is_eligible": True,
+            "is_inactive": False,
+            "display_value": "",
             "show_progress_stroke": True,
+            "record_label": "4🏆/5🏓",
         },
         {
             "label": "Últimos 10",
@@ -367,7 +410,11 @@ def test_player_detail_trend_windows_use_available_matches_and_round_percent(cli
             "losses": 3,
             "matches": 10,
             "win_rate_percent": 70,
+            "is_eligible": True,
+            "is_inactive": False,
+            "display_value": "",
             "show_progress_stroke": True,
+            "record_label": "7🏆/10🏓",
         },
         {
             "label": "Últimos 20",
@@ -375,13 +422,21 @@ def test_player_detail_trend_windows_use_available_matches_and_round_percent(cli
             "losses": 5,
             "matches": 12,
             "win_rate_percent": 58,
+            "is_eligible": True,
+            "is_inactive": False,
+            "display_value": "",
             "show_progress_stroke": True,
+            "record_label": "7🏆/12🏓",
         },
     ]
     content = response.content.decode("utf-8")
     assert count_trend_wheels(content) == 15
     assert "Total" not in content
     assert "Últimos 20" in content
+    assert "4🏆/5🏓" in content
+    assert "7🏆/10🏓" in content
+    assert "7🏆/12🏓" in content
+    assert "circular-progress-primary" in content
     assert 'aria-valuenow="80"' in content
     assert 'aria-valuenow="70"' in content
     assert 'aria-valuenow="58"' in content
@@ -407,12 +462,18 @@ def test_player_detail_trend_wheels_mute_duplicate_result_windows(client):
 
     response = client.get(reverse("player_detail", args=[player.id]))
     content = response.content.decode("utf-8")
+    css = Path("paddle/frontend/static/frontend/css/styles.css").read_text()
     insights = response.context["player_insights"]
 
     assert response.status_code == 200
     assert [row["show_progress_stroke"] for row in insights["trend_rows"]] == [True, False, False]
+    assert [row["is_eligible"] for row in insights["trend_rows"]] == [True, False, False]
+    assert [row["is_inactive"] for row in insights["trend_rows"]] == [False, True, True]
+    assert [row["display_value"] for row in insights["trend_rows"]] == ["", "--%", "--%"]
     assert count_trend_wheels(content) == 15
     assert [row["win_rate_percent"] for row in insights["trend_rows"]] == [40, 40, 40]
+    assert content.count("player-efficiency-card-disabled") >= 2
+    assert "--%" in content
 
 
 def test_player_detail_partial_history_marks_total_duplicate_of_last_10(client):
@@ -442,7 +503,11 @@ def test_player_detail_partial_history_marks_total_duplicate_of_last_10(client):
     assert insights["trend_rows"][1]["win_rate_percent"] == 62
     assert insights["trend_rows"][2]["win_rate_percent"] == 62
     assert [row["show_progress_stroke"] for row in insights["trend_rows"]] == [True, True, False]
+    assert [row["is_eligible"] for row in insights["trend_rows"]] == [True, True, False]
+    assert [row["is_inactive"] for row in insights["trend_rows"]] == [False, False, True]
+    assert [row["display_value"] for row in insights["trend_rows"]] == ["", "", "--%"]
     assert count_trend_wheels(content) == 15
+    assert "--%" in content
 
 
 def test_player_detail_efficiency_scopes_use_gender_and_mixed_matches(client):
@@ -531,6 +596,15 @@ def test_player_detail_efficiency_gender_labels_and_unknown_fallback(client):
     assert unknown_response.status_code == 200
     assert [scope["label"] for scope in female_scopes] == ["Todos", "Fem.", "Mixtos"]
     assert [scope["label"] for scope in unknown_scopes] == ["Todos", "Categoría", "Mixtos"]
+    assert [scope["style_class"] for scope in unknown_scopes] == [
+        "player-scope-primary",
+        "player-scope-success",
+        "player-scope-warning",
+    ]
+    assert [row["style_class"] for row in unknown_response.context["scope_rows"]] == [
+        "player-scope-primary",
+        "player-scope-warning",
+    ]
     assert scope_by_key(unknown_response.context["player_insights"], "gender")["selector"][
         "win_rate_percent"
     ] == 0
@@ -620,9 +694,11 @@ def test_player_detail_partner_and_rivals_tiebreakers_and_clickable_links(client
             "color_class": "bg-primary",
             "progress_color_class": "circular-progress-primary",
             "win_rate_percent": 60,
+            "display_value": "",
             "record_label": "3🏆/5🏓",
             "show_progress_stroke": True,
             "is_placeholder": False,
+            "is_inactive": False,
             "aria_label": "Efectividad con Partner A: 60%",
         },
         {
@@ -631,9 +707,11 @@ def test_player_detail_partner_and_rivals_tiebreakers_and_clickable_links(client
             "color_class": "bg-success",
             "progress_color_class": "circular-progress-success",
             "win_rate_percent": 67,
+            "display_value": "",
             "record_label": "2🏆/3🏓",
             "show_progress_stroke": True,
             "is_placeholder": False,
+            "is_inactive": False,
             "aria_label": "Efectividad con Partner B: 67%",
         },
         {
@@ -642,9 +720,11 @@ def test_player_detail_partner_and_rivals_tiebreakers_and_clickable_links(client
             "color_class": "bg-warning",
             "progress_color_class": "circular-progress-warning",
             "win_rate_percent": 50,
+            "display_value": "",
             "record_label": "1🏆/2🏓",
             "show_progress_stroke": True,
             "is_placeholder": False,
+            "is_inactive": False,
             "aria_label": "Efectividad con Partner C: 50%",
         },
     ]
@@ -703,7 +783,7 @@ def test_player_detail_partner_and_rivals_tiebreakers_and_clickable_links(client
     assert "circular-progress-warning" in content
     assert "Otros" not in content
     assert "player-partner-legend\">" not in content
-    assert content.count("player-partner-legend-item") == 3
+    assert content.count("player-partner-legend-item") >= 3
     assert '<span class="text-muted">50%</span>' not in content
     assert '<span class="text-muted">30%</span>' not in content
     assert '<span class="text-muted">20%</span>' not in content
@@ -750,6 +830,7 @@ def test_player_detail_shows_only_available_partner_rows_when_fewer_than_three(c
 
     response = client.get(reverse("player_detail", args=[player.id]))
     content = response.content.decode("utf-8")
+    css = Path("paddle/frontend/static/frontend/css/styles.css").read_text()
     insights = response.context["player_insights"]
 
     assert response.status_code == 200
@@ -773,17 +854,31 @@ def test_player_detail_shows_only_available_partner_rows_when_fewer_than_three(c
         False,
         True,
     ]
+    assert [row["is_inactive"] for row in insights["partner_efficiency_cards"]] == [
+        False,
+        False,
+        True,
+    ]
+    assert [row["display_value"] for row in insights["partner_efficiency_cards"]] == [
+        "",
+        "",
+        "--%",
+    ]
     assert "progress-stacked player-partner-progress" in content
     assert 'aria-label="Few Partner A: 50% de partidos"' in content
     assert 'aria-label="Few Partner B: 50% de partidos"' in content
     assert 'aria-label="Efectividad con Few Partner A: 100%"' in content
     assert 'aria-label="Efectividad con Few Partner B: 0%"' in content
-    assert 'aria-label="Efectividad sin datos: 0%"' in content
+    assert 'aria-label="Efectividad sin datos: sin porcentaje"' in content
     assert "1🏆/1🏓" in content
     assert "0🏆/1🏓" in content
     assert "0🏆/0🏓" in content
+    assert "--%" in content
     assert '<div class="player-partner-record text-muted" aria-hidden="true"></div>' not in content
     assert "player-partner-card-empty" in content
+    assert "player-efficiency-card-disabled" in content
+    assert "player-partner-card-empty.player-efficiency-card-disabled" in css
+    assert ".player-partner-card-empty.player-efficiency-card-disabled {\n  border-color: var(--bs-border-color);\n  background-color: var(--bs-secondary-bg);" in css
     assert '<a href="" class="card h-100 player-trend-card player-partner-card' not in content
     assert '<a class="card h-100 player-trend-card player-partner-card player-partner-card-empty' not in content
     assert content.count('class="card h-100 player-trend-card player-partner-card') == 3

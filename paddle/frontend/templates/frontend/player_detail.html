@@ -14,7 +14,8 @@
   </div>
 </div>
 
-<h4 class="mb-2">Posición en los rankings</h4>
+<h4 class="mb-2">Rankings</h4>
+<div class="player-partner-metric-label text-muted">Posición</div>
 <div class="player-ranking-progress-list mb-3">
   {% for row in scope_rows %}
     {% if row.href %}
@@ -34,7 +35,7 @@
         aria-valuenow="{{ row.progress_percent }}"
         style="--player-ranking-progress-percent: {{ row.progress_percent }}%;">
         {% if row.scoped_player %}
-          <div class="progress-bar bg-success" style="width: {{ row.progress_percent }}%;"></div>
+          <div class="progress-bar {{ row.color_class }}" style="width: {{ row.progress_percent }}%;"></div>
         {% endif %}
         <div class="player-ranking-bar-labels player-ranking-bar-labels-track">
           <span class="player-ranking-scope">{{ row.label }}</span>
@@ -53,22 +54,27 @@
   {% endfor %}
 </div>
 
-<h4 class="mb-2">Eficacia</h4>
 <div class="mb-4 player-efficiency-block">
+  <div class="player-partner-metric-label text-muted">Eficacia por ranking</div>
   <div class="row g-2 mb-2 player-trend-cards player-efficiency-selector-row" role="group" aria-label="Filtro de eficacia">
     {% for scope in player_insights.efficiency_scopes %}
       <div class="col-4">
         <button
           type="button"
-          class="card h-100 w-100 player-trend-card player-efficiency-card player-efficiency-selector-card{% if forloop.first %} player-efficiency-selector-card-active{% endif %}"
+          class="card h-100 w-100 player-trend-card player-efficiency-card player-efficiency-selector-card {{ scope.style_class }}{% if scope.selector.is_inactive %} player-efficiency-card-disabled{% endif %}{% if forloop.first %} player-efficiency-selector-card-active{% endif %}"
           data-efficiency-scope="{{ scope.key }}"
-          aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}">
+          aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"
+          {% if scope.selector.is_inactive %}aria-disabled="true"{% endif %}>
           <div class="card-body text-center">
             <div class="player-efficiency-action-row">
               <span class="player-efficiency-action">Ver</span>
             </div>
-            <div class="card-title player-trend-title">{{ scope.label }}</div>
-            {% include "frontend/_circular_progress.html" with value=scope.selector.win_rate_percent label=scope.label show_progress_stroke=scope.selector.show_progress_stroke %}
+            <div class="player-partner-legend-item player-partner-card-title">
+              <span class="player-partner-swatch {{ scope.color_class }}" aria-hidden="true"></span>
+              <span class="player-partner-name">{{ scope.label }}</span>
+            </div>
+            <div class="player-partner-record text-muted">{{ scope.selector.record_label }}</div>
+            {% include "frontend/_circular_progress.html" with value=scope.selector.win_rate_percent display_value=scope.selector.display_value label=scope.label show_progress_stroke=scope.selector.show_progress_stroke progress_color_class=scope.progress_color_class %}
           </div>
         </button>
       </div>
@@ -81,10 +87,14 @@
       data-efficiency-trends="{{ scope.key }}">
       {% for row in scope.trend_rows %}
         <div class="col-4">
-          <div class="card h-100 player-trend-card player-efficiency-card player-efficiency-trend-card">
+          <div class="card h-100 player-trend-card player-efficiency-card player-efficiency-trend-card {{ scope.style_class }}{% if row.is_inactive %} player-efficiency-card-disabled{% endif %}">
             <div class="card-body text-center">
-              <div class="card-title player-trend-title">{{ row.label }}</div>
-              {% include "frontend/_circular_progress.html" with value=row.win_rate_percent label=row.label show_progress_stroke=row.show_progress_stroke %}
+              <div class="player-partner-legend-item player-partner-card-title">
+                <span class="player-partner-swatch {{ scope.color_class }}" aria-hidden="true"></span>
+                <span class="player-partner-name">{{ row.label }}</span>
+              </div>
+              <div class="player-partner-record text-muted">{{ row.record_label }}</div>
+              {% include "frontend/_circular_progress.html" with value=row.win_rate_percent display_value=row.display_value label=row.label show_progress_stroke=row.show_progress_stroke progress_color_class=scope.progress_color_class %}
             </div>
           </div>
         </div>
@@ -127,18 +137,18 @@
                   <span class="player-partner-name">{{ row.label }}</span>
                 </div>
                 <div class="player-partner-record text-muted">{{ row.record_label }}</div>
-                {% include "frontend/_circular_progress.html" with value=row.win_rate_percent label=row.label show_progress_stroke=row.show_progress_stroke progress_color_class=row.progress_color_class aria_label=row.aria_label %}
+                {% include "frontend/_circular_progress.html" with value=row.win_rate_percent display_value=row.display_value label=row.label show_progress_stroke=row.show_progress_stroke progress_color_class=row.progress_color_class aria_label=row.aria_label %}
               </div>
             </a>
           {% else %}
-            <div class="card h-100 player-trend-card player-partner-card player-partner-card-empty">
+            <div class="card h-100 player-trend-card player-partner-card player-partner-card-empty{% if row.is_inactive %} player-efficiency-card-disabled{% endif %}">
               <div class="card-body text-center">
                 <div class="player-partner-legend-item player-partner-card-title">
                   <span class="player-partner-swatch player-partner-swatch-empty" aria-hidden="true"></span>
                   <span class="player-partner-name text-muted">{{ row.label }}</span>
                 </div>
                 <div class="player-partner-record text-muted">{{ row.record_label }}</div>
-                {% include "frontend/_circular_progress.html" with value=row.win_rate_percent label=row.label show_progress_stroke=row.show_progress_stroke progress_color_class=row.progress_color_class aria_label=row.aria_label %}
+                {% include "frontend/_circular_progress.html" with value=row.win_rate_percent display_value=row.display_value label=row.label show_progress_stroke=row.show_progress_stroke progress_color_class=row.progress_color_class aria_label=row.aria_label %}
               </div>
             </div>
           {% endif %}

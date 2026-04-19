@@ -38,6 +38,10 @@ Rules:
 - No speculative refactors, renames, moves, or unrelated formatting changes.
 - Backend owns business logic; templates render only.
 - No frontend ranking logic.
+- Reuse existing presentation classes/components before adding parallel styling
+  when sections should look or behave alike.
+- When a shared state class must override a component base class, account for
+  CSS cascade order with a colocated combined selector.
 - UI text in Spanish.
 - Code, comments, docs, and specs in English.
 - Keep deprecated API/DRF policy centralized in governance; restate it in specs
