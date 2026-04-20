@@ -199,6 +199,43 @@ def _build_efficiency_scopes(player, match_results: list[dict]) -> list[dict]:
     return scopes
 
 
+def _build_recent_form_chart(match_results: list[dict]) -> dict:
+    recent_results = list(reversed(match_results[:10]))
+    points = [{"x": 0, "y": 0}]
+    cumulative_balance = 0
+    wins = 0
+    losses = 0
+
+    for index, row in enumerate(recent_results, start=1):
+        if row["is_win"]:
+            cumulative_balance += 1
+            wins += 1
+        else:
+            cumulative_balance -= 1
+            losses += 1
+        points.append({"x": index, "y": cumulative_balance})
+
+    match_count = len(recent_results)
+    axis_limit = max(1, max(abs(point["y"]) for point in points))
+    balance_label = f"{cumulative_balance:+d}" if cumulative_balance else "0"
+    return {
+        "x_axis_min": 0,
+        "x_axis_max": 10,
+        "y_axis_min": -axis_limit,
+        "y_axis_max": axis_limit,
+        "match_count": match_count,
+        "wins": wins,
+        "losses": losses,
+        "balance": cumulative_balance,
+        "record_label": f"Balance = {wins}🏆 - {losses}🌴 = {balance_label}",
+        "empty_label": "Sin partidos",
+        "aria_label": (
+            f"Últimos partidos: balance {balance_label} en {match_count} partidos"
+        ),
+        "points": points,
+    }
+
+
 def _compute_display_percents(rows, total_matches):
     if total_matches <= 0:
         return []
@@ -443,6 +480,7 @@ def build_player_insights(player):
 
     return {
         "efficiency_scopes": efficiency_scopes,
+        "recent_form_chart": _build_recent_form_chart(match_results),
         "trend_rows": trend_rows,
         "top_partners": partner_rows[:3],
         "partner_distribution": _build_partner_distribution(partner_rows),

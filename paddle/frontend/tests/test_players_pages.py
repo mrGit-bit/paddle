@@ -267,6 +267,19 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
 
     assert response.status_code == 200
     assert "Rankings" in content
+    assert "Últimos partidos" in content
+    assert "Balance acumulado" in content
+    assert "Balance = 0🏆 - 0🌴 = 0" in content
+    assert "recent-form-chart-data" in content
+    assert "buildSmoothPathData" in content
+    assert "buildAreaPathData" in content
+    assert "var(--bs-success)" in content
+    assert "var(--bs-danger-bg-subtle)" in content
+    assert "recent-form-positive-clip" in content
+    assert "recent-form-negative-clip" in content
+    assert "createSvgElement(\"circle\"" not in content
+    assert "Balance positivo: más victorias que derrotas" not in content
+    assert "Balance negativo: más derrotas que victorias" not in content
     assert "Posición" in content
     assert "Posición en los rankings" not in content
     assert "Eficacia por ranking" in content
@@ -274,6 +287,20 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
     assert "Sin datos" in content
     assert "Sin partidos" in content
     assert insights["top_partners"] == []
+    assert insights["recent_form_chart"] == {
+        "x_axis_min": 0,
+        "x_axis_max": 10,
+        "y_axis_min": -1,
+        "y_axis_max": 1,
+        "match_count": 0,
+        "wins": 0,
+        "losses": 0,
+        "balance": 0,
+        "record_label": "Balance = 0🏆 - 0🌴 = 0",
+        "empty_label": "Sin partidos",
+        "aria_label": "Últimos partidos: balance 0 en 0 partidos",
+        "points": [{"x": 0, "y": 0}],
+    }
     assert insights["partner_distribution"] == []
     assert insights["partner_efficiency_cards"] == []
     assert insights["top_rivals"] == []
@@ -349,6 +376,115 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
     assert "player-efficiency-card text-bg-success" not in content
     assert 'aria-valuenow="0"' in content
     assert "player-trend-meta" not in content
+
+
+def test_player_detail_recent_form_chart_uses_available_matches_in_oldest_first_order(client):
+    player = Player.objects.create(name="Recent Partial", gender=Player.GENDER_MALE)
+    partner = Player.objects.create(name="Recent Partner", gender=Player.GENDER_MALE)
+    rival_1 = Player.objects.create(name="Recent Rival 1", gender=Player.GENDER_MALE)
+    rival_2 = Player.objects.create(name="Recent Rival 2", gender=Player.GENDER_MALE)
+
+    results = [False, True, True, False]
+    for index, won in enumerate(results, start=1):
+        player_on_team1 = index % 2 == 1
+        winning_team = 1 if (won and player_on_team1) or (not won and not player_on_team1) else 2
+        create_match(
+            player,
+            partner,
+            rival_1,
+            rival_2,
+            winning_team=winning_team,
+            played_on=date(2026, 2, index),
+            player_on_team1=player_on_team1,
+        )
+
+    response = client.get(reverse("player_detail", args=[player.id]))
+    chart = response.context["player_insights"]["recent_form_chart"]
+
+    assert response.status_code == 200
+    assert chart == {
+        "x_axis_min": 0,
+        "x_axis_max": 10,
+        "y_axis_min": -1,
+        "y_axis_max": 1,
+        "match_count": 4,
+        "wins": 2,
+        "losses": 2,
+        "balance": 0,
+        "record_label": "Balance = 2🏆 - 2🌴 = 0",
+        "empty_label": "Sin partidos",
+        "aria_label": "Últimos partidos: balance 0 en 4 partidos",
+        "points": [
+            {"x": 0, "y": 0},
+            {"x": 1, "y": -1},
+            {"x": 2, "y": 0},
+            {"x": 3, "y": 1},
+            {"x": 4, "y": 0},
+        ],
+    }
+
+
+def test_player_detail_recent_form_chart_uses_latest_ten_matches_only(client):
+    player = Player.objects.create(name="Recent Latest Ten", gender=Player.GENDER_MALE)
+    partner = Player.objects.create(name="Recent Latest Partner", gender=Player.GENDER_MALE)
+    rival_1 = Player.objects.create(name="Recent Latest Rival 1", gender=Player.GENDER_MALE)
+    rival_2 = Player.objects.create(name="Recent Latest Rival 2", gender=Player.GENDER_MALE)
+
+    results_by_day = {
+        1: False,
+        2: False,
+        3: True,
+        4: True,
+        5: False,
+        6: True,
+        7: False,
+        8: True,
+        9: True,
+        10: False,
+        11: True,
+        12: True,
+    }
+
+    for day in range(1, 13):
+        won = results_by_day[day]
+        create_match(
+            player,
+            partner,
+            rival_1,
+            rival_2,
+            winning_team=1 if won else 2,
+            played_on=date(2026, 3, day),
+        )
+
+    response = client.get(reverse("player_detail", args=[player.id]))
+    content = response.content.decode("utf-8")
+    chart = response.context["player_insights"]["recent_form_chart"]
+
+    assert response.status_code == 200
+    assert chart["x_axis_min"] == 0
+    assert chart["x_axis_max"] == 10
+    assert chart["y_axis_min"] == -4
+    assert chart["y_axis_max"] == 4
+    assert chart["match_count"] == 10
+    assert chart["wins"] == 7
+    assert chart["losses"] == 3
+    assert chart["balance"] == 4
+    assert chart["record_label"] == "Balance = 7🏆 - 3🌴 = +4"
+    assert chart["points"] == [
+        {"x": 0, "y": 0},
+        {"x": 1, "y": 1},
+        {"x": 2, "y": 2},
+        {"x": 3, "y": 1},
+        {"x": 4, "y": 2},
+        {"x": 5, "y": 1},
+        {"x": 6, "y": 2},
+        {"x": 7, "y": 3},
+        {"x": 8, "y": 2},
+        {"x": 9, "y": 3},
+        {"x": 10, "y": 4},
+    ]
+    assert "Últimos partidos" in content
+    assert "Balance = 7🏆 - 3🌴 = +4" in content
 
 
 def test_player_detail_trend_windows_use_available_matches_and_round_percent(client):

@@ -12,6 +12,8 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `UI/UX`: Added a player detail `Últimos partidos` chart showing cumulative
+  win/loss balance across the last ten matches.
 - `UI/UX`: Player detail rankings now group position and efficiency with
   scoped color legends, compact win/match records, and inactive empty-history
   wheels.

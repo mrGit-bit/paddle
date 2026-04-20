@@ -103,6 +103,26 @@
   {% endfor %}
 </div>
 
+<h4 class="mb-2">Últimos partidos</h4>
+<div class="mb-4">
+  <div class="player-partner-metric-label text-muted">Balance acumulado</div>
+  <div class="border rounded p-3">
+    <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-2">
+      <span class="text-muted small">Últimos 10</span>
+      <span class="player-partner-record text-muted mb-0">{{ player_insights.recent_form_chart.record_label }}</span>
+    </div>
+    <div
+      data-recent-form-chart
+      class="w-100"
+      role="img"
+      aria-label="{{ player_insights.recent_form_chart.aria_label }}">
+    </div>
+    {% if player_insights.recent_form_chart.match_count == 0 %}
+      <p class="text-center text-muted mb-0">{{ player_insights.recent_form_chart.empty_label }}</p>
+    {% endif %}
+  </div>
+</div>
+
 <h4 class="mb-2">Pareja habitual</h4>
 <div class="mb-3">
   {% if player_insights.partner_distribution %}
@@ -258,6 +278,239 @@
           selectScope(button.dataset.efficiencyScope);
         });
       });
+    });
+  </script>
+  {{ player_insights.recent_form_chart|json_script:"recent-form-chart-data" }}
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const dataElement = document.getElementById("recent-form-chart-data");
+      const chartElement = document.querySelector("[data-recent-form-chart]");
+      if (!dataElement || !chartElement) return;
+
+      const chartData = JSON.parse(dataElement.textContent);
+      const svgNamespace = "http://www.w3.org/2000/svg";
+      const width = 360;
+      const height = 190;
+      const margin = { top: 16, right: 16, bottom: 34, left: 38 };
+      const plotWidth = width - margin.left - margin.right;
+      const plotHeight = height - margin.top - margin.bottom;
+      const yAxisLimit = chartData.y_axis_max;
+
+      function createSvgElement(tagName, attributes) {
+        const element = document.createElementNS(svgNamespace, tagName);
+        Object.entries(attributes).forEach(function ([name, value]) {
+          element.setAttribute(name, value);
+        });
+        return element;
+      }
+
+      function scaleX(value) {
+        const axisSpan = chartData.x_axis_max - chartData.x_axis_min;
+        return margin.left + ((value - chartData.x_axis_min) / axisSpan) * plotWidth;
+      }
+
+      function scaleY(value) {
+        return margin.top + plotHeight - ((value + yAxisLimit) / (yAxisLimit * 2)) * plotHeight;
+      }
+
+      function addText(svg, text, x, y, attributes) {
+        const textElement = createSvgElement("text", {
+          x: x,
+          y: y,
+          fill: "currentColor",
+          "font-size": "11",
+          "text-anchor": "middle",
+        });
+        Object.entries(attributes).forEach(function ([name, value]) {
+          textElement.setAttribute(name, value);
+        });
+        textElement.textContent = text;
+        svg.appendChild(textElement);
+      }
+
+      function formatPoint(point) {
+        return `${point.x.toFixed(2)} ${point.y.toFixed(2)}`;
+      }
+
+      function clamp(value, lowerBound, upperBound) {
+        return Math.max(lowerBound, Math.min(upperBound, value));
+      }
+
+      function buildSmoothPathData(scaledPoints) {
+        if (scaledPoints.length === 1) {
+          return `M ${formatPoint(scaledPoints[0])}`;
+        }
+
+        if (scaledPoints.length === 2) {
+          return `M ${formatPoint(scaledPoints[0])} L ${formatPoint(scaledPoints[1])}`;
+        }
+
+        const smoothing = 0.18;
+        const segments = [`M ${formatPoint(scaledPoints[0])}`];
+
+        for (let index = 0; index < scaledPoints.length - 1; index += 1) {
+          const current = scaledPoints[index];
+          const next = scaledPoints[index + 1];
+          const previous = scaledPoints[index - 1] || current;
+          const following = scaledPoints[index + 2] || next;
+          const minSegmentY = Math.min(current.y, next.y);
+          const maxSegmentY = Math.max(current.y, next.y);
+          const controlOne = {
+            x: current.x + (next.x - previous.x) * smoothing,
+            y: clamp(
+              current.y + (next.y - previous.y) * smoothing,
+              minSegmentY,
+              maxSegmentY
+            ),
+          };
+          const controlTwo = {
+            x: next.x - (following.x - current.x) * smoothing,
+            y: clamp(
+              next.y - (following.y - current.y) * smoothing,
+              minSegmentY,
+              maxSegmentY
+            ),
+          };
+          segments.push(
+            `C ${formatPoint(controlOne)}, ${formatPoint(controlTwo)}, ${formatPoint(next)}`
+          );
+        }
+
+        return segments.join(" ");
+      }
+
+      function buildAreaPathData(scaledPoints, baselineY) {
+        const curvePath = buildSmoothPathData(scaledPoints);
+        const first = scaledPoints[0];
+        const last = scaledPoints[scaledPoints.length - 1];
+        return `${curvePath} L ${last.x.toFixed(2)} ${baselineY.toFixed(2)} L ${first.x.toFixed(2)} ${baselineY.toFixed(2)} Z`;
+      }
+
+      const svg = createSvgElement("svg", {
+        viewBox: `0 0 ${width} ${height}`,
+        class: "d-block w-100 text-muted",
+        role: "img",
+        "aria-label": chartData.aria_label,
+      });
+
+      const axisColor = "var(--bs-border-color)";
+      const lineColor = "var(--bs-primary)";
+      const originX = scaleX(chartData.x_axis_min);
+      const zeroY = scaleY(0);
+      const maxX = scaleX(chartData.x_axis_max);
+      const topY = margin.top;
+      const bottomY = margin.top + plotHeight;
+      const scaledPoints = chartData.points.map(function (point) {
+        return {
+          x: scaleX(point.x),
+          y: scaleY(point.y),
+        };
+      });
+      const areaPathData = buildAreaPathData(scaledPoints, zeroY);
+      const positiveClipId = "recent-form-positive-clip";
+      const negativeClipId = "recent-form-negative-clip";
+
+      const defs = createSvgElement("defs", {});
+      const positiveClipPath = createSvgElement("clipPath", { id: positiveClipId });
+      positiveClipPath.appendChild(createSvgElement("rect", {
+        x: originX,
+        y: topY,
+        width: plotWidth,
+        height: zeroY - topY,
+      }));
+      const negativeClipPath = createSvgElement("clipPath", { id: negativeClipId });
+      negativeClipPath.appendChild(createSvgElement("rect", {
+        x: originX,
+        y: zeroY,
+        width: plotWidth,
+        height: bottomY - zeroY,
+      }));
+      defs.appendChild(positiveClipPath);
+      defs.appendChild(negativeClipPath);
+      svg.appendChild(defs);
+
+      svg.appendChild(createSvgElement("path", {
+        d: areaPathData,
+        fill: "var(--bs-success)",
+        opacity: "0.18",
+        "clip-path": `url(#${positiveClipId})`,
+      }));
+      svg.appendChild(createSvgElement("path", {
+        d: areaPathData,
+        fill: "var(--bs-danger-bg-subtle)",
+        opacity: "0.85",
+        "clip-path": `url(#${negativeClipId})`,
+      }));
+
+      svg.appendChild(createSvgElement("line", {
+        x1: originX,
+        y1: zeroY,
+        x2: maxX,
+        y2: zeroY,
+        stroke: lineColor,
+        "stroke-width": "1.5",
+      }));
+      svg.appendChild(createSvgElement("line", {
+        x1: originX,
+        y1: topY,
+        x2: originX,
+        y2: bottomY,
+        stroke: axisColor,
+        "stroke-width": "1",
+      }));
+      svg.appendChild(createSvgElement("line", {
+        x1: originX,
+        y1: topY,
+        x2: maxX,
+        y2: topY,
+        stroke: axisColor,
+        "stroke-width": "1",
+        "stroke-dasharray": "4 4",
+      }));
+      svg.appendChild(createSvgElement("line", {
+        x1: originX,
+        y1: bottomY,
+        x2: maxX,
+        y2: bottomY,
+        stroke: axisColor,
+        "stroke-width": "1",
+        "stroke-dasharray": "4 4",
+      }));
+
+      [0, 5, 10].forEach(function (tick) {
+        const x = scaleX(tick);
+        svg.appendChild(createSvgElement("line", {
+          x1: x,
+          y1: zeroY,
+          x2: x,
+          y2: zeroY + 4,
+          stroke: axisColor,
+          "stroke-width": "1",
+        }));
+        addText(svg, String(tick), x, bottomY + 18, {});
+      });
+
+      addText(
+        svg,
+        String(chartData.y_axis_min),
+        originX - 16,
+        bottomY + 4,
+        { "text-anchor": "end" }
+      );
+      addText(svg, "0", originX - 16, zeroY + 4, { "text-anchor": "end" });
+      addText(
+        svg,
+        String(chartData.y_axis_max),
+        originX - 16,
+        topY + 4,
+        { "text-anchor": "end" }
+      );
+      addText(svg, "Partidos", margin.left + plotWidth / 2, height - 4, {});
+      addText(svg, "Balance", 12, margin.top + plotHeight / 2, {
+        transform: `rotate(-90 12 ${margin.top + plotHeight / 2})`,
+      });
+
+      chartElement.replaceChildren(svg);
     });
   </script>
 {% endblock %}
