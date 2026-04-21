@@ -266,6 +266,7 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
     insights = response.context["player_insights"]
 
     assert response.status_code == 200
+    assert '<h4 class="mb-4">Estadísticas</h4>' in content
     assert "Rankings" in content
     assert "Últimos partidos" in content
     assert "Balance acumulado" in content
