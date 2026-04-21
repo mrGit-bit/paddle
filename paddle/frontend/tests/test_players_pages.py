@@ -269,6 +269,18 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
     assert "Rankings" in content
     assert "Últimos partidos" in content
     assert "Balance acumulado" in content
+    for title in [
+        "Rankings",
+        "Últimos partidos",
+        "Pareja habitual",
+        "Parejas rivales frecuentes",
+    ]:
+        assert re.search(
+            rf'<div class="card shadow mb-4">\s*'
+            rf'<div class="card-body">\s*'
+            rf'<h4 class="mb-2">{title}</h4>',
+            content,
+        )
     assert "Balance neutro" in content
     assert "Balance = 0🏆 - 0🌴 = 0" not in content
     assert "recent-form-record-label text-muted small" in content

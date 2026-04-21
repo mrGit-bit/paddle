@@ -12,6 +12,10 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `UI/UX`: Reduced player partner name text to improve fit across player
+  detail insight cards.
+- `UI/UX`: Grouped player detail ranking, recent-match, partner, and rival
+  insight sections into shadowed cards matching match-history cards.
 - `UI/UX`: Replaced the player detail `Últimos partidos` balance formula with
   qualitative balance labels.
 - `UI/UX`: Refreshed player detail frequent rival pairs with stacked frequency

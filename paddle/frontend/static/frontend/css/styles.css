@@ -507,7 +507,7 @@ and replaced by an ellipsis (…) */
 
 .player-partner-card-title .player-partner-name {
   font-family: 'Montserrat', sans-serif;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   line-height: 1.2;
   min-width: 0;
   overflow: hidden;
@@ -527,7 +527,7 @@ and replaced by an ellipsis (…) */
   flex-direction: column;
   gap: 0.1rem;
   font-family: 'Montserrat', sans-serif;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   line-height: 1.2;
 }
 
