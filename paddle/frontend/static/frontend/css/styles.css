@@ -234,6 +234,8 @@ and replaced by an ellipsis (…) */
   cursor: pointer;
   text-align: inherit;
   align-items: stretch;
+  padding: 0;
+  font-family: inherit;
   background-color: var(--bs-body-bg);
   border-color: var(--player-scope-color);
   border-top-width: 0.25rem;

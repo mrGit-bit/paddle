@@ -14,8 +14,8 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [1.9.2] - 2026-04-21
 
-- `UI/UX`: Centered ranking efficiency selector wheels by reusing the shared
-  card body flow and guarding against button cascade alignment.
+- `UI/UX`: Centered ranking efficiency selector wheels by resetting button
+  font and box styles so they reuse the shared card flow.
 - `UI/UX`: Reduced player partner name text to improve fit across player
   detail insight cards.
 - `UI/UX`: Grouped player detail ranking, recent-match, partner, and rival

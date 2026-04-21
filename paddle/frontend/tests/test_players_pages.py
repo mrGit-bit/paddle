@@ -398,7 +398,9 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
         "  appearance: none;\n"
         "  cursor: pointer;\n"
         "  text-align: inherit;\n"
-        "  align-items: stretch;"
+        "  align-items: stretch;\n"
+        "  padding: 0;\n"
+        "  font-family: inherit;"
     ) in css
     assert ".player-efficiency-selector-card .card-body {\n  display: block;\n}" not in css
 
