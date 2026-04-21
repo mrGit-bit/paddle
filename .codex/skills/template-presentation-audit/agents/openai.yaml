@@ -1,0 +1,3 @@
+display_name: Template Presentation Audit
+short_description: Audit a specific Django template for CSS cascade and same-page UI coherence.
+default_prompt: Audit this template's presentation and CSS cascade for computed-style mismatches and same-page visual coherence.

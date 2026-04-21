@@ -16,5 +16,5 @@
         stroke-dasharray="{{ value }}, 100"></circle>
     {% endif %}
   </svg>
-  <span class="circular-progress-label">{{ value }}%</span>
+  <span class="circular-progress-label">{% if display_value %}{{ display_value }}{% else %}{{ value }}%{% endif %}</span>
 </div>

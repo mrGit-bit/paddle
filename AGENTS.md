@@ -1,7 +1,7 @@
 # AGENTS.md — Codex Execution Rules
 
-Instruction Set Version: 2.3.11
-Last Updated: 2026-04-13
+Instruction Set Version: 2.3.12
+Last Updated: 2026-04-19
 
 ## 1. Authority and File Roles
 
@@ -126,10 +126,11 @@ Post-release:
 - After a successful tagged release and back-merge from `main` to `develop`,
   perform pending spec consolidation before starting new SDD work. Use the
   shipped production release as history: consolidate only loose files marked
-  with the shipped `vX.Y.Z`, keep the changelog section light, roll unshipped
-  planned-version work into the next production release that ships it, and
-  create a new loose spec for post-release follow-up instead of extending a
-  shipped file.
+  with the shipped `vX.Y.Z`, fold completed backlog outcomes into the final
+  release-summary wording when relevant, keep the changelog section grouped by
+  stable categories, roll unshipped planned-version work into the next
+  production release that ships it, and create a new loose spec for
+  post-release follow-up instead of extending a shipped file.
 
 ## 4. Handoff Requirements
 
@@ -167,8 +168,9 @@ If the user confirms closure:
 - Reconcile any completed backlog items in `BACKLOG.md` that belong to the
   requested scope by removing them from backlog and ensuring the implemented
   outcome is reflected in `CHANGELOG.md`.
-- Backlog reconciliation is owned by development-cycle closure, not by release
-  automation unless a release workflow explicitly says otherwise.
+- Backlog reconciliation is owned by development-cycle closure. Release
+  consolidation may still use completed backlog wording as source material for
+  the final grouped changelog summary when that wording is available.
 - Keep processing remaining requested-work changes until `git status --short`
   is clean.
 - After closure, suggest next steps if relevant.
@@ -185,6 +187,10 @@ For changed Markdown files:
   categories when a release mixes different kinds of work, for example
   `UI/UX`, `Governance`, `Release`, `Backend`, `Data`, `Mobile`, `Tests`, or
   `Docs`.
+- During release consolidation, merge repetitive same-category changelog notes
+  into a few outcome-focused bullets. Use shipped specs, existing changelog
+  notes, and completed backlog descriptions as source material; do not copy
+  backlog or spec wording verbatim when a compact grouped summary is clearer.
 - Active-work specs should capture only the scope, constraints, and checks
   needed to execute the task.
 - Consolidated release files should be compact provenance records, not embedded
