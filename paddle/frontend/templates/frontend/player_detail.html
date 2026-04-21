@@ -109,7 +109,7 @@
   <div class="border rounded p-3">
     <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-2">
       <span class="text-muted small">Últimos 10</span>
-      <span class="player-partner-record text-muted mb-0">{{ player_insights.recent_form_chart.record_label }}</span>
+      <span class="recent-form-record-label text-muted small">{{ player_insights.recent_form_chart.record_label }}</span>
     </div>
     <div
       data-recent-form-chart
@@ -180,52 +180,55 @@
   {% endif %}
 </div>
   
-<h4 class="mb-2">Rivales frecuentes</h4>  
-<div class="table-responsive mb-3">
-  <table class="table table-striped table-hover">
-    <colgroup>          
-      <col style="width: 40%;">
-      <col style="width: 20%;">
-      <col style="width: 20%;">
-      <col style="width: 20%;">
-    </colgroup>
-    <thead>
-      <tr>
-        <th scope="col">Pareja</th>
-        <th scope="col" class="text-center">🏆-🌴</th>
-        <th scope="col" class="text-center">🏓</th>
-        <th scope="col" class="text-center">🎯</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for row in player_insights.top_rivals %}            
-        <tr class="clickable-row" data-href="{% url 'player_detail' row.player1.id %}">
-          <td>
-            <div>
-              <a href="{% url 'player_detail' row.player1.id %}" class="text-body text-decoration-none">{{ row.player1.name }}</a>
+<h4 class="mb-2">Parejas rivales frecuentes</h4>
+<div class="mb-3">
+  {% if player_insights.rival_distribution %}
+    <div class="player-partner-metric-label text-muted">Frecuencia de partidos</div>
+    <div class="progress-stacked player-partner-progress mb-2">
+      {% for row in player_insights.rival_distribution %}
+        <div
+          class="progress"
+          role="progressbar"
+          aria-label="{{ row.aria_label }}"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="{{ row.display_percent }}"
+          style="width: {{ row.width_percent }}%;">
+          {% if not row.is_empty_segment %}
+            <div class="progress-bar {{ row.color_class }}">
+              {% if row.show_label %}{{ row.display_percent }}%{% endif %}
             </div>
-            <div>
-              <a href="{% url 'player_detail' row.player2.id %}" class="text-body text-decoration-none">{{ row.player2.name }}</a>
-            </div>
-          </td>
-          <td class="text-center">{{ row.wins_vs_pair }}-{{ row.losses_vs_pair }}</td>
-          <td class="text-center">{{ row.encounters }}</td>
-          <td class="text-center">{{ row.win_rate_percent }}%</td>
-        </tr>
-      {% empty %}
-        <tr>
-          <td colspan="4" class="text-center text-muted">Sin datos</td>
-        </tr>
+          {% endif %}
+        </div>
       {% endfor %}
-    </tbody>
-  </table>
-</div>
-
-<!-- Botón de Volver al ranking -->
-<div class="d-flex justify-content-end mb-3">
-  <a href="{% url 'ranking_home' %}#top" class="player-efficiency-action text-decoration-none">
-    <i class="bi bi-arrow-left"></i> Volver al ranking
-  </a>
+    </div>
+    <div class="player-partner-metric-label text-muted">Eficacia ante rivales</div>
+    <div class="row g-2 player-partner-cards">
+      {% for row in player_insights.rival_efficiency_cards %}
+        <div class="col-4">
+          <div class="card h-100 player-trend-card player-partner-card player-rival-card">
+            <div class="card-body text-center">
+              <div class="player-partner-legend-item player-partner-card-title">
+                <span class="player-partner-swatch {{ row.color_class }}" aria-hidden="true"></span>
+                <span class="player-rival-pair-name player-partner-name">
+                  <span class="player-rival-player-row">
+                    <a href="{% url 'player_detail' row.player1.id %}" class="text-body text-decoration-none">{{ row.player1.name }}</a>
+                  </span>
+                  <span class="player-rival-player-row">
+                    <a href="{% url 'player_detail' row.player2.id %}" class="text-body text-decoration-none">{{ row.player2.name }}</a>
+                  </span>
+                </span>
+              </div>
+              <div class="player-partner-record text-muted">{{ row.record_label }}</div>
+              {% include "frontend/_circular_progress.html" with value=row.win_rate_percent display_value=row.display_value label=row.label show_progress_stroke=row.show_progress_stroke progress_color_class=row.progress_color_class aria_label=row.aria_label %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-center text-muted mb-0">Sin datos</p>
+  {% endif %}
 </div>
 
 <h4 class="mb-4" id="player-matches">Partidos jugados</h4>

@@ -516,11 +516,46 @@ and replaced by an ellipsis (…) */
   overflow-wrap: normal;
 }
 
+.player-rival-pair-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-rival-card .player-rival-pair-name {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.player-rival-player-row {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-rival-player-row a {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .player-partner-record {
   margin-top: -0.25rem;
   margin-bottom: 0.5rem;
   font-size: 0.85rem;
   line-height: 1.2;
+}
+
+.recent-form-record-label {
+  margin: 0;
+  line-height: 1.5;
 }
 
 /* Alignments */

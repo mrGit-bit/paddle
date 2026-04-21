@@ -199,6 +199,22 @@ def _build_efficiency_scopes(player, match_results: list[dict]) -> list[dict]:
     return scopes
 
 
+def _format_recent_form_balance_label(balance: int) -> str:
+    if balance >= 5:
+        return "Balance excelente"
+    if balance >= 3:
+        return "Balance muy positivo"
+    if balance >= 1:
+        return "Balance positivo"
+    if balance == 0:
+        return "Balance neutro"
+    if balance <= -5:
+        return "Balance crítico"
+    if balance <= -3:
+        return "Balance muy negativo"
+    return "Balance negativo"
+
+
 def _build_recent_form_chart(match_results: list[dict]) -> dict:
     recent_results = list(reversed(match_results[:10]))
     points = [{"x": 0, "y": 0}]
@@ -227,7 +243,7 @@ def _build_recent_form_chart(match_results: list[dict]) -> dict:
         "wins": wins,
         "losses": losses,
         "balance": cumulative_balance,
-        "record_label": f"Balance = {wins}🏆 - {losses}🌴 = {balance_label}",
+        "record_label": _format_recent_form_balance_label(cumulative_balance),
         "empty_label": "Sin partidos",
         "aria_label": (
             f"Últimos partidos: balance {balance_label} en {match_count} partidos"
@@ -347,6 +363,72 @@ def _build_partner_efficiency_cards(partner_rows):
                 }
             )
 
+    return card_rows
+
+
+def _build_pair_label(player1, player2):
+    return f"{player1.name} / {player2.name}"
+
+
+def _build_rival_distribution(rival_rows):
+    total_matches = sum(row["encounters"] for row in rival_rows)
+    if total_matches <= 0:
+        return []
+
+    distribution_rows = []
+    for index, row in enumerate(rival_rows[:3]):
+        distribution_rows.append(
+            {
+                "label": _build_pair_label(row["player1"], row["player2"]),
+                "player1": row["player1"],
+                "player2": row["player2"],
+                "matches": row["encounters"],
+                "color_class": PARTNER_COLOR_CLASSES[index],
+                "is_empty_segment": False,
+            }
+        )
+
+    other_matches = sum(row["encounters"] for row in rival_rows[3:])
+    if other_matches:
+        distribution_rows.append(
+            {
+                "label": "Otros",
+                "player1": None,
+                "player2": None,
+                "matches": other_matches,
+                "color_class": "",
+                "is_empty_segment": True,
+            }
+        )
+
+    display_percents = _compute_display_percents(distribution_rows, total_matches)
+    for row, display_percent in zip(distribution_rows, display_percents):
+        row["display_percent"] = display_percent
+        row["width_percent"] = _format_css_percent((row["matches"] / total_matches) * 100)
+        row["show_label"] = display_percent >= 10
+        row["aria_label"] = f"{row['label']}: {display_percent}% de partidos ante rivales"
+
+    return distribution_rows
+
+
+def _build_rival_efficiency_cards(rival_rows):
+    card_rows = []
+    for index, row in enumerate(rival_rows[:3]):
+        label = _build_pair_label(row["player1"], row["player2"])
+        card_rows.append(
+            {
+                "label": label,
+                "player1": row["player1"],
+                "player2": row["player2"],
+                "color_class": PARTNER_COLOR_CLASSES[index],
+                "progress_color_class": PARTNER_PROGRESS_COLOR_CLASSES[index],
+                "win_rate_percent": row["win_rate_percent"],
+                "display_value": "",
+                "record_label": f"{row['wins_vs_pair']}🏆/{row['encounters']}🏓",
+                "show_progress_stroke": row["encounters"] > 0,
+                "aria_label": f"Efectividad ante {label}: {row['win_rate_percent']}%",
+            }
+        )
     return card_rows
 
 
@@ -485,6 +567,8 @@ def build_player_insights(player):
         "top_partners": partner_rows[:3],
         "partner_distribution": _build_partner_distribution(partner_rows),
         "partner_efficiency_cards": _build_partner_efficiency_cards(partner_rows),
+        "rival_distribution": _build_rival_distribution(rival_rows),
+        "rival_efficiency_cards": _build_rival_efficiency_cards(rival_rows),
         "top_rivals": rival_rows[:3],
     }
 

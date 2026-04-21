@@ -12,6 +12,10 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `UI/UX`: Replaced the player detail `Últimos partidos` balance formula with
+  qualitative balance labels.
+- `UI/UX`: Refreshed player detail frequent rival pairs with stacked frequency
+  bars and circular efficiency cards.
 - `UI/UX`: Added a player detail `Últimos partidos` chart showing cumulative
   win/loss balance across the last ten matches.
 - `UI/UX`: Player detail rankings now group position and efficiency with
