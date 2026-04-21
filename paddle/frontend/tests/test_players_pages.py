@@ -326,7 +326,7 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
     assert [scope["label"] for scope in insights["efficiency_scopes"]] == ["Todos", "Masc.", "Mixtos"]
     assert insights["trend_rows"] == [
         {
-            "label": "Últimos 5",
+            "label": "5 últimos",
             "wins": 0,
             "losses": 0,
             "matches": 0,
@@ -338,7 +338,7 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
             "record_label": "0🏆/0🏓",
         },
         {
-            "label": "Últimos 10",
+            "label": "10 últimos",
             "wins": 0,
             "losses": 0,
             "matches": 0,
@@ -350,7 +350,7 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
             "record_label": "0🏆/0🏓",
         },
         {
-            "label": "Últimos 20",
+            "label": "20 últimos",
             "wins": 0,
             "losses": 0,
             "matches": 0,
@@ -589,7 +589,7 @@ def test_player_detail_trend_windows_use_available_matches_and_round_percent(cli
     assert response.status_code == 200
     assert insights["trend_rows"] == [
         {
-            "label": "Últimos 5",
+            "label": "5 últimos",
             "wins": 4,
             "losses": 1,
             "matches": 5,
@@ -601,7 +601,7 @@ def test_player_detail_trend_windows_use_available_matches_and_round_percent(cli
             "record_label": "4🏆/5🏓",
         },
         {
-            "label": "Últimos 10",
+            "label": "10 últimos",
             "wins": 7,
             "losses": 3,
             "matches": 10,
@@ -613,7 +613,7 @@ def test_player_detail_trend_windows_use_available_matches_and_round_percent(cli
             "record_label": "7🏆/10🏓",
         },
         {
-            "label": "Últimos 20",
+            "label": "20 últimos",
             "wins": 7,
             "losses": 5,
             "matches": 12,
@@ -628,7 +628,7 @@ def test_player_detail_trend_windows_use_available_matches_and_round_percent(cli
     content = response.content.decode("utf-8")
     assert count_trend_wheels(content) == 16
     assert "Total" not in content
-    assert "Últimos 20" in content
+    assert "20 últimos" in content
     assert "4🏆/5🏓" in content
     assert "7🏆/10🏓" in content
     assert "7🏆/12🏓" in content
@@ -770,9 +770,9 @@ def test_player_detail_efficiency_scopes_use_gender_and_mixed_matches(client):
     assert mixed_scope["selector"]["matches"] == 3
     assert mixed_scope["selector"]["win_rate_percent"] == 67
     assert [row["label"] for row in mixed_scope["trend_rows"]] == [
-        "Últimos 5",
-        "Últimos 10",
-        "Últimos 20",
+        "5 últimos",
+        "10 últimos",
+        "20 últimos",
     ]
     assert mixed_scope["trend_rows"][0]["matches"] == 3
     assert mixed_scope["trend_rows"][0]["win_rate_percent"] == 67

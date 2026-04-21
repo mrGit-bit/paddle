@@ -145,9 +145,9 @@ def _build_efficiency_scope(scope_key: str, label: str, match_results: list[dict
     selector_row["record_label"] = f"{selector_row['wins']}🏆/{selector_row['matches']}🏓"
 
     trend_rows = [
-        _build_efficiency_result_row("Últimos 5", results[:5]),
-        _build_efficiency_result_row("Últimos 10", results[:10]),
-        _build_efficiency_result_row("Últimos 20", results[:20]),
+        _build_efficiency_result_row("5 últimos", results[:5]),
+        _build_efficiency_result_row("10 últimos", results[:10]),
+        _build_efficiency_result_row("20 últimos", results[:20]),
     ]
     total_matches = len(results)
     for row, minimum_matches in zip(trend_rows, [1, 6, 11]):

@@ -14,6 +14,8 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [1.9.2] - 2026-04-21
 
+- `UI/UX`: Reordered ranking efficiency trend labels so the match-window
+  number stays visible on small screens.
 - `UI/UX`: Added an `Estadísticas` heading above the player detail insight
   card group.
 - `UI/UX`: Centered ranking efficiency selector wheels by resetting button
