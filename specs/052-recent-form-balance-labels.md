@@ -4,7 +4,7 @@
 
 - Task ID: `recent-form-balance-labels`
 - Status: `implemented`
-- Release tag: `unreleased`
+- Release tag: `v1.9.2`
 
 ## Summary
 

@@ -4,7 +4,7 @@
 
 - Task ID: `player-detail-ranking-efficiency-colors`
 - Status: `implemented`
-- Release tag: `unreleased`
+- Release tag: `v1.9.2`
 
 ## Summary
 
