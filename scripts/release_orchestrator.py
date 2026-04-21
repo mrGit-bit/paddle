@@ -20,6 +20,7 @@ NO_CHECKS_REPORTED_RE = re.compile(r"no checks reported on the .+ branch", re.IG
 TRACKING_LINE_RE = re.compile(
     r"^- (?P<field>Task ID|Status|Release tag):\s*`(?P<value>[^`]+)`\s*$"
 )
+CATEGORY_PREFIX_RE = re.compile(r"^`(?P<category>[^`]+)`:")
 PENDING_MIGRATION_RE = re.compile(r"^\s*\[\s\]\s+(?P<name>\S+)", re.M)
 SAFE_PRIVATE_KEY_GROUP_OR_WORLD_MASK = 0o077
 DEFAULT_PRIVATE_KEY_MODE = 0o600
@@ -65,6 +66,7 @@ class ReleasePaths:
     prod_key: Path = field(init=False)
     specs_dir: Path = field(init=False)
     changelog: Path = field(init=False)
+    backlog: Path = field(init=False)
     backmerge_script: Path = field(init=False)
 
     def __post_init__(self) -> None:
@@ -74,6 +76,7 @@ class ReleasePaths:
         self.prod_key = private_dir / "production-oracle-key.pem"
         self.specs_dir = self.repo_root / "specs"
         self.changelog = self.repo_root / "CHANGELOG.md"
+        self.backlog = self.repo_root / "BACKLOG.md"
         self.backmerge_script = self.repo_root / "scripts" / "backmerge_main_to_develop.sh"
 
 
@@ -354,6 +357,73 @@ def parse_changelog_section(changelog_text: str, version: str) -> list[str]:
         items.append(current_item)
 
     return items
+
+
+def changelog_category(item: str) -> str:
+    match = CATEGORY_PREFIX_RE.match(item)
+    return match.group("category") if match else "Uncategorized"
+
+
+def summarize_category_counts(items: list[str]) -> list[tuple[str, int]]:
+    counts: dict[str, int] = {}
+    for item in items:
+        category = changelog_category(item)
+        counts[category] = counts.get(category, 0) + 1
+    return sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+
+
+def format_category_counts(items: list[str]) -> str:
+    counts = summarize_category_counts(items)
+    if not counts:
+        return "none"
+    return ", ".join(f"{category} {count}" for category, count in counts)
+
+
+def parse_backlog_requirements(backlog_text: str) -> list[str]:
+    requirements: list[str] = []
+    for line in backlog_text.splitlines():
+        if not line.startswith("| ") or line.startswith("| Requirement ") or line.startswith("| ---"):
+            continue
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if cells and cells[0]:
+            requirements.append(cells[0])
+    return requirements
+
+
+def build_changelog_consolidation_review(
+    version: str,
+    changelog_text: str,
+    consolidated_text: str = "",
+    backlog_text: str = "",
+) -> list[str]:
+    release_items = parse_changelog_section(changelog_text, version)
+    scope_items = parse_markdown_section_items(consolidated_text, "Shipped Scope")
+    backlog_items = parse_backlog_requirements(backlog_text)
+    repeated_categories = [
+        f"{category} ({count})"
+        for category, count in summarize_category_counts(release_items)
+        if count > 3
+    ]
+
+    lines = [
+        f"Changelog consolidation review for {version}:",
+        f"- Release notes: {len(release_items)} bullets; categories: {format_category_counts(release_items)}.",
+        f"- Consolidated shipped scope: {len(scope_items)} bullets available as source material.",
+        f"- Backlog requirements available for comparison: {len(backlog_items)}.",
+    ]
+
+    if repeated_categories:
+        lines.append(
+            "- Action: compress repetitive same-category bullets into grouped outcome summaries: "
+            + ", ".join(repeated_categories)
+            + "."
+        )
+    elif release_items:
+        lines.append("- Action: confirm the release notes are already compact and grouped by category.")
+    else:
+        lines.append("- Action: add compact grouped release notes before finalizing the release.")
+
+    return lines
 
 
 def build_develop_checks(changelog_text: str, version: str) -> list[str]:
@@ -820,6 +890,15 @@ def commit_consolidation(context: ReleaseContext, spec_selection: ReleaseSourceS
         build_consolidated_markdown(context.version, release_date, spec_sources),
         encoding="utf-8",
     )
+    changelog_text = context.paths.changelog.read_text(encoding="utf-8")
+    backlog_text = context.paths.backlog.read_text(encoding="utf-8") if context.paths.backlog.exists() else ""
+    review_lines = build_changelog_consolidation_review(
+        context.version,
+        changelog_text,
+        spec_target.read_text(encoding="utf-8"),
+        backlog_text,
+    )
+    print("\n".join(["", *review_lines, ""]))
 
     for source in spec_sources:
         source.unlink()

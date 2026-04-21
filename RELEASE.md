@@ -161,8 +161,9 @@ truth for the remote deploy steps.
 12. Consolidate only the loose spec files explicitly marked with
     `Release tag: vX.Y.Z` and a closure-complete `Status`
     (`implemented` or `shipped`) into `specs/release-X.Y.Z-consolidated.md`.
-13. Review `CHANGELOG.md` for `## [X.Y.Z]` and keep that section as a simple,
-    light summary of shipped changes.
+13. Review `CHANGELOG.md` for `## [X.Y.Z]` using the shipped specs, existing
+    changelog notes, and any available completed backlog wording, then keep
+    the section as compact grouped category summaries.
 14. Print a human-readable release report.
 
 If the user declines at the staging gate, the command stops after staging and
@@ -182,7 +183,9 @@ If a remote deploy command returns but the host still reports the wrong app
 version, the orchestrator aborts instead of continuing to the next release
 step.
 
-Backlog reconciliation is owned by development-cycle closure, not this command.
+Backlog reconciliation is owned by development-cycle closure. Release
+consolidation only uses completed backlog wording as release-summary source
+material when that wording is still available.
 
 If a planned version never reaches production, do not keep a synthetic release
 record for it. Fold its unshipped specs and changelog notes into the next
@@ -195,8 +198,8 @@ the release flow, mark only the actually shipped loose files with the
 requested `vX.Y.Z`. During release consolidation, the command selects only
 loose specs whose `Release tag` matches and whose `Status` is already
 closure-complete (`implemented` or `shipped`). Also review the release
-changelog section and compress it when needed so release history stays easy to
-scan.
+changelog section and compress repetitive same-category bullets into grouped
+outcome summaries so release history stays easy to scan.
 
 ## Manual Functional Checks
 

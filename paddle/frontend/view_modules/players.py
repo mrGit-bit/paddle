@@ -32,6 +32,20 @@ PARTNER_PROGRESS_COLOR_CLASSES = [
     "circular-progress-success",
     "circular-progress-warning",
 ]
+SCOPE_COLOR_CLASSES = PARTNER_COLOR_CLASSES
+SCOPE_PROGRESS_COLOR_CLASSES = PARTNER_PROGRESS_COLOR_CLASSES
+SCOPE_STYLE_CLASSES = [
+    "player-scope-primary",
+    "player-scope-success",
+    "player-scope-warning",
+]
+SCOPE_CLASS_BY_KEY = {
+    "all": (SCOPE_COLOR_CLASSES[0], SCOPE_PROGRESS_COLOR_CLASSES[0], SCOPE_STYLE_CLASSES[0]),
+    "male": (SCOPE_COLOR_CLASSES[1], SCOPE_PROGRESS_COLOR_CLASSES[1], SCOPE_STYLE_CLASSES[1]),
+    "female": (SCOPE_COLOR_CLASSES[1], SCOPE_PROGRESS_COLOR_CLASSES[1], SCOPE_STYLE_CLASSES[1]),
+    "gender": (SCOPE_COLOR_CLASSES[1], SCOPE_PROGRESS_COLOR_CLASSES[1], SCOPE_STYLE_CLASSES[1]),
+    "mixed": (SCOPE_COLOR_CLASSES[2], SCOPE_PROGRESS_COLOR_CLASSES[2], SCOPE_STYLE_CLASSES[2]),
+}
 
 
 def build_player_matches_queryset(player):
@@ -47,9 +61,19 @@ def _compute_win_rate_percent(wins: int, matches: int) -> int:
     return round((wins / matches) * 100)
 
 
+def _add_scope_classes(row: dict, key: str) -> None:
+    color_class, progress_color_class, style_class = SCOPE_CLASS_BY_KEY[key]
+    row["color_class"] = color_class
+    row["progress_color_class"] = progress_color_class
+    row["style_class"] = style_class
+
+
 def _mark_distinct_trend_progress(trend_rows):
     seen_results = set()
     for row in trend_rows:
+        if not row.get("is_eligible", True):
+            row["show_progress_stroke"] = False
+            continue
         result_key = (row["wins"], row["losses"], row["matches"], row["win_rate_percent"])
         row["show_progress_stroke"] = result_key not in seen_results
         seen_results.add(result_key)
@@ -63,8 +87,9 @@ def _build_ranking_progress_fields(scoped_player, ranking_total: int) -> dict:
             "rank_is_medal": False,
             "ranking_total": 0,
             "progress_percent": 0,
-            "support_text": "Sin datos",
-            "progress_aria_label": "Sin datos de ranking",
+            "support_text": "Sin partidos",
+            "record_label": "0🏆/0🏓",
+            "progress_aria_label": "Sin partidos de ranking",
         }
 
     rank = scoped_player.display_position
@@ -83,6 +108,7 @@ def _build_ranking_progress_fields(scoped_player, ranking_total: int) -> dict:
         "ranking_total": ranking_total,
         "progress_percent": progress_percent,
         "support_text": support_text,
+        "record_label": f"{scoped_player.display_wins}🏆/{scoped_player.display_matches}🏓",
         "progress_aria_label": support_text,
     }
 
@@ -114,13 +140,23 @@ def _build_efficiency_scope(scope_key: str, label: str, match_results: list[dict
     results = [row["is_win"] for row in match_results]
     selector_row = _build_efficiency_result_row(label, results)
     selector_row["show_progress_stroke"] = selector_row["matches"] > 0
+    selector_row["display_value"] = "" if selector_row["matches"] > 0 else "--%"
+    selector_row["is_inactive"] = selector_row["matches"] == 0
+    selector_row["record_label"] = f"{selector_row['wins']}🏆/{selector_row['matches']}🏓"
 
     trend_rows = [
         _build_efficiency_result_row("Últimos 5", results[:5]),
         _build_efficiency_result_row("Últimos 10", results[:10]),
         _build_efficiency_result_row("Últimos 20", results[:20]),
     ]
+    total_matches = len(results)
+    for row, minimum_matches in zip(trend_rows, [1, 6, 11]):
+        row["is_eligible"] = total_matches >= minimum_matches
+        row["is_inactive"] = not row["is_eligible"]
+        row["display_value"] = "" if row["is_eligible"] else "--%"
     _mark_distinct_trend_progress(trend_rows)
+    for row in trend_rows:
+        row["record_label"] = f"{row['wins']}🏆/{row['matches']}🏓"
 
     return {
         "key": scope_key,
@@ -149,7 +185,7 @@ def _build_efficiency_scopes(player, match_results: list[dict]) -> list[dict]:
         else []
     )
 
-    return [
+    scopes = [
         _build_efficiency_scope("all", "Todos", match_results),
         _build_efficiency_scope("gender", gender_label, gender_results),
         _build_efficiency_scope(
@@ -158,6 +194,62 @@ def _build_efficiency_scopes(player, match_results: list[dict]) -> list[dict]:
             [row for row in match_results if row["match_gender_type"] == Match.GENDER_TYPE_MIXED],
         ),
     ]
+    for scope in scopes:
+        _add_scope_classes(scope, scope["key"])
+    return scopes
+
+
+def _format_recent_form_balance_label(balance: int) -> str:
+    if balance >= 5:
+        return "Balance excelente"
+    if balance >= 3:
+        return "Balance muy positivo"
+    if balance >= 1:
+        return "Balance positivo"
+    if balance == 0:
+        return "Balance neutro"
+    if balance <= -5:
+        return "Balance crítico"
+    if balance <= -3:
+        return "Balance muy negativo"
+    return "Balance negativo"
+
+
+def _build_recent_form_chart(match_results: list[dict]) -> dict:
+    recent_results = list(reversed(match_results[:10]))
+    points = [{"x": 0, "y": 0}]
+    cumulative_balance = 0
+    wins = 0
+    losses = 0
+
+    for index, row in enumerate(recent_results, start=1):
+        if row["is_win"]:
+            cumulative_balance += 1
+            wins += 1
+        else:
+            cumulative_balance -= 1
+            losses += 1
+        points.append({"x": index, "y": cumulative_balance})
+
+    match_count = len(recent_results)
+    axis_limit = max(1, max(abs(point["y"]) for point in points))
+    balance_label = f"{cumulative_balance:+d}" if cumulative_balance else "0"
+    return {
+        "x_axis_min": 0,
+        "x_axis_max": 10,
+        "y_axis_min": -axis_limit,
+        "y_axis_max": axis_limit,
+        "match_count": match_count,
+        "wins": wins,
+        "losses": losses,
+        "balance": cumulative_balance,
+        "record_label": _format_recent_form_balance_label(cumulative_balance),
+        "empty_label": "Sin partidos",
+        "aria_label": (
+            f"Últimos partidos: balance {balance_label} en {match_count} partidos"
+        ),
+        "points": points,
+    }
 
 
 def _compute_display_percents(rows, total_matches):
@@ -246,9 +338,11 @@ def _build_partner_efficiency_cards(partner_rows):
                     "color_class": PARTNER_COLOR_CLASSES[index],
                     "progress_color_class": PARTNER_PROGRESS_COLOR_CLASSES[index],
                     "win_rate_percent": row["win_rate_percent"],
+                    "display_value": "",
                     "record_label": f"{row['wins_together']}🏆/{row['matches_together']}🏓",
                     "show_progress_stroke": row["matches_together"] > 0,
                     "is_placeholder": False,
+                    "is_inactive": False,
                     "aria_label": f"Efectividad con {label}: {row['win_rate_percent']}%",
                 }
             )
@@ -260,13 +354,81 @@ def _build_partner_efficiency_cards(partner_rows):
                     "color_class": "",
                     "progress_color_class": "",
                     "win_rate_percent": 0,
+                    "display_value": "--%",
                     "record_label": "0🏆/0🏓",
                     "show_progress_stroke": False,
                     "is_placeholder": True,
-                    "aria_label": "Efectividad sin datos: 0%",
+                    "is_inactive": True,
+                    "aria_label": "Efectividad sin datos: sin porcentaje",
                 }
             )
 
+    return card_rows
+
+
+def _build_pair_label(player1, player2):
+    return f"{player1.name} / {player2.name}"
+
+
+def _build_rival_distribution(rival_rows):
+    total_matches = sum(row["encounters"] for row in rival_rows)
+    if total_matches <= 0:
+        return []
+
+    distribution_rows = []
+    for index, row in enumerate(rival_rows[:3]):
+        distribution_rows.append(
+            {
+                "label": _build_pair_label(row["player1"], row["player2"]),
+                "player1": row["player1"],
+                "player2": row["player2"],
+                "matches": row["encounters"],
+                "color_class": PARTNER_COLOR_CLASSES[index],
+                "is_empty_segment": False,
+            }
+        )
+
+    other_matches = sum(row["encounters"] for row in rival_rows[3:])
+    if other_matches:
+        distribution_rows.append(
+            {
+                "label": "Otros",
+                "player1": None,
+                "player2": None,
+                "matches": other_matches,
+                "color_class": "",
+                "is_empty_segment": True,
+            }
+        )
+
+    display_percents = _compute_display_percents(distribution_rows, total_matches)
+    for row, display_percent in zip(distribution_rows, display_percents):
+        row["display_percent"] = display_percent
+        row["width_percent"] = _format_css_percent((row["matches"] / total_matches) * 100)
+        row["show_label"] = display_percent >= 10
+        row["aria_label"] = f"{row['label']}: {display_percent}% de partidos ante rivales"
+
+    return distribution_rows
+
+
+def _build_rival_efficiency_cards(rival_rows):
+    card_rows = []
+    for index, row in enumerate(rival_rows[:3]):
+        label = _build_pair_label(row["player1"], row["player2"])
+        card_rows.append(
+            {
+                "label": label,
+                "player1": row["player1"],
+                "player2": row["player2"],
+                "color_class": PARTNER_COLOR_CLASSES[index],
+                "progress_color_class": PARTNER_PROGRESS_COLOR_CLASSES[index],
+                "win_rate_percent": row["win_rate_percent"],
+                "display_value": "",
+                "record_label": f"{row['wins_vs_pair']}🏆/{row['encounters']}🏓",
+                "show_progress_stroke": row["encounters"] > 0,
+                "aria_label": f"Efectividad ante {label}: {row['win_rate_percent']}%",
+            }
+        )
     return card_rows
 
 
@@ -400,10 +562,13 @@ def build_player_insights(player):
 
     return {
         "efficiency_scopes": efficiency_scopes,
+        "recent_form_chart": _build_recent_form_chart(match_results),
         "trend_rows": trend_rows,
         "top_partners": partner_rows[:3],
         "partner_distribution": _build_partner_distribution(partner_rows),
         "partner_efficiency_cards": _build_partner_efficiency_cards(partner_rows),
+        "rival_distribution": _build_rival_distribution(rival_rows),
+        "rival_efficiency_cards": _build_rival_efficiency_cards(rival_rows),
         "top_rivals": rival_rows[:3],
     }
 
@@ -473,6 +638,7 @@ def player_detail_view(request, player_id):
     scope_rows.append({"label": "Mixtos", "scope": "mixed", "url_name": "ranking_mixed"})
 
     for row in scope_rows:
+        _add_scope_classes(row, row["scope"])
         scoped_player, page, ranking_total = _get_scoped_player_page_and_total(
             row["scope"],
             profile_player.id,
