@@ -233,14 +233,11 @@ and replaced by an ellipsis (…) */
   appearance: none;
   cursor: pointer;
   text-align: inherit;
+  align-items: stretch;
   background-color: var(--bs-body-bg);
   border-color: var(--player-scope-color);
   border-top-width: 0.25rem;
   transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
-}
-
-.player-efficiency-selector-card .card-body {
-  display: block;
 }
 
 .player-efficiency-selector-card:hover {
