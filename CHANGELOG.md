@@ -12,6 +12,7 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+## [1.9.2] - 2026-04-21
 - `UI/UX`: Reduced player partner name text to improve fit across player
   detail insight cards.
 - `UI/UX`: Grouped player detail ranking, recent-match, partner, and rival
