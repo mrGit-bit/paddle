@@ -393,6 +393,14 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
     assert "player-efficiency-card text-bg-success" not in content
     assert 'aria-valuenow="0"' in content
     assert "player-trend-meta" not in content
+    assert (
+        ".player-efficiency-selector-card {\n"
+        "  appearance: none;\n"
+        "  cursor: pointer;\n"
+        "  text-align: inherit;\n"
+        "  align-items: stretch;"
+    ) in css
+    assert ".player-efficiency-selector-card .card-body {\n  display: block;\n}" not in css
 
 
 def test_player_detail_recent_form_chart_uses_available_matches_in_oldest_first_order(client):
