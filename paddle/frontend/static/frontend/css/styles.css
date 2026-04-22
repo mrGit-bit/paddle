@@ -293,6 +293,10 @@ and replaced by an ellipsis (…) */
   color: var(--bs-secondary-color);
 }
 
+.player-efficiency-selector-card:disabled {
+  opacity: 1;
+}
+
 .player-efficiency-card-disabled .player-efficiency-action {
   border-color: var(--bs-border-color);
   background-color: var(--bs-secondary-bg);

@@ -68,7 +68,7 @@
               class="card h-100 w-100 player-trend-card player-efficiency-card player-efficiency-selector-card {{ scope.style_class }}{% if scope.selector.is_inactive %} player-efficiency-card-disabled{% endif %}{% if forloop.first %} player-efficiency-selector-card-active{% endif %}"
               data-efficiency-scope="{{ scope.key }}"
               aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"
-              {% if scope.selector.is_inactive %}aria-disabled="true"{% endif %}>
+              {% if scope.selector.is_inactive %}aria-disabled="true" disabled{% endif %}>
               <div class="card-body text-center">
                 <div class="player-efficiency-action-row">
                   <span class="player-efficiency-action">Ver</span>
@@ -219,9 +219,24 @@
           {% endfor %}
         </div>
         <div class="player-partner-metric-label text-muted">Eficacia ante rivales</div>
-        <div class="row g-2 player-partner-cards">
-          {% for row in player_insights.rival_efficiency_cards %}
-            <div class="col-4">
+      {% else %}
+        <div class="player-partner-metric-label text-muted">Eficacia ante rivales</div>
+      {% endif %}
+      <div class="row g-2 player-partner-cards">
+        {% for row in player_insights.rival_efficiency_cards %}
+          <div class="col-4">
+            {% if row.is_placeholder %}
+              <div class="card h-100 player-trend-card player-partner-card player-partner-card-empty{% if row.is_inactive %} player-efficiency-card-disabled{% endif %}">
+                <div class="card-body text-center">
+                  <div class="player-partner-legend-item player-partner-card-title">
+                    <span class="player-partner-swatch player-partner-swatch-empty" aria-hidden="true"></span>
+                    <span class="player-partner-name text-muted">{{ row.label }}</span>
+                  </div>
+                  <div class="player-partner-record text-muted">{{ row.record_label }}</div>
+                  {% include "frontend/_circular_progress.html" with value=row.win_rate_percent display_value=row.display_value label=row.label show_progress_stroke=row.show_progress_stroke progress_color_class=row.progress_color_class progress_color_style=row.progress_color_style aria_label=row.aria_label %}
+                </div>
+              </div>
+            {% else %}
               <div class="card h-100 player-trend-card player-partner-card player-rival-card">
                 <div class="card-body text-center">
                   <div class="player-partner-legend-item player-partner-card-title">
@@ -239,11 +254,83 @@
                   {% include "frontend/_circular_progress.html" with value=row.win_rate_percent display_value=row.display_value label=row.label show_progress_stroke=row.show_progress_stroke progress_color_class=row.progress_color_class aria_label=row.aria_label %}
                 </div>
               </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow mb-4">
+  <div class="card-body">
+    <h4 class="mb-2">Contendientes</h4>
+    <div class="mb-3">
+      <p class="player-partner-metric-label text-muted mb-2">Némesis: más puntos perdidos contra...</p>
+      {% if player_insights.nemesis_cards %}
+        <div class="row g-2 player-partner-cards">
+          {% for row in player_insights.nemesis_cards %}
+            <div class="col-4">
+              {% if row.player %}
+                <a href="{% url 'player_detail' row.player.id %}" class="card h-100 player-trend-card player-partner-card player-partner-card-link text-body text-decoration-none">
+                  <div class="card-body text-center">
+                    <div class="player-partner-legend-item player-partner-card-title">
+                      <span class="player-partner-swatch {{ row.color_class }}" aria-hidden="true"></span>
+                      <span class="player-partner-name">{{ row.label }}</span>
+                    </div>
+                    <div class="player-partner-record text-muted">{{ row.record_label }}</div>
+                    {% include "frontend/_circular_progress.html" with value=row.win_rate_percent display_value=row.display_value label=row.label show_progress_stroke=row.show_progress_stroke progress_color_class=row.progress_color_class progress_color_style=row.progress_color_style aria_label=row.aria_label %}
+                  </div>
+                </a>
+              {% else %}
+                <div class="card h-100 player-trend-card player-partner-card player-partner-card-empty{% if row.is_inactive %} player-efficiency-card-disabled{% endif %}">
+                  <div class="card-body text-center">
+                    <div class="player-partner-legend-item player-partner-card-title">
+                      <span class="player-partner-swatch player-partner-swatch-empty" aria-hidden="true"></span>
+                      <span class="player-partner-name text-muted">{{ row.label }}</span>
+                    </div>
+                    <div class="player-partner-record text-muted">{{ row.record_label }}</div>
+                    {% include "frontend/_circular_progress.html" with value=row.win_rate_percent display_value=row.display_value label=row.label show_progress_stroke=row.show_progress_stroke progress_color_class=row.progress_color_class progress_color_style=row.progress_color_style aria_label=row.aria_label %}
+                  </div>
+                </div>
+              {% endif %}
             </div>
           {% endfor %}
         </div>
-      {% else %}
-        <p class="text-center text-muted mb-0">Sin datos</p>
+      {% endif %}
+    </div>
+    <div>
+      <p class="player-partner-metric-label text-muted mb-2">Víctimas: más puntos ganados contra...</p>
+      {% if player_insights.victim_cards %}
+        <div class="row g-2 player-partner-cards">
+          {% for row in player_insights.victim_cards %}
+            <div class="col-4">
+              {% if row.player %}
+                <a href="{% url 'player_detail' row.player.id %}" class="card h-100 player-trend-card player-partner-card player-partner-card-link text-body text-decoration-none">
+                  <div class="card-body text-center">
+                    <div class="player-partner-legend-item player-partner-card-title">
+                      <span class="player-partner-swatch {{ row.color_class }}" aria-hidden="true"></span>
+                      <span class="player-partner-name">{{ row.label }}</span>
+                    </div>
+                    <div class="player-partner-record text-muted">{{ row.record_label }}</div>
+                    {% include "frontend/_circular_progress.html" with value=row.win_rate_percent display_value=row.display_value label=row.label show_progress_stroke=row.show_progress_stroke progress_color_class=row.progress_color_class progress_color_style=row.progress_color_style aria_label=row.aria_label %}
+                  </div>
+                </a>
+              {% else %}
+                <div class="card h-100 player-trend-card player-partner-card player-partner-card-empty{% if row.is_inactive %} player-efficiency-card-disabled{% endif %}">
+                  <div class="card-body text-center">
+                    <div class="player-partner-legend-item player-partner-card-title">
+                      <span class="player-partner-swatch player-partner-swatch-empty" aria-hidden="true"></span>
+                      <span class="player-partner-name text-muted">{{ row.label }}</span>
+                    </div>
+                    <div class="player-partner-record text-muted">{{ row.record_label }}</div>
+                    {% include "frontend/_circular_progress.html" with value=row.win_rate_percent display_value=row.display_value label=row.label show_progress_stroke=row.show_progress_stroke progress_color_class=row.progress_color_class progress_color_style=row.progress_color_style aria_label=row.aria_label %}
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
       {% endif %}
     </div>
   </div>
@@ -296,6 +383,7 @@
 
       scopeButtons.forEach(function (button) {
         button.addEventListener("click", function () {
+          if (button.disabled || button.getAttribute("aria-disabled") === "true") return;
           selectScope(button.dataset.efficiencyScope);
         });
       });

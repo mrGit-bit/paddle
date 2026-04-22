@@ -8,6 +8,12 @@ description: Audit governance markdown for duplication, unclear ownership, coord
 Use this skill when the user wants to review repository governance markdown as
 one coordinated system instead of as isolated files.
 
+Use this skill for governance documentation and workflow coordination only. Do
+not use it to audit rendered Django template presentation; route concrete
+template presentation, CSS cascade, and same-page UI-coherence reviews to
+`template-presentation-audit`. Route Django view behavior, architecture, and ORM
+performance reviews to `audit`.
+
 Default review scope:
 
 - `AGENTS.md`
