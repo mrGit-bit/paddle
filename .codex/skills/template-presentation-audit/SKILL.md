@@ -8,6 +8,12 @@ description: Audit a specific Django template's presentation for same-page UI co
 Use this skill only with a concrete target template path. If the user does not
 provide one, ask for the template path before auditing.
 
+Use this skill as the focused presentation checkpoint for a single Django
+template. Keep it separate from the general Django view audit unless the user
+asks for one combined review. Use the general `audit` skill for view behavior,
+architecture, and ORM performance. Use `governance-markdown-auditor` for
+repository governance markdown, not rendered template presentation.
+
 ## Required Input
 
 - Target Django template path, for example
@@ -46,6 +52,8 @@ provide one, ask for the template path before auditing.
    ancestor. Prefer narrow, colocated selectors over broad global changes.
 8. Suggest focused regression tests for class presence, absence of obsolete
    overrides, state class combinations, or rendered heading/card structure.
+9. Export or update a reviewable audit report under `.codex/audits/` unless the
+   user explicitly asks for inline-only results.
 
 ## Finding Criteria
 
@@ -62,8 +70,23 @@ Surface only medium or high severity findings.
 
 ## Report Shape
 
+Use `references/report-template.md` as the output shape when exporting a
+reviewable report.
+
+Use predictable file names:
+
+- `YYYY-MM-DD_<target>_template-presentation_audit.md`
+- Convert path separators and spaces to `-`
+- Keep names short and stable enough for later updates
+
+Good examples:
+
+- `2026-04-22_player-detail_template-presentation_audit.md`
+- `2026-04-22_match-list-cards_template-presentation_audit.md`
+
 Lead with findings, ordered by severity. For each finding include:
 
+- Status: `pending`, `accepted`, `discarded`, or `solved`
 - Severity
 - Location: template line and CSS selector/file when known
 - Evidence: why the computed or inherited style differs
@@ -71,9 +94,34 @@ Lead with findings, ordered by severity. For each finding include:
   context
 - Recommended fix: narrow change reusing existing page/component styles
 - Suggested test or manual check
+- Discard explanation
 
 If there are no medium/high findings, say so clearly and list residual risk,
 such as lack of browser-computed-style verification.
+
+Use stable finding IDs with the `TPA-###` pattern.
+
+## Review Workflow
+
+When exporting or updating an audit for review:
+
+- Start new findings as `pending` unless the user says otherwise.
+- Mark a finding `accepted` only when the user explicitly accepts it.
+- Mark a finding `discarded` only when the user explicitly discards it.
+- Mark a finding `solved` only after:
+  - the user explicitly asks Codex CLI to solve accepted issues
+  - the related repository change has been implemented
+  - the repository state has been re-checked and the finding is resolved
+- Preserve existing finding IDs and user-written discard explanations when
+  updating an existing report.
+- Reuse the existing audit file for the same target when the filename still
+  fits the current scope.
+- Suppress a prior discarded finding only when its stored explanation clearly
+  still applies to the current repository state.
+- Re-surface the finding if repository context changed or the discard
+  explanation no longer fits.
+- If the user asks to solve all accepted issues, update only accepted findings
+  to `solved` after verification.
 
 ## Guardrails
 

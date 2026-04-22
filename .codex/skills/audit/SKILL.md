@@ -8,6 +8,12 @@ description: Audit Django views for project governance, security, reuse, and mai
 Use this skill when the user wants a structured audit of Django views or a
 related repository review centered on view behavior.
 
+If the user asks specifically for one template's presentation, same-page UI
+coherence, CSS reuse, cascade behavior, computed-style mismatches, or responsive
+layout risks, use `template-presentation-audit` instead. If the user asks for
+both view behavior and template presentation, keep separate reports unless they
+explicitly request a combined review.
+
 Read these files first before reviewing code:
 
 - `docs/PROJECT_INSTRUCTIONS.md`

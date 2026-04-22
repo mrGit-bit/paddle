@@ -1,7 +1,7 @@
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.3.12
-Last Updated: 2026-04-19
+Instruction Set Version: 2.3.13
+Last Updated: 2026-04-22
 
 ## 1. Product and Stack
 
@@ -87,8 +87,8 @@ Additional rules:
   `Requested outcome`, and `Known constraints`. Keep them concise, avoid
   assumptions about unseen repository behavior, and leave questions,
   implementation discovery, and test planning for Codex CLI.
-- Evaluate whether `/review` or `$audit` fits each non-trivial spec or
-  implementation task before advancing.
+- Evaluate whether `/review`, `$audit`, or a focused audit skill fits each
+  non-trivial spec or implementation task before advancing.
 - When Django model/schema changes are introduced, generate and apply the
   required migrations in development before treating the task as complete.
 - After a successful tagged release and back-merge from `main` to `develop`,
