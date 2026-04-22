@@ -275,6 +275,7 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
         "Últimos partidos",
         "Pareja habitual",
         "Parejas rivales frecuentes",
+        "Contendientes",
     ]:
         assert re.search(
             rf'<div class="card shadow mb-4">\s*'
@@ -320,8 +321,29 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
     assert insights["partner_distribution"] == []
     assert insights["partner_efficiency_cards"] == []
     assert insights["rival_distribution"] == []
-    assert insights["rival_efficiency_cards"] == []
+    assert len(insights["rival_efficiency_cards"]) == 3
+    assert [row["label"] for row in insights["rival_efficiency_cards"]] == [
+        "Sin datos",
+        "Sin datos",
+        "Sin datos",
+    ]
+    assert all(row["is_placeholder"] for row in insights["rival_efficiency_cards"])
+    assert all(row["is_inactive"] for row in insights["rival_efficiency_cards"])
     assert insights["top_rivals"] == []
+    assert len(insights["nemesis_cards"]) == 3
+    assert len(insights["victim_cards"]) == 3
+    assert [row["label"] for row in insights["nemesis_cards"]] == [
+        "Sin datos",
+        "Sin datos",
+        "Sin datos",
+    ]
+    assert [row["label"] for row in insights["victim_cards"]] == [
+        "Sin datos",
+        "Sin datos",
+        "Sin datos",
+    ]
+    assert all(row["is_placeholder"] for row in insights["nemesis_cards"])
+    assert all(row["is_placeholder"] for row in insights["victim_cards"])
     assert [scope["key"] for scope in insights["efficiency_scopes"]] == ["all", "gender", "mixed"]
     assert [scope["label"] for scope in insights["efficiency_scopes"]] == ["Todos", "Masc.", "Mixtos"]
     assert insights["trend_rows"] == [
@@ -363,12 +385,12 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
         },
     ]
     assert all(scope["selector"]["is_inactive"] for scope in insights["efficiency_scopes"])
-    assert count_trend_wheels(content) == 12
+    assert count_trend_wheels(content) == 21
     assert "circular-progress-active" not in content
-    assert content.count("--%") >= 12
-    assert content.count("player-efficiency-card-disabled") >= 12
+    assert content.count("--%") >= 21
+    assert content.count("player-efficiency-card-disabled") >= 21
     assert content.count('aria-disabled="true"') == 3
-    assert re.search(r"<button[^>]*\sdisabled(?:\s|>|=)", content) is None
+    assert len(re.findall(r"<button[^>]*\sdisabled(?:\s|>|=)", content)) == 3
     assert content.count("0🏆/0🏓") >= 6
     assert "circular-progress-primary" in content
     assert "circular-progress-success" in content
@@ -383,6 +405,24 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
     assert 'data-efficiency-scope="gender"' in content
     assert 'data-efficiency-scope="mixed"' in content
     assert 'aria-pressed="true"' in content
+    contendientes_content = content.split('<h4 class="mb-2">Contendientes</h4>', 1)[1].split(
+        "Partidos jugados",
+        1,
+    )[0]
+    assert "Némesis: más puntos perdidos contra..." in contendientes_content
+    assert "Víctimas: más puntos ganados contra..." in contendientes_content
+    assert "Rivales que más veces han ganado contra este jugador." not in contendientes_content
+    assert "Rivales a los que este jugador más veces ha ganado." not in contendientes_content
+    assert contendientes_content.count("Sin datos") == 6
+    assert contendientes_content.count("player-partner-card-empty") == 6
+    assert contendientes_content.count("circular-progress") >= 6
+    rival_content = content.split('<h4 class="mb-2">Parejas rivales frecuentes</h4>', 1)[1].split(
+        '<h4 class="mb-2">Contendientes</h4>',
+        1,
+    )[0]
+    assert rival_content.count("Sin datos") == 3
+    assert rival_content.count("player-partner-card-empty") == 3
+    assert "Eficacia ante rivales" in rival_content
     assert re.search(
         r'class="[^"]*player-efficiency-selector-card-active[^"]*"[^>]*data-efficiency-scope="all"',
         content,
@@ -626,7 +666,7 @@ def test_player_detail_trend_windows_use_available_matches_and_round_percent(cli
         },
     ]
     content = response.content.decode("utf-8")
-    assert count_trend_wheels(content) == 16
+    assert count_trend_wheels(content) == 20
     assert "Total" not in content
     assert "20 últimos" in content
     assert "4🏆/5🏓" in content
@@ -666,7 +706,7 @@ def test_player_detail_trend_wheels_mute_duplicate_result_windows(client):
     assert [row["is_eligible"] for row in insights["trend_rows"]] == [True, False, False]
     assert [row["is_inactive"] for row in insights["trend_rows"]] == [False, True, True]
     assert [row["display_value"] for row in insights["trend_rows"]] == ["", "--%", "--%"]
-    assert count_trend_wheels(content) == 16
+    assert count_trend_wheels(content) == 20
     assert [row["win_rate_percent"] for row in insights["trend_rows"]] == [40, 40, 40]
     assert content.count("player-efficiency-card-disabled") >= 2
     assert "--%" in content
@@ -702,7 +742,7 @@ def test_player_detail_partial_history_marks_total_duplicate_of_last_10(client):
     assert [row["is_eligible"] for row in insights["trend_rows"]] == [True, True, False]
     assert [row["is_inactive"] for row in insights["trend_rows"]] == [False, False, True]
     assert [row["display_value"] for row in insights["trend_rows"]] == ["", "", "--%"]
-    assert count_trend_wheels(content) == 16
+    assert count_trend_wheels(content) == 20
     assert "--%" in content
 
 
@@ -804,6 +844,17 @@ def test_player_detail_efficiency_gender_labels_and_unknown_fallback(client):
     assert scope_by_key(unknown_response.context["player_insights"], "gender")["selector"][
         "win_rate_percent"
     ] == 0
+    unknown_content = unknown_response.content.decode("utf-8")
+    assert re.search(
+        r'data-efficiency-scope="gender"[\s\S]*?'
+        r'aria-pressed="false"[\s\S]*?'
+        r'aria-disabled="true" disabled',
+        unknown_content,
+    )
+    assert re.search(
+        r'if \(button\.disabled \|\| button\.getAttribute\("aria-disabled"\) === "true"\) return;',
+        unknown_content,
+    )
 
 
 def test_player_detail_partner_and_rivals_tiebreakers_and_clickable_links(client):
@@ -1040,7 +1091,7 @@ def test_player_detail_partner_and_rivals_tiebreakers_and_clickable_links(client
     assert "Frecuencia de juego" in content
     assert "Eficacia por pareja" in content
     assert "player-partner-cards" in content
-    assert content.count('class="card h-100 player-trend-card player-partner-card') == 6
+    assert content.count('class="card h-100 player-trend-card player-partner-card') == 12
     assert (
         f'<a href="/players/{partner_a.id}/" '
         'class="card h-100 player-trend-card player-partner-card '
@@ -1066,6 +1117,12 @@ def test_player_detail_partner_and_rivals_tiebreakers_and_clickable_links(client
     assert "circular-progress-success" in content
     assert "circular-progress-warning" in content
     assert "Parejas rivales frecuentes" in content
+    assert content.index("Parejas rivales frecuentes") < content.index("Contendientes")
+    assert content.index("Contendientes") < content.index("Partidos jugados")
+    assert "Némesis: más puntos perdidos contra..." in content
+    assert "Víctimas: más puntos ganados contra..." in content
+    assert "Rivales que más veces han ganado contra este jugador." not in content
+    assert "Rivales a los que este jugador más veces ha ganado." not in content
     assert "Rivales frecuentes" not in content
     assert "Volver al ranking" not in content
     assert 'href="/#top"' not in content
@@ -1099,6 +1156,110 @@ def test_player_detail_partner_and_rivals_tiebreakers_and_clickable_links(client
     assert f'href="/players/{rival_5.id}/"' in content
     assert f'href="/players/{rival_6.id}/"' in content
     assert "/\n" not in content
+
+
+def test_player_detail_contendientes_cards_use_individual_head_to_head_sorting(client):
+    player = Player.objects.create(name="Contendientes Main", gender=Player.GENDER_MALE)
+    partner = Player.objects.create(name="Contendientes Partner", gender=Player.GENDER_MALE)
+    loss_more_a = Player.objects.create(name="Loss More A", gender=Player.GENDER_MALE)
+    loss_more_b = Player.objects.create(name="Loss More B", gender=Player.GENDER_MALE)
+    loss_recent_a = Player.objects.create(name="Loss Recent A", gender=Player.GENDER_MALE)
+    loss_recent_b = Player.objects.create(name="Loss Recent B", gender=Player.GENDER_MALE)
+    win_more_a = Player.objects.create(name="Win More A", gender=Player.GENDER_MALE)
+    win_more_b = Player.objects.create(name="Win More B", gender=Player.GENDER_MALE)
+    win_recent_a = Player.objects.create(name="Win Recent A", gender=Player.GENDER_MALE)
+    win_recent_b = Player.objects.create(name="Win Recent B", gender=Player.GENDER_MALE)
+
+    create_match(player, partner, loss_more_a, loss_more_b, winning_team=2, played_on=date(2026, 7, 1))
+    create_match(player, partner, loss_more_a, loss_more_b, winning_team=2, played_on=date(2026, 7, 2))
+    create_match(player, partner, loss_more_a, loss_more_b, winning_team=2, played_on=date(2026, 7, 3))
+    create_match(player, partner, loss_more_a, loss_more_b, winning_team=1, played_on=date(2026, 7, 4))
+    create_match(player, partner, loss_recent_a, loss_recent_b, winning_team=2, played_on=date(2026, 7, 5))
+    create_match(player, partner, loss_recent_a, loss_recent_b, winning_team=2, played_on=date(2026, 7, 6))
+
+    create_match(player, partner, win_more_a, win_more_b, winning_team=1, played_on=date(2026, 7, 7))
+    create_match(player, partner, win_more_a, win_more_b, winning_team=1, played_on=date(2026, 7, 8))
+    create_match(player, partner, win_more_a, win_more_b, winning_team=1, played_on=date(2026, 7, 9))
+    create_match(player, partner, win_more_a, win_more_b, winning_team=2, played_on=date(2026, 7, 10))
+    create_match(player, partner, win_recent_a, win_recent_b, winning_team=1, played_on=date(2026, 7, 11))
+    create_match(player, partner, win_recent_a, win_recent_b, winning_team=1, played_on=date(2026, 7, 12))
+
+    response = client.get(reverse("player_detail", args=[player.id]))
+    content = response.content.decode("utf-8")
+    contendientes_content = content.split('<h4 class="mb-2">Contendientes</h4>', 1)[1].split(
+        "Partidos jugados",
+        1,
+    )[0]
+    insights = response.context["player_insights"]
+
+    assert response.status_code == 200
+    assert [row["player"] for row in insights["nemesis_cards"]] == [
+        loss_more_a,
+        loss_more_b,
+        loss_recent_a,
+    ]
+    assert [row["opponent_wins"] for row in insights["nemesis_cards"]] == [3, 3, 2]
+    assert [row["opponent_win_rate_percent"] for row in insights["nemesis_cards"]] == [75, 75, 100]
+    assert [row["record_label"] for row in insights["nemesis_cards"]] == [
+        "3🌴/1🏆",
+        "3🌴/1🏆",
+        "2🌴/0🏆",
+    ]
+    assert [row["win_rate_percent"] for row in insights["nemesis_cards"]] == [75, 75, 100]
+    assert [row["color_class"] for row in insights["nemesis_cards"]] == [
+        "bg-danger bg-opacity-100",
+        "bg-danger bg-opacity-50",
+        "bg-danger bg-opacity-25",
+    ]
+    assert [row["progress_color_style"] for row in insights["nemesis_cards"]] == [
+        "--progress-stroke: rgba(var(--bs-danger-rgb), 1);",
+        "--progress-stroke: rgba(var(--bs-danger-rgb), 0.5);",
+        "--progress-stroke: rgba(var(--bs-danger-rgb), 0.25);",
+    ]
+
+    assert [row["player"] for row in insights["victim_cards"]] == [
+        win_more_a,
+        win_more_b,
+        win_recent_a,
+    ]
+    assert [row["player_wins"] for row in insights["victim_cards"]] == [3, 3, 2]
+    assert [row["player_win_rate_percent"] for row in insights["victim_cards"]] == [75, 75, 100]
+    assert [row["record_label"] for row in insights["victim_cards"]] == [
+        "3🏆/1🌴",
+        "3🏆/1🌴",
+        "2🏆/0🌴",
+    ]
+    assert [row["win_rate_percent"] for row in insights["victim_cards"]] == [75, 75, 100]
+    assert [row["color_class"] for row in insights["victim_cards"]] == [
+        "bg-success bg-opacity-100",
+        "bg-success bg-opacity-50",
+        "bg-success bg-opacity-25",
+    ]
+    assert [row["progress_color_style"] for row in insights["victim_cards"]] == [
+        "--progress-stroke: rgba(var(--bs-success-rgb), 1);",
+        "--progress-stroke: rgba(var(--bs-success-rgb), 0.5);",
+        "--progress-stroke: rgba(var(--bs-success-rgb), 0.25);",
+    ]
+
+    assert f'href="/players/{loss_more_a.id}/"' in contendientes_content
+    assert f'href="/players/{loss_more_b.id}/"' in contendientes_content
+    assert f'href="/players/{loss_recent_a.id}/"' in contendientes_content
+    assert f'href="/players/{loss_recent_b.id}/"' not in contendientes_content
+    assert f'href="/players/{win_more_a.id}/"' in contendientes_content
+    assert f'href="/players/{win_more_b.id}/"' in contendientes_content
+    assert f'href="/players/{win_recent_a.id}/"' in contendientes_content
+    assert f'href="/players/{win_recent_b.id}/"' not in contendientes_content
+    assert "player-trend-card player-partner-card player-partner-card-link" in contendientes_content
+    assert "player-partner-swatch bg-danger bg-opacity-100" in contendientes_content
+    assert "player-partner-swatch bg-danger bg-opacity-50" in contendientes_content
+    assert "player-partner-swatch bg-danger bg-opacity-25" in contendientes_content
+    assert "player-partner-swatch bg-success bg-opacity-100" in contendientes_content
+    assert "player-partner-swatch bg-success bg-opacity-50" in contendientes_content
+    assert "player-partner-swatch bg-success bg-opacity-25" in contendientes_content
+    assert "--progress-stroke: rgba(var(--bs-danger-rgb), 1);" in contendientes_content
+    assert "--progress-stroke: rgba(var(--bs-success-rgb), 1);" in contendientes_content
+    assert 'aria-label="Derrotas ante Loss More A: 75%"' in content
+    assert 'aria-label="Victorias ante Win Recent A: 100%"' in content
 
 
 def test_player_detail_partner_tiebreak_prefers_win_rate_before_recent_date(client):
@@ -1199,7 +1360,15 @@ def test_player_detail_shows_only_available_partner_rows_when_fewer_than_three(c
     assert ".player-partner-card-empty.player-efficiency-card-disabled {\n  border-color: var(--bs-border-color);\n  background-color: var(--bs-secondary-bg);" in css
     assert '<a href="" class="card h-100 player-trend-card player-partner-card' not in content
     assert '<a class="card h-100 player-trend-card player-partner-card player-partner-card-empty' not in content
-    assert content.count('class="card h-100 player-trend-card player-partner-card') == 4
+    assert [row["label"] for row in insights["nemesis_cards"]] == [
+        "Few Rival 1",
+        "Few Rival 2",
+    ]
+    assert [row["label"] for row in insights["victim_cards"]] == [
+        "Few Rival 1",
+        "Few Rival 2",
+    ]
+    assert content.count('class="card h-100 player-trend-card player-partner-card') == 8
     assert "Otros" not in content
     assert f'href="/players/{partner_a.id}/"' in content
     assert f'href="/players/{partner_b.id}/"' in content
@@ -1225,6 +1394,10 @@ def test_player_detail_groups_remaining_partners_as_otros_in_distribution(client
 
     response = client.get(reverse("player_detail", args=[player.id]))
     content = response.content.decode("utf-8")
+    partner_content = content.split('<h4 class="mb-2">Pareja habitual</h4>', 1)[1].split(
+        '<h4 class="mb-2">Parejas rivales frecuentes</h4>',
+        1,
+    )[0]
     insights = response.context["player_insights"]
 
     assert response.status_code == 200
@@ -1254,7 +1427,7 @@ def test_player_detail_groups_remaining_partners_as_otros_in_distribution(client
     assert 'aria-label="Otros: 10% de partidos"' in content
     assert '<div class="progress-bar bg-secondary">' not in content
     assert "player-partner-swatch bg-secondary" not in content
-    assert "player-partner-swatch-empty" not in content
+    assert "player-partner-swatch-empty" not in partner_content
     assert 'class="text-muted">10%</span>' not in content
     assert f'href="/players/{partners[0].id}/"' in content
     assert f'href="/players/{partners[1].id}/"' in content

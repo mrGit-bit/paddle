@@ -12,33 +12,27 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+## [1.9.3] - 2026-04-22
+- `Governance`: Aligned template presentation audits with the repository audit
+  lifecycle and clarified routing between focused, Django view, and governance
+  markdown audits.
+- `UI/UX`: Prevented inactive player-detail efficiency selector cards from
+  activating or changing visible trend rows.
+- `UI/UX`: Added player-detail Contendientes cards with individual
+  head-to-head nemesis and victim ratios plus disabled no-data wheels.
+
 ## [1.9.2] - 2026-04-21
 
-- `UI/UX`: Reordered ranking efficiency trend labels so the match-window
-  number stays visible on small screens.
-- `UI/UX`: Added an `Estadísticas` heading above the player detail insight
-  card group.
-- `UI/UX`: Centered ranking efficiency selector wheels by resetting button
-  font and box styles so they reuse the shared card flow.
-- `UI/UX`: Reduced player partner name text to improve fit across player
-  detail insight cards.
-- `UI/UX`: Grouped player detail ranking, recent-match, partner, and rival
-  insight sections into shadowed cards matching match-history cards.
-- `UI/UX`: Replaced the player detail `Últimos partidos` balance formula with
-  qualitative balance labels.
-- `UI/UX`: Refreshed player detail frequent rival pairs with stacked frequency
-  bars and circular efficiency cards.
-- `UI/UX`: Added a player detail `Últimos partidos` chart showing cumulative
-  win/loss balance across the last ten matches.
-- `UI/UX`: Player detail rankings now group position and efficiency with
-  scoped color legends, compact win/match records, and inactive empty-history
-  wheels.
-- `Governance`: UI guidance now requires reusing established presentation
-  classes for matching sections and guarding state styles against CSS cascade
-  overrides.
-- `Governance`: Release consolidation now reviews shipped specs, completed
-  backlog wording, and changelog notes so final release summaries stay compact
-  and grouped by category.
+- `UI/UX`: Reworked player detail statistics into a grouped `Estadísticas`
+  area with shadowed insight cards for rankings, recent form, partners, and
+  rival pairs.
+- `UI/UX`: Improved player detail insight cards with scoped ranking-efficiency
+  legends, centered wheels, compact partner/rival names, cumulative recent-form
+  charting, qualitative balance labels, and number-first trend labels for
+  small screens.
+- `Governance`: Added template presentation audit guidance and tightened UI
+  and release-consolidation rules so shared styles, cascade effects, and final
+  release summaries stay reviewable.
 
 ## [1.9.1] - 2026-04-16
 

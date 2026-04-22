@@ -1,7 +1,7 @@
 # AGENTS.md — Codex Execution Rules
 
-Instruction Set Version: 2.3.12
-Last Updated: 2026-04-19
+Instruction Set Version: 2.3.13
+Last Updated: 2026-04-22
 
 ## 1. Authority and File Roles
 
@@ -104,10 +104,16 @@ Quality checkpoints:
 
 - `/review` is a fast targeted review checkpoint on the relevant draft, diff, or
   scoped change set.
-- `audit` is for deeper governance, security, reuse, and maintainability
-  inspection.
-- Evaluate whether `/review` or `audit` should be used for each non-trivial spec
-  or implementation task, especially when the target flow already exists.
+- `audit` is for deeper Django view behavior, architecture, security, reuse, and
+  performance inspection.
+- `template-presentation-audit` is for focused same-page presentation, CSS
+  cascade, computed-style, and responsive-layout review of one concrete Django
+  template.
+- `governance-markdown-auditor` is for repository governance markdown,
+  ownership boundaries, coordination gaps, and audit workflow rules.
+- Evaluate whether `/review`, `audit`, or a focused audit skill should be used
+  for each non-trivial spec or implementation task, especially when the target
+  flow already exists.
 - Prefer `/review` first when both checkpoints could fit the scope.
 - If neither checkpoint is used, say so explicitly in the working response and
   give a brief reason for skipping it or discarding it for that scope.
