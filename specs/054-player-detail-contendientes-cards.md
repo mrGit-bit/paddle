@@ -1,7 +1,7 @@
 # Player Detail Contendientes Cards
 
 Status: implemented
-Release tag: unreleased
+Release tag: v1.9.3
 
 ## Scope
 
