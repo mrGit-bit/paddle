@@ -390,7 +390,7 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
     assert content.count("--%") >= 21
     assert content.count("player-efficiency-card-disabled") >= 21
     assert content.count('aria-disabled="true"') == 3
-    assert re.search(r"<button[^>]*\sdisabled(?:\s|>|=)", content) is None
+    assert len(re.findall(r"<button[^>]*\sdisabled(?:\s|>|=)", content)) == 3
     assert content.count("0🏆/0🏓") >= 6
     assert "circular-progress-primary" in content
     assert "circular-progress-success" in content
@@ -844,6 +844,17 @@ def test_player_detail_efficiency_gender_labels_and_unknown_fallback(client):
     assert scope_by_key(unknown_response.context["player_insights"], "gender")["selector"][
         "win_rate_percent"
     ] == 0
+    unknown_content = unknown_response.content.decode("utf-8")
+    assert re.search(
+        r'data-efficiency-scope="gender"[\s\S]*?'
+        r'aria-pressed="false"[\s\S]*?'
+        r'aria-disabled="true" disabled',
+        unknown_content,
+    )
+    assert re.search(
+        r'if \(button\.disabled \|\| button\.getAttribute\("aria-disabled"\) === "true"\) return;',
+        unknown_content,
+    )
 
 
 def test_player_detail_partner_and_rivals_tiebreakers_and_clickable_links(client):

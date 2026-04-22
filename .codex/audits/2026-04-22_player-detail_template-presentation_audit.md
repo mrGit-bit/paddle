@@ -17,7 +17,7 @@
 
 ### Finding TPA-001
 
-- Status: accepted
+- Status: solved
 - Type: Confirmed issue
 - Severity: medium
 - Location: `paddle/frontend/templates/frontend/player_detail.html` lines 66-71
@@ -34,10 +34,9 @@
   either by rendering a native `disabled` attribute for inactive selector
   buttons and styling the disabled state, or by guarding the click handler
   against `aria-disabled="true"` before calling `selectScope()`.
-- Tests or manual checks: Add or update a focused rendered-template/JS-adjacent
-  regression that inactive selector buttons carry the chosen disabled contract,
-  and manually verify that clicking an inactive selector does not change
-  `aria-pressed`, active styling, or the visible trend row.
+- Tests or manual checks: Added rendered-template regressions for the native
+  disabled contract and JavaScript disabled guard, then verified the focused
+  player-detail tests pass.
 - Discard explanation:
 
 ## Residual Risk

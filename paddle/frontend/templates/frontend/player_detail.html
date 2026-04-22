@@ -68,7 +68,7 @@
               class="card h-100 w-100 player-trend-card player-efficiency-card player-efficiency-selector-card {{ scope.style_class }}{% if scope.selector.is_inactive %} player-efficiency-card-disabled{% endif %}{% if forloop.first %} player-efficiency-selector-card-active{% endif %}"
               data-efficiency-scope="{{ scope.key }}"
               aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"
-              {% if scope.selector.is_inactive %}aria-disabled="true"{% endif %}>
+              {% if scope.selector.is_inactive %}aria-disabled="true" disabled{% endif %}>
               <div class="card-body text-center">
                 <div class="player-efficiency-action-row">
                   <span class="player-efficiency-action">Ver</span>
@@ -383,6 +383,7 @@
 
       scopeButtons.forEach(function (button) {
         button.addEventListener("click", function () {
+          if (button.disabled || button.getAttribute("aria-disabled") === "true") return;
           selectScope(button.dataset.efficiencyScope);
         });
       });

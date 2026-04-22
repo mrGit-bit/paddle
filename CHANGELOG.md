@@ -15,6 +15,8 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 - `Governance`: Aligned template presentation audits with the repository audit
   lifecycle and clarified routing between focused, Django view, and governance
   markdown audits.
+- `UI/UX`: Prevented inactive player-detail efficiency selector cards from
+  activating or changing visible trend rows.
 - `UI/UX`: Added player-detail Contendientes cards with individual
   head-to-head nemesis and victim ratios plus disabled no-data wheels.
 
