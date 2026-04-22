@@ -12,6 +12,9 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `UI/UX`: Added player-detail Contendientes cards with individual
+  head-to-head nemesis and victim ratios plus disabled no-data wheels.
+
 ## [1.9.2] - 2026-04-21
 
 - `UI/UX`: Reworked player detail statistics into a grouped `Estadísticas`

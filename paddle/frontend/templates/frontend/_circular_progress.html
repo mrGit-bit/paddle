@@ -4,7 +4,8 @@
   aria-label="{% if aria_label %}{{ aria_label }}{% else %}Efectividad {{ label }}{% endif %}"
   aria-valuemin="0"
   aria-valuemax="100"
-  aria-valuenow="{{ value }}">
+  aria-valuenow="{{ value }}"
+  {% if progress_color_style %}style="{{ progress_color_style }}"{% endif %}>
   <svg class="circular-progress-svg" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
     <circle class="circular-progress-track" cx="18" cy="18" r="15.9155"></circle>
     {% if show_progress_stroke %}

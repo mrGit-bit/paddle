@@ -32,6 +32,26 @@ PARTNER_PROGRESS_COLOR_CLASSES = [
     "circular-progress-success",
     "circular-progress-warning",
 ]
+NEMESIS_COLOR_CLASSES = [
+    "bg-danger bg-opacity-100",
+    "bg-danger bg-opacity-50",
+    "bg-danger bg-opacity-25",
+]
+NEMESIS_PROGRESS_COLOR_STYLES = [
+    "--progress-stroke: rgba(var(--bs-danger-rgb), 1);",
+    "--progress-stroke: rgba(var(--bs-danger-rgb), 0.5);",
+    "--progress-stroke: rgba(var(--bs-danger-rgb), 0.25);",
+]
+VICTIM_COLOR_CLASSES = [
+    "bg-success bg-opacity-100",
+    "bg-success bg-opacity-50",
+    "bg-success bg-opacity-25",
+]
+VICTIM_PROGRESS_COLOR_STYLES = [
+    "--progress-stroke: rgba(var(--bs-success-rgb), 1);",
+    "--progress-stroke: rgba(var(--bs-success-rgb), 0.5);",
+    "--progress-stroke: rgba(var(--bs-success-rgb), 0.25);",
+]
 SCOPE_COLOR_CLASSES = PARTNER_COLOR_CLASSES
 SCOPE_PROGRESS_COLOR_CLASSES = PARTNER_PROGRESS_COLOR_CLASSES
 SCOPE_STYLE_CLASSES = [
@@ -412,6 +432,9 @@ def _build_rival_distribution(rival_rows):
 
 
 def _build_rival_efficiency_cards(rival_rows):
+    if not rival_rows:
+        return _build_empty_insight_cards("Efectividad sin datos: sin porcentaje")
+
     card_rows = []
     for index, row in enumerate(rival_rows[:3]):
         label = _build_pair_label(row["player1"], row["player2"])
@@ -427,6 +450,71 @@ def _build_rival_efficiency_cards(rival_rows):
                 "record_label": f"{row['wins_vs_pair']}🏆/{row['encounters']}🏓",
                 "show_progress_stroke": row["encounters"] > 0,
                 "aria_label": f"Efectividad ante {label}: {row['win_rate_percent']}%",
+            }
+        )
+    return card_rows
+
+
+def _build_empty_insight_cards(aria_label):
+    return [
+        {
+            "label": "Sin datos",
+            "player": None,
+            "player1": None,
+            "player2": None,
+            "color_class": "",
+            "progress_color_class": "",
+            "progress_color_style": "",
+            "win_rate_percent": 0,
+            "display_value": "--%",
+            "record_label": "0🏆/0🏓",
+            "show_progress_stroke": False,
+            "is_placeholder": True,
+            "is_inactive": True,
+            "aria_label": aria_label,
+        }
+        for _ in range(3)
+    ]
+
+
+def _build_head_to_head_cards(opponent_rows, mode):
+    if not opponent_rows:
+        return _build_empty_insight_cards("Efectividad sin datos: sin porcentaje")
+
+    card_rows = []
+    is_nemesis = mode == "nemesis"
+    color_classes = NEMESIS_COLOR_CLASSES if is_nemesis else VICTIM_COLOR_CLASSES
+    progress_color_styles = (
+        NEMESIS_PROGRESS_COLOR_STYLES if is_nemesis else VICTIM_PROGRESS_COLOR_STYLES
+    )
+    for index, row in enumerate(opponent_rows[:3]):
+        label = row["player"].name
+        win_rate_percent = (
+            row["opponent_win_rate_percent"] if is_nemesis else row["player_win_rate_percent"]
+        )
+        record_label = (
+            f"{row['opponent_wins']}🌴/{row['player_wins']}🏆"
+            if is_nemesis
+            else f"{row['player_wins']}🏆/{row['opponent_wins']}🌴"
+        )
+        aria_prefix = "Derrotas ante" if is_nemesis else "Victorias ante"
+        card_rows.append(
+            {
+                "label": label,
+                "player": row["player"],
+                "matches_against": row["matches_against"],
+                "player_wins": row["player_wins"],
+                "opponent_wins": row["opponent_wins"],
+                "player_win_rate_percent": row["player_win_rate_percent"],
+                "opponent_win_rate_percent": row["opponent_win_rate_percent"],
+                "color_class": color_classes[index],
+                "progress_color_class": "",
+                "progress_color_style": progress_color_styles[index],
+                "win_rate_percent": win_rate_percent,
+                "display_value": "",
+                "record_label": record_label,
+                "show_progress_stroke": row["matches_against"] > 0,
+                "aria_label": f"{aria_prefix} {label}: {win_rate_percent}%",
             }
         )
     return card_rows
@@ -448,6 +536,7 @@ def build_player_insights(player):
     match_results = []
     partner_stats = {}
     rival_stats = {}
+    opponent_stats = {}
 
     for match in matches:
         if match.team1_player1_id == player.id:
@@ -502,6 +591,23 @@ def build_player_insights(player):
         rival_row["wins_vs_pair"] += 1 if is_win else 0
         if match.date_played > rival_row["last_date"]:
             rival_row["last_date"] = match.date_played
+
+        for opponent in rivals:
+            opponent_row = opponent_stats.setdefault(
+                opponent.id,
+                {
+                    "player": opponent,
+                    "matches_against": 0,
+                    "player_wins": 0,
+                    "opponent_wins": 0,
+                    "last_date": match.date_played,
+                },
+            )
+            opponent_row["matches_against"] += 1
+            opponent_row["player_wins"] += 1 if is_win else 0
+            opponent_row["opponent_wins"] += 0 if is_win else 1
+            if match.date_played > opponent_row["last_date"]:
+                opponent_row["last_date"] = match.date_played
 
     efficiency_scopes = _build_efficiency_scopes(player, match_results)
     trend_rows = efficiency_scopes[0]["trend_rows"]
@@ -560,6 +666,49 @@ def build_player_insights(player):
         )
     )
 
+    opponent_rows = []
+    for row in opponent_stats.values():
+        matches_against = row["matches_against"]
+        player_wins = row["player_wins"]
+        opponent_wins = row["opponent_wins"]
+        opponent_rows.append(
+            {
+                "player": row["player"],
+                "matches_against": matches_against,
+                "player_wins": player_wins,
+                "opponent_wins": opponent_wins,
+                "player_win_rate_percent": _compute_win_rate_percent(player_wins, matches_against),
+                "opponent_win_rate_percent": _compute_win_rate_percent(
+                    opponent_wins,
+                    matches_against,
+                ),
+                "player_win_rate_value": (player_wins / matches_against) if matches_against else 0.0,
+                "opponent_win_rate_value": (
+                    opponent_wins / matches_against
+                ) if matches_against else 0.0,
+                "last_date": row["last_date"],
+            }
+        )
+
+    nemesis_rows = [row for row in opponent_rows if row["opponent_wins"] > 0]
+    nemesis_rows.sort(
+        key=lambda row: (
+            -row["opponent_wins"],
+            -row["opponent_win_rate_value"],
+            -row["last_date"].toordinal(),
+            row["player"].id,
+        )
+    )
+    victim_rows = [row for row in opponent_rows if row["player_wins"] > 0]
+    victim_rows.sort(
+        key=lambda row: (
+            -row["player_wins"],
+            -row["player_win_rate_value"],
+            -row["last_date"].toordinal(),
+            row["player"].id,
+        )
+    )
+
     return {
         "efficiency_scopes": efficiency_scopes,
         "recent_form_chart": _build_recent_form_chart(match_results),
@@ -570,6 +719,8 @@ def build_player_insights(player):
         "rival_distribution": _build_rival_distribution(rival_rows),
         "rival_efficiency_cards": _build_rival_efficiency_cards(rival_rows),
         "top_rivals": rival_rows[:3],
+        "nemesis_cards": _build_head_to_head_cards(nemesis_rows, "nemesis"),
+        "victim_cards": _build_head_to_head_cards(victim_rows, "victim"),
     }
 
 
