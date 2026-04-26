@@ -12,6 +12,7 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+## [1.9.4] - 2026-04-26
 - `UI/UX`: Tightened player-detail `Contendientes` cards to require a strict
   head-to-head rate above 60% and updated the visible labels to the shorter
   `Némesis` and `Víctimas` threshold wording.
