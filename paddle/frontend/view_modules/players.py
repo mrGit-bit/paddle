@@ -690,7 +690,7 @@ def build_player_insights(player):
             }
         )
 
-    nemesis_rows = [row for row in opponent_rows if row["opponent_wins"] > 0]
+    nemesis_rows = [row for row in opponent_rows if row["opponent_win_rate_value"] > 0.6]
     nemesis_rows.sort(
         key=lambda row: (
             -row["opponent_wins"],
@@ -699,7 +699,7 @@ def build_player_insights(player):
             row["player"].id,
         )
     )
-    victim_rows = [row for row in opponent_rows if row["player_wins"] > 0]
+    victim_rows = [row for row in opponent_rows if row["player_win_rate_value"] > 0.6]
     victim_rows.sort(
         key=lambda row: (
             -row["player_wins"],
