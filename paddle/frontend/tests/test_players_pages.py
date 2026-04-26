@@ -409,10 +409,12 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
         "Partidos jugados",
         1,
     )[0]
-    assert "Némesis: más puntos perdidos contra..." in contendientes_content
-    assert "Víctimas: más puntos ganados contra..." in contendientes_content
+    assert "Némesis: más puntos perdidos contra..." not in contendientes_content
+    assert "Víctimas: más puntos ganados contra..." not in contendientes_content
     assert "Rivales que más veces han ganado contra este jugador." not in contendientes_content
     assert "Rivales a los que este jugador más veces ha ganado." not in contendientes_content
+    assert "Némesis: efic&gt;60% y más derrotas" in contendientes_content
+    assert "Víctimas: efic&gt;60% y más victorias" in contendientes_content
     assert contendientes_content.count("Sin datos") == 6
     assert contendientes_content.count("player-partner-card-empty") == 6
     assert contendientes_content.count("circular-progress") >= 6
@@ -666,7 +668,7 @@ def test_player_detail_trend_windows_use_available_matches_and_round_percent(cli
         },
     ]
     content = response.content.decode("utf-8")
-    assert count_trend_wheels(content) == 20
+    assert count_trend_wheels(content) == 22
     assert "Total" not in content
     assert "20 últimos" in content
     assert "4🏆/5🏓" in content
@@ -706,7 +708,7 @@ def test_player_detail_trend_wheels_mute_duplicate_result_windows(client):
     assert [row["is_eligible"] for row in insights["trend_rows"]] == [True, False, False]
     assert [row["is_inactive"] for row in insights["trend_rows"]] == [False, True, True]
     assert [row["display_value"] for row in insights["trend_rows"]] == ["", "--%", "--%"]
-    assert count_trend_wheels(content) == 20
+    assert count_trend_wheels(content) == 22
     assert [row["win_rate_percent"] for row in insights["trend_rows"]] == [40, 40, 40]
     assert content.count("player-efficiency-card-disabled") >= 2
     assert "--%" in content
@@ -742,7 +744,7 @@ def test_player_detail_partial_history_marks_total_duplicate_of_last_10(client):
     assert [row["is_eligible"] for row in insights["trend_rows"]] == [True, True, False]
     assert [row["is_inactive"] for row in insights["trend_rows"]] == [False, False, True]
     assert [row["display_value"] for row in insights["trend_rows"]] == ["", "", "--%"]
-    assert count_trend_wheels(content) == 20
+    assert count_trend_wheels(content) == 21
     assert "--%" in content
 
 
@@ -1091,7 +1093,7 @@ def test_player_detail_partner_and_rivals_tiebreakers_and_clickable_links(client
     assert "Frecuencia de juego" in content
     assert "Eficacia por pareja" in content
     assert "player-partner-cards" in content
-    assert content.count('class="card h-100 player-trend-card player-partner-card') == 12
+    assert content.count('class="card h-100 player-trend-card player-partner-card') == 11
     assert (
         f'<a href="/players/{partner_a.id}/" '
         'class="card h-100 player-trend-card player-partner-card '
@@ -1119,10 +1121,12 @@ def test_player_detail_partner_and_rivals_tiebreakers_and_clickable_links(client
     assert "Parejas rivales frecuentes" in content
     assert content.index("Parejas rivales frecuentes") < content.index("Contendientes")
     assert content.index("Contendientes") < content.index("Partidos jugados")
-    assert "Némesis: más puntos perdidos contra..." in content
-    assert "Víctimas: más puntos ganados contra..." in content
+    assert "Némesis: más puntos perdidos contra..." not in content
+    assert "Víctimas: más puntos ganados contra..." not in content
     assert "Rivales que más veces han ganado contra este jugador." not in content
     assert "Rivales a los que este jugador más veces ha ganado." not in content
+    assert "Némesis: efic&gt;60% y más derrotas" in content
+    assert "Víctimas: efic&gt;60% y más victorias" in content
     assert "Rivales frecuentes" not in content
     assert "Volver al ranking" not in content
     assert 'href="/#top"' not in content
@@ -1169,6 +1173,15 @@ def test_player_detail_contendientes_cards_use_individual_head_to_head_sorting(c
     win_more_b = Player.objects.create(name="Win More B", gender=Player.GENDER_MALE)
     win_recent_a = Player.objects.create(name="Win Recent A", gender=Player.GENDER_MALE)
     win_recent_b = Player.objects.create(name="Win Recent B", gender=Player.GENDER_MALE)
+    boundary_partner = Player.objects.create(name="Boundary Partner", gender=Player.GENDER_MALE)
+    loss_boundary = Player.objects.create(name="Loss Boundary", gender=Player.GENDER_MALE)
+    loss_above = Player.objects.create(name="Loss Above", gender=Player.GENDER_MALE)
+    loss_boundary_support = Player.objects.create(name="Loss Boundary Support", gender=Player.GENDER_MALE)
+    loss_above_support = Player.objects.create(name="Loss Above Support", gender=Player.GENDER_MALE)
+    win_boundary = Player.objects.create(name="Win Boundary", gender=Player.GENDER_MALE)
+    win_above = Player.objects.create(name="Win Above", gender=Player.GENDER_MALE)
+    win_boundary_support = Player.objects.create(name="Win Boundary Support", gender=Player.GENDER_MALE)
+    win_above_support = Player.objects.create(name="Win Above Support", gender=Player.GENDER_MALE)
 
     create_match(player, partner, loss_more_a, loss_more_b, winning_team=2, played_on=date(2026, 7, 1))
     create_match(player, partner, loss_more_a, loss_more_b, winning_team=2, played_on=date(2026, 7, 2))
@@ -1176,6 +1189,70 @@ def test_player_detail_contendientes_cards_use_individual_head_to_head_sorting(c
     create_match(player, partner, loss_more_a, loss_more_b, winning_team=1, played_on=date(2026, 7, 4))
     create_match(player, partner, loss_recent_a, loss_recent_b, winning_team=2, played_on=date(2026, 7, 5))
     create_match(player, partner, loss_recent_a, loss_recent_b, winning_team=2, played_on=date(2026, 7, 6))
+    create_match(
+        player,
+        boundary_partner,
+        loss_boundary,
+        loss_boundary_support,
+        winning_team=2,
+        played_on=date(2026, 7, 13),
+    )
+    create_match(
+        player,
+        boundary_partner,
+        loss_boundary,
+        loss_boundary_support,
+        winning_team=2,
+        played_on=date(2026, 7, 14),
+    )
+    create_match(
+        player,
+        boundary_partner,
+        loss_boundary,
+        loss_boundary_support,
+        winning_team=2,
+        played_on=date(2026, 7, 15),
+    )
+    create_match(
+        player,
+        boundary_partner,
+        loss_boundary,
+        loss_boundary_support,
+        winning_team=1,
+        played_on=date(2026, 7, 16),
+    )
+    create_match(
+        player,
+        boundary_partner,
+        loss_boundary,
+        loss_boundary_support,
+        winning_team=1,
+        played_on=date(2026, 7, 17),
+    )
+    create_match(
+        player,
+        boundary_partner,
+        loss_above,
+        loss_above_support,
+        winning_team=2,
+        played_on=date(2026, 7, 18),
+    )
+    create_match(
+        player,
+        boundary_partner,
+        loss_above,
+        loss_above_support,
+        winning_team=2,
+        played_on=date(2026, 7, 19),
+    )
+    create_match(
+        player,
+        boundary_partner,
+        loss_above,
+        loss_above_support,
+        winning_team=1,
+        played_on=date(2026, 7, 20),
+    )
 
     create_match(player, partner, win_more_a, win_more_b, winning_team=1, played_on=date(2026, 7, 7))
     create_match(player, partner, win_more_a, win_more_b, winning_team=1, played_on=date(2026, 7, 8))
@@ -1183,6 +1260,70 @@ def test_player_detail_contendientes_cards_use_individual_head_to_head_sorting(c
     create_match(player, partner, win_more_a, win_more_b, winning_team=2, played_on=date(2026, 7, 10))
     create_match(player, partner, win_recent_a, win_recent_b, winning_team=1, played_on=date(2026, 7, 11))
     create_match(player, partner, win_recent_a, win_recent_b, winning_team=1, played_on=date(2026, 7, 12))
+    create_match(
+        player,
+        boundary_partner,
+        win_boundary,
+        win_boundary_support,
+        winning_team=1,
+        played_on=date(2026, 7, 21),
+    )
+    create_match(
+        player,
+        boundary_partner,
+        win_boundary,
+        win_boundary_support,
+        winning_team=1,
+        played_on=date(2026, 7, 22),
+    )
+    create_match(
+        player,
+        boundary_partner,
+        win_boundary,
+        win_boundary_support,
+        winning_team=1,
+        played_on=date(2026, 7, 23),
+    )
+    create_match(
+        player,
+        boundary_partner,
+        win_boundary,
+        win_boundary_support,
+        winning_team=2,
+        played_on=date(2026, 7, 24),
+    )
+    create_match(
+        player,
+        boundary_partner,
+        win_boundary,
+        win_boundary_support,
+        winning_team=2,
+        played_on=date(2026, 7, 25),
+    )
+    create_match(
+        player,
+        boundary_partner,
+        win_above,
+        win_above_support,
+        winning_team=1,
+        played_on=date(2026, 7, 26),
+    )
+    create_match(
+        player,
+        boundary_partner,
+        win_above,
+        win_above_support,
+        winning_team=1,
+        played_on=date(2026, 7, 27),
+    )
+    create_match(
+        player,
+        boundary_partner,
+        win_above,
+        win_above_support,
+        winning_team=2,
+        played_on=date(2026, 7, 28),
+    )
 
     response = client.get(reverse("player_detail", args=[player.id]))
     content = response.content.decode("utf-8")
@@ -1245,10 +1386,14 @@ def test_player_detail_contendientes_cards_use_individual_head_to_head_sorting(c
     assert f'href="/players/{loss_more_b.id}/"' in contendientes_content
     assert f'href="/players/{loss_recent_a.id}/"' in contendientes_content
     assert f'href="/players/{loss_recent_b.id}/"' not in contendientes_content
+    assert f'href="/players/{loss_boundary.id}/"' not in contendientes_content
+    assert f'href="/players/{loss_above.id}/"' not in contendientes_content
     assert f'href="/players/{win_more_a.id}/"' in contendientes_content
     assert f'href="/players/{win_more_b.id}/"' in contendientes_content
     assert f'href="/players/{win_recent_a.id}/"' in contendientes_content
     assert f'href="/players/{win_recent_b.id}/"' not in contendientes_content
+    assert f'href="/players/{win_boundary.id}/"' not in contendientes_content
+    assert f'href="/players/{win_above.id}/"' not in contendientes_content
     assert "player-trend-card player-partner-card player-partner-card-link" in contendientes_content
     assert "player-partner-swatch bg-danger bg-opacity-100" in contendientes_content
     assert "player-partner-swatch bg-danger bg-opacity-50" in contendientes_content
@@ -1260,6 +1405,10 @@ def test_player_detail_contendientes_cards_use_individual_head_to_head_sorting(c
     assert "--progress-stroke: rgba(var(--bs-success-rgb), 1);" in contendientes_content
     assert 'aria-label="Derrotas ante Loss More A: 75%"' in content
     assert 'aria-label="Victorias ante Win Recent A: 100%"' in content
+    assert 'aria-label="Derrotas ante Loss Boundary: 60%"' not in content
+    assert 'aria-label="Derrotas ante Loss Above: 67%"' not in content
+    assert 'aria-label="Victorias ante Win Boundary: 60%"' not in content
+    assert 'aria-label="Victorias ante Win Above: 67%"' not in content
 
 
 def test_player_detail_partner_tiebreak_prefers_win_rate_before_recent_date(client):
@@ -1361,14 +1510,18 @@ def test_player_detail_shows_only_available_partner_rows_when_fewer_than_three(c
     assert '<a href="" class="card h-100 player-trend-card player-partner-card' not in content
     assert '<a class="card h-100 player-trend-card player-partner-card player-partner-card-empty' not in content
     assert [row["label"] for row in insights["nemesis_cards"]] == [
-        "Few Rival 1",
-        "Few Rival 2",
+        "Sin datos",
+        "Sin datos",
+        "Sin datos",
     ]
     assert [row["label"] for row in insights["victim_cards"]] == [
-        "Few Rival 1",
-        "Few Rival 2",
+        "Sin datos",
+        "Sin datos",
+        "Sin datos",
     ]
-    assert content.count('class="card h-100 player-trend-card player-partner-card') == 8
+    assert all(row["is_placeholder"] for row in insights["nemesis_cards"])
+    assert all(row["is_placeholder"] for row in insights["victim_cards"])
+    assert content.count('class="card h-100 player-trend-card player-partner-card') == 10
     assert "Otros" not in content
     assert f'href="/players/{partner_a.id}/"' in content
     assert f'href="/players/{partner_b.id}/"' in content

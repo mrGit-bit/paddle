@@ -12,7 +12,13 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+## [1.9.4] - 2026-04-26
+- `UI/UX`: Tightened player-detail `Contendientes` cards to require a strict
+  head-to-head rate above 60% and updated the visible labels to the shorter
+  `Némesis` and `Víctimas` threshold wording.
+
 ## [1.9.3] - 2026-04-22
+
 - `Governance`: Aligned template presentation audits with the repository audit
   lifecycle and clarified routing between focused, Django view, and governance
   markdown audits.
