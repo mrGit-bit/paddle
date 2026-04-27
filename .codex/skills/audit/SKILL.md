@@ -16,8 +16,8 @@ explicitly request a combined review.
 
 Read these files first before reviewing code:
 
-- `docs/PROJECT_INSTRUCTIONS.md`
 - `AGENTS.md`
+- `.codex/skills/sdd-workflow/SKILL.md`
 
 Then inspect only the files needed for the requested scope. Start with the
 target Django views and expand to related forms, templates, URLs, tests,

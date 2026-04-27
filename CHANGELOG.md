@@ -12,7 +12,18 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `Governance`: Reorganized ChatGPT and Codex governance into lightweight
+  router documents backed by workflow skills for progressive context
+  disclosure.
+- `Backend`: Made Americano new-round creation POST-only and protected the
+  empty-tournament action with a CSRF form.
+- `Backend`: Kept match update side effects transactional so invalid updates
+  preserve existing player links and rankings.
+- `Performance`: Batched player-detail ranking scope computation and reduced
+  new-match badge lookups to ID-only queries.
+
 ## [1.9.4] - 2026-04-26
+
 - `UI/UX`: Tightened player-detail `Contendientes` cards to require a strict
   head-to-head rate above 60% and updated the visible labels to the shorter
   `Némesis` and `Víctimas` threshold wording.

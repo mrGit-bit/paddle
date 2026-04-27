@@ -1,4 +1,4 @@
 interface:
   display_name: "Governance Markdown Auditor"
-  short_description: "Audit governance markdown overlap"
-  default_prompt: "Use $governance-markdown-auditor to review this repository's governance markdown for duplication, boundary drift, coordination gaps, and low-value process overhead."
+  short_description: "Audit governance docs and skills"
+  default_prompt: "Use $governance-markdown-auditor to review this repository's governance docs and workflow skills for duplication, boundary drift, coordination gaps, and low-value process overhead."

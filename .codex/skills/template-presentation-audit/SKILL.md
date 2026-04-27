@@ -23,7 +23,8 @@ repository governance markdown, not rendered template presentation.
 
 ## Workflow
 
-1. Read `docs/PROJECT_INSTRUCTIONS.md` and `AGENTS.md` for project constraints.
+1. Read `AGENTS.md` and `.codex/skills/sdd-workflow/SKILL.md` for project
+   constraints.
 2. Read the target template and identify its rendered UI groups:
    - section headings
    - repeated cards or rows

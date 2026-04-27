@@ -6,6 +6,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
+from frontend.view_modules import players as player_views
 from games.models import Group, Match, Player
 
 
@@ -110,6 +111,40 @@ def test_player_detail_is_public_200(client):
     assert response.status_code == 200
     assert "Jugador Perfil" in content
     assert f"<h1 class=\"display-5\">{player.name}</h1>" in content
+
+
+def test_player_detail_batches_scope_ranking_computation(client, monkeypatch):
+    player = Player.objects.create(name="Batch Player", gender=Player.GENDER_MALE)
+    calls = []
+
+    def fake_compute_rankings_for_scopes(scopes, *, group=None):
+        calls.append((tuple(scopes), group))
+        results = {}
+        for index, scope in enumerate(scopes, start=1):
+            scoped_player = Player(
+                id=player.id,
+                name=player.name,
+                gender=player.gender,
+                group=player.group,
+            )
+            scoped_player.display_position = index
+            scoped_player.display_wins = 0
+            scoped_player.display_matches = 1
+            scoped_player.display_win_rate = 0
+            scoped_player.show_position = True
+            results[scope] = ([scoped_player], [], scope)
+        return results
+
+    monkeypatch.setattr(
+        player_views,
+        "compute_rankings_for_scopes",
+        fake_compute_rankings_for_scopes,
+    )
+
+    response = client.get(reverse("player_detail", args=[player.id]))
+
+    assert response.status_code == 200
+    assert calls == [(("all", "male", "mixed"), player.group)]
 
 
 def test_player_detail_anonymous_selector_shows_player_names_without_groups(client):

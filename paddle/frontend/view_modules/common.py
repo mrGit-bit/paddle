@@ -187,9 +187,11 @@ def get_new_match_ids(request):
     if not user_player:
         return []
 
-    matches = build_player_participation_queryset(user_player)
     seen_matches = set(request.session.get("seen_matches", []))
-    new_match_ids = [match.id for match in matches if match.id not in seen_matches]
+    matches = build_player_participation_queryset(user_player)
+    if seen_matches:
+        matches = matches.exclude(id__in=seen_matches)
+    new_match_ids = list(matches.values_list("id", flat=True))
     return new_match_ids
 
 

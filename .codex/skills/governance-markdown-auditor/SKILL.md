@@ -1,12 +1,12 @@
 ---
 name: governance-markdown-auditor
-description: Audit governance markdown for duplication, unclear ownership, coordination gaps, prose-only rules, and low-value SDD artifact overhead; export a reviewable governance audit report with prioritized findings and a consolidation-first rewrite plan.
+description: Audit governance markdown and workflow skills for duplication, unclear ownership, coordination gaps, prose-only rules, and low-value SDD artifact overhead; export a reviewable governance audit report with prioritized findings and a consolidation-first rewrite plan.
 ---
 
 # Governance Markdown Auditor
 
-Use this skill when the user wants to review repository governance markdown as
-one coordinated system instead of as isolated files.
+Use this skill when the user wants to review repository governance markdown and
+workflow skills as one coordinated system instead of as isolated files.
 
 Use this skill for governance documentation and workflow coordination only. Do
 not use it to audit rendered Django template presentation; route concrete
@@ -24,6 +24,7 @@ Default review scope:
 - `RELEASE.md`
 - `specs/`
 - `.codex/commands/`
+- `.codex/skills/`
 
 If the user gives a narrower scope, stay inside it.
 
@@ -34,13 +35,15 @@ Find and explain:
 - duplicated or overlapping instructions
 - unclear ownership or authority boundaries between files
 - verbosity that reduces agent readability
+- always-loaded governance that should move into task-triggered skills
+- skill detail that should stay out of always-loaded router docs
 - coordination gaps between related markdown artifacts
 - rules that exist only in prose and are not operationalized anywhere
 - SDD artifact detail that does not create clear execution value
 - release-consolidation or workflow rules that appear inconsistently enforced
 
 Bias toward simplifying the current governance set. Prefer clarifying or
-shrinking existing files before proposing new governance files.
+shrinking existing files and skills before proposing new governance surfaces.
 
 ## Review Workflow
 
@@ -48,22 +51,25 @@ shrinking existing files before proposing new governance files.
    - `docs/PROJECT_INSTRUCTIONS.md`
    - `AGENTS.md`
    - `README.md`
-2. Read only the additional markdown files needed for the requested scope.
-3. Build a file-ownership map before judging wording. State what each file
-   currently appears to own.
-4. Compare files for repeated rules, conflicting instructions, or responsibility
+2. Read task-triggered workflow skills when the scope touches Codex execution,
+   SDD, closure, release, or governance maintenance.
+3. Read only the additional markdown files needed for the requested scope.
+4. Build a file/skill ownership map before judging wording. State what each
+   surface currently appears to own.
+5. Compare files and skills for repeated rules, conflicting instructions, or responsibility
    leakage.
-5. Check whether important coordination rules have an operational hook:
+6. Check whether important coordination rules have an operational hook:
    - slash commands
    - templates
    - automation scripts
+   - skills
    - release workflow docs
    - repository conventions actually visible in the tree
-6. For `specs/`, assess both:
+7. For `specs/`, assess both:
    - governance intent
    - practical value in the observed workflow
-7. Recommend consolidation-first fixes that make each file easier for agents to
-   consult quickly.
+8. Recommend consolidation-first fixes that keep always-loaded docs short and
+   make each task-triggered skill easy for agents to consult quickly.
 
 Read `references/review-rubric.md` when you need the compact severity and
 category rubric.
@@ -75,7 +81,11 @@ reviewable governance audit report.
 Treat these as strong signals of governance debt:
 
 - `AGENTS.md` and `docs/PROJECT_INSTRUCTIONS.md` restating the same workflow
-  instead of splitting long-form vs compact authority cleanly
+  instead of splitting ChatGPT guidance, Codex routing, and skill detail cleanly
+- `AGENTS.md` carrying detailed handoff, release, audit, or markdown workflows
+  that belong in task-triggered skills
+- `docs/PROJECT_INSTRUCTIONS.md` carrying Codex execution rules instead of
+  ChatGPT design and pre-spec guidance
 - `README.md` carrying release-history or changelog-style summaries instead of
   current-state repository orientation
 - `CHANGELOG.md` and `BACKLOG.md` depending on manual coordination with no clear
@@ -86,6 +96,8 @@ Treat these as strong signals of governance debt:
   in commands or current repository state
 - templates or commands that preserve obsolete process detail after governance
   changed
+- skills that duplicate each other or duplicate router docs without adding
+  task-specific execution value
 
 Do not preserve detail by default just because it already exists. If a document
 or section is high-friction and low-value, say so explicitly.
@@ -134,7 +146,8 @@ Use stable finding IDs with the `GF-###` pattern.
 - Distinguish repository facts from recommendations.
 - Do not invent automation that does not exist; call it a recommendation.
 - Mark prose-only rules as defects when the workflow depends on them.
-- Prefer fewer governance files with clearer roles over more coordination docs.
+- Prefer fewer governance surfaces with clearer roles over more coordination
+  docs or overlapping skills.
 - Recommend new files only when no existing file has a clean ownership fit.
 - Keep recommendations agent-readable and concise.
 - Avoid generic markdown style advice unless it affects governance usability.
