@@ -20,6 +20,8 @@ Every implementation response must include:
 - 3-6 Manual Functional Checks
 - Recommended Commit Message covering the full accumulated uncommitted change
   set since the last commit
+- After the report, suggest running `/clear` to reset the context window when
+  the cycle is closed.
 
 ## Changelog and Backlog
 
