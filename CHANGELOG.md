@@ -12,6 +12,8 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `Governance`: Added concise Markdown guidance for Codex-created docs and
+  skills.
 - `Governance`: Added the `$sdd-grill-me` planning skill for SDD-specific
   plan pressure-tests before specs or implementation.
 - `Governance`: Updated cycle-closure reports to suggest `/clear` after a

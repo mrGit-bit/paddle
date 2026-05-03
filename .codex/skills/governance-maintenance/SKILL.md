@@ -45,6 +45,8 @@ and ownership boundaries.
 ## Markdown Style
 
 - Keep new or rewritten Markdown light and schematic.
+- Write concise, specific Markdown, including skills. Avoid long grammar
+  constructions, verbose setup, and repeated restatement.
 - Prefer short sections, direct bullets, compact summaries, and no duplicate
   restatement.
 - Active-work specs should capture only the scope, constraints, and checks
