@@ -1,0 +1,3 @@
+display_name: SDD Grill Me
+short_description: Pressure-test rankingdepadel.club plans.
+default_prompt: Use $sdd-grill-me to interview me about this plan until the implementation plan is decision-complete.

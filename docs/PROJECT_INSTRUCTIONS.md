@@ -1,7 +1,7 @@
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.4.0
-Last Updated: 2026-04-27
+Instruction Set Version: 2.4.1
+Last Updated: 2026-05-03
 
 ## ChatGPT Role
 

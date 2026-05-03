@@ -1,7 +1,7 @@
 # AGENTS.md — Codex Router
 
-Instruction Set Version: 2.4.0
-Last Updated: 2026-04-27
+Instruction Set Version: 2.4.1
+Last Updated: 2026-05-03
 
 ## Authority
 
@@ -28,6 +28,7 @@ Codex execution authority.
 
 - Product, code, SDD planning, specs, audits gate selection, and repository
   constraints: use `$sdd-workflow`.
+- Grill-me planning and pressure-tests: use `$sdd-grill-me`.
 - Handoffs, changelog/backlog/spec reconciliation, commits, pushes, and cycle
   closure: use `$development-cycle-closure`.
 - Governance ownership, markdown rules, versioning, and validation: use

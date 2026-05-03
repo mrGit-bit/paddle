@@ -12,6 +12,8 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `Governance`: Added the `$sdd-grill-me` planning skill for SDD-specific
+  plan pressure-tests before specs or implementation.
 - `Governance`: Reorganized ChatGPT and Codex governance into lightweight
   router documents backed by workflow skills for progressive context
   disclosure.
