@@ -12,6 +12,9 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `Governance`: Added the `$test-design` skill to steer tests toward
+  behavior, accessibility, structure, and style contracts instead of brittle
+  implementation or incidental-copy assertions.
 - `Governance`: Added concise Markdown guidance for Codex-created docs and
   skills.
 - `Governance`: Added the `$sdd-grill-me` planning skill for SDD-specific

@@ -20,6 +20,7 @@ REQUIRED_SKILLS = (
     ROOT / ".codex" / "skills" / "development-cycle-closure" / "SKILL.md",
     ROOT / ".codex" / "skills" / "governance-maintenance" / "SKILL.md",
     ROOT / ".codex" / "skills" / "governance-markdown-auditor" / "SKILL.md",
+    ROOT / ".codex" / "skills" / "test-design" / "SKILL.md",
     ROOT / ".codex" / "skills" / "audit" / "SKILL.md",
     ROOT / ".codex" / "skills" / "template-presentation-audit" / "SKILL.md",
 )
