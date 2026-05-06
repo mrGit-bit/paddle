@@ -13,6 +13,7 @@ from django.shortcuts import render
 
 from games.models import Player
 
+from frontend.services.medals import build_medallero_rows
 from frontend.services.ranking import build_pairs_ranking_sections, compute_ranking
 
 from .common import get_new_match_ids, get_ranking_redirect, get_request_group_context, get_user_player, paginate_list
@@ -113,6 +114,26 @@ def pairs_ranking_view(request):
             "catastrophic_pairs": sections["catastrophic_pairs"],
             "new_matches_number": len(new_match_ids),
             "page_title": "Parejas",
+            "group_display_name": group_context["display_name"],
+            "is_aggregate_context": group_context["aggregate"],
+        },
+    )
+
+
+def medallero_view(request):
+    """
+    Renders the public medal board for the current ranking group context.
+    """
+    group_context = get_request_group_context(request)
+    new_match_ids = get_new_match_ids(request) or []
+
+    return render(
+        request,
+        "frontend/medallero.html",
+        {
+            "medallero_rows": build_medallero_rows(group=group_context["group"]),
+            "new_matches_number": len(new_match_ids),
+            "page_title": "Medallero",
             "group_display_name": group_context["display_name"],
             "is_aggregate_context": group_context["aggregate"],
         },

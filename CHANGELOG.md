@@ -12,6 +12,11 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `UI/UX`: Added a public `Medallero` navbar page with backend-owned medal
+  assignment, compact collapsed player rows, medal summary icons, and expanded
+  three-column medal cards.
+- `Governance`: Added Medallero presentation and since-last-merge code audit
+  reports for the completed development cycle.
 - `Governance`: Added the `$test-design` skill to steer tests toward
   behavior, accessibility, structure, and style contracts instead of brittle
   implementation or incidental-copy assertions.
