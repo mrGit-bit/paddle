@@ -28,7 +28,7 @@ echo "[INFO] Pulling develop with fast-forward only..."
 git pull --ff-only origin develop
 
 echo "[INFO] Merging origin/main into develop..."
-if ! git merge --no-ff -m "${MERGE_MSG}" origin/main; then
+if ! git merge --no-gpg-sign --no-ff -m "${MERGE_MSG}" origin/main; then
   if git diff --name-only --diff-filter=U | grep -q .; then
     echo "[ERROR] Merge conflicts detected. Resolve conflicts manually, then run:"
     echo "        git add <resolved-files>"

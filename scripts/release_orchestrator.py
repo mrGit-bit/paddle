@@ -16,7 +16,10 @@ from pathlib import Path
 
 
 VERSION_PATTERN = re.compile(r"^v?(?P<version>\d+\.\d+\.\d+)$")
-NO_CHECKS_REPORTED_RE = re.compile(r"no checks reported on the .+ branch", re.IGNORECASE)
+NO_CHECKS_REPORTED_RE = re.compile(
+    r"no (?:required )?checks reported on the .+ branch",
+    re.IGNORECASE,
+)
 TRACKING_LINE_RE = re.compile(
     r"^- (?P<field>Task ID|Status|Release tag):\s*`(?P<value>[^`]+)`\s*$"
 )
@@ -597,7 +600,7 @@ def create_or_reuse_promotion_pr(base: str, head: str, version_tag: str, *, cwd:
     return wait_for_pr(base, head, title, cwd=cwd)
 
 
-def wait_for_required_checks(pr_number: int, *, cwd: Path) -> None:
+def wait_for_pr_checks(pr_number: int, *, cwd: Path) -> None:
     attempts = max(1, REQUIRED_CHECK_APPEAR_TIMEOUT_SECONDS // REQUIRED_CHECK_APPEAR_POLL_SECONDS)
     for _ in range(attempts):
         try:
@@ -608,12 +611,26 @@ def wait_for_required_checks(pr_number: int, *, cwd: Path) -> None:
             )
             return
         except subprocess.CalledProcessError as exc:
-            if NO_CHECKS_REPORTED_RE.search(command_error_output(exc)):
-                time.sleep(REQUIRED_CHECK_APPEAR_POLL_SECONDS)
-                continue
-            raise
+            if not NO_CHECKS_REPORTED_RE.search(command_error_output(exc)):
+                raise
+
+        try:
+            print(
+                f"No required checks reported for PR #{pr_number}; waiting for visible checks instead."
+            )
+            run_command(
+                ["gh", "pr", "checks", str(pr_number), "--watch"],
+                cwd=cwd,
+                capture_output=False,
+            )
+            return
+        except subprocess.CalledProcessError as exc:
+            if not NO_CHECKS_REPORTED_RE.search(command_error_output(exc)):
+                raise
+
+        time.sleep(REQUIRED_CHECK_APPEAR_POLL_SECONDS)
     raise ReleaseError(
-        f"Required checks did not appear for PR #{pr_number} within "
+        f"PR checks did not appear for PR #{pr_number} within "
         f"{REQUIRED_CHECK_APPEAR_TIMEOUT_SECONDS} seconds."
     )
 
@@ -975,7 +992,7 @@ def render_report(context: ReleaseContext) -> str:
 
 def continue_after_staging_approval(context: ReleaseContext) -> None:
     prod_pr = create_or_reuse_promotion_pr("main", "staging", context.version_tag, cwd=context.repo_root)
-    wait_for_required_checks(int(prod_pr["number"]), cwd=context.repo_root)
+    wait_for_pr_checks(int(prod_pr["number"]), cwd=context.repo_root)
     merge_pr(int(prod_pr["number"]), "--merge", cwd=context.repo_root, delete_branch=False)
     record_success(
         context,
@@ -1093,7 +1110,7 @@ def run_release_flow(context: ReleaseContext, args: argparse.Namespace) -> None:
     )
 
     prep_pr = wait_for_pr("develop", context.release_branch, context.prep_pr_title, cwd=context.repo_root)
-    wait_for_required_checks(int(prep_pr["number"]), cwd=context.repo_root)
+    wait_for_pr_checks(int(prep_pr["number"]), cwd=context.repo_root)
     merge_pr(int(prep_pr["number"]), "--squash", cwd=context.repo_root, delete_branch=True)
     record_success(
         context,
@@ -1104,7 +1121,7 @@ def run_release_flow(context: ReleaseContext, args: argparse.Namespace) -> None:
     run_command(["git", "pull", "--ff-only", "origin", "develop"], cwd=context.repo_root)
     run_release_validation_suite(context)
     staging_pr = create_or_reuse_promotion_pr("staging", "develop", context.version_tag, cwd=context.repo_root)
-    wait_for_required_checks(int(staging_pr["number"]), cwd=context.repo_root)
+    wait_for_pr_checks(int(staging_pr["number"]), cwd=context.repo_root)
     merge_pr(int(staging_pr["number"]), "--merge", cwd=context.repo_root, delete_branch=False)
     record_success(
         context,

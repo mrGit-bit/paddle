@@ -12,6 +12,12 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `Release`: Updated release automation to fall back from required PR checks
+  to visible PR checks when branch protection reports no required checks, and
+  made release back-merges independent of local GPG signing keys.
+- `Release`: Moved release-prep changelog editing into a tested helper that
+  preserves Markdown spacing between generated version headers and bullets.
+
 ## [1.10.0] - 2026-05-06
 
 - `UI/UX`: Added a public `Medallero` navbar page with backend-owned medal
