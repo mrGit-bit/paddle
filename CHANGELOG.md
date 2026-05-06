@@ -13,6 +13,7 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 ## [Unreleased]
 
 ## [1.10.0] - 2026-05-06
+
 - `UI/UX`: Added a public `Medallero` navbar page with backend-owned medal
   assignment, compact collapsed player rows, medal summary icons, and expanded
   three-column medal cards.
