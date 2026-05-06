@@ -1,212 +1,49 @@
-# AGENTS.md — Codex Execution Rules
+# AGENTS.md — Codex Router
 
-Instruction Set Version: 2.3.13
-Last Updated: 2026-04-22
+Instruction Set Version: 2.4.3
+Last Updated: 2026-05-04
 
-## 1. Authority and File Roles
-
-Authority:
+## Authority
 
 1. Explicit task brief
-2. `/docs/PROJECT_INSTRUCTIONS.md`
-3. `AGENTS.md`
+2. `AGENTS.md`
+3. Task-relevant skills under `.codex/skills/`
 
-Document roles:
+Keep `docs/PROJECT_INSTRUCTIONS.md` and `AGENTS.md` version/date headers
+aligned. `docs/PROJECT_INSTRUCTIONS.md` guides ChatGPT, not Codex execution.
 
-- `docs/PROJECT_INSTRUCTIONS.md`: compact repository constraints and minimum
-  SDD gates.
-- `AGENTS.md`: Codex execution behavior, workflow mechanics, and handoff rules.
-- `README.md`: repository orientation, architecture context, and owner-doc
-  pointers.
+## Minimum Execution Rules
+
+- Verify the branch before development or implementation.
+- If not on `develop`, warn and wait for confirmation before editing.
+- Use the latest approved non-release spec for non-trivial implementation work.
+- Do not implement before the active-work spec is approved.
+- Small, low-risk docs, governance, or repository-guidance edits may skip a new
+  active-work spec.
+- Keep edits scoped to the task and never revert user changes unless explicitly
+  requested.
+- Create concise, specific Markdown, including skills. Avoid verbosity, long
+  grammar constructions, and repeated restatement.
+
+## Skill Routing
+
+- Product, code, SDD planning, specs, audit gates, and repo constraints: use
+  `$sdd-workflow`.
+- Grill-me planning and pressure-tests: use `$sdd-grill-me`.
+- Handoffs, reconciliation, commits, pushes, and closure: use
+  `$development-cycle-closure`.
+- Governance ownership, markdown rules, versioning, and validation: use
+  `$governance-maintenance`.
+- Governance markdown audits: use `$governance-markdown-auditor`.
+- Test creation, test refactors, and brittle assertion reviews: use
+  `$test-design`.
+- Django view audits: use `$audit`.
+- Django template CSS and presentation audits: use
+  `$template-presentation-audit`.
+
+## Required Validation
+
 - Run `python scripts/validate_governance.py` after governance edits.
-- Keep `docs/PROJECT_INSTRUCTIONS.md` compact enough for ChatGPT Project
-  instructions: target under 7000 characters and never above 7800 characters.
-- If a governance addition would exceed that budget, keep only the portable
-  rule in `docs/PROJECT_INSTRUCTIONS.md` and move the detail here or to another
-  owner doc instead of expanding the project-instructions file further.
-
-If version/date mismatch exists between `PROJECT_INSTRUCTIONS.md` and
-`AGENTS.md`, stop and align them first.
-
-## 2. Tool Roles
-
-- Codex CLI is the default tool for spec drafting, planning, implementation,
-  tests, and repository changes.
-- ChatGPT is not required when Codex CLI can cover the task end to end.
-- Use ChatGPT only for pre-spec clarification of ambiguous work, project
-  technology or design questions, governance decisions, development-concept
-  clarification, or screenshot review.
-- For ChatGPT pre-spec handoffs, follow `docs/PROJECT_INSTRUCTIONS.md`; save or
-  paste them only under ignored local files in `docs/pre-specs/`, edit them
-  manually there, and paste the refined draft into Codex CLI `/plan`.
-- `docs/pre-specs/` is scratch planning input only. Do not treat files there as
-  active-work specs, do not include them in active spec discovery, and do not
-  stage, commit, release-consolidate, or mention them as shipped artifacts.
-- For external-tool or integration features that depend on current support,
-  discovery rules, authentication behavior, configuration paths, or versioned
-  capabilities, verify the live tool behavior or current official
-  documentation before relying on them in specs, automation, or user
-  guidance.
-- This applies to Codex CLI, GitHub CLI, GitHub Actions behavior, SSH tooling,
-  Codespaces integration, MCP wiring, and any similar dependency needed to
-  complete the requested work.
-- Do not assume a discovery path, config path, auth flow, or checked-in
-  integration file works just because it appears in a draft spec or repository
-  file. Validate the active tool version and the current environment first.
-
-## 3. Execution Workflow
-
-Follow the SDD flow defined in `docs/PROJECT_INSTRUCTIONS.md`.
-
-Execution rules:
-
-1. Verify the current branch before development or implementation work.
-2. Use the latest approved non-release spec for the current task as the
-   active-work artifact.
-3. Treat `specs/release-*.md` as historical release records only.
-4. Do not implement before the current active-work spec is approved.
-5. Keep implementation aligned with the approved scope; no scope expansion.
-6. Follow the active-work and loose-spec lifecycle defined in
-   `docs/PROJECT_INSTRUCTIONS.md`; do not restate or reinterpret it.
-
-Simple-change exception:
-
-- For small, low-risk changes with narrow scope, such as straightforward
-  documentation, governance, or repository-guidance edits, Codex CLI may skip
-  creating an active-work spec.
-- If the requested change is clearly minor and fits that reduced-process path,
-  Codex may proceed directly without an extra confirmation turn.
-- If the task grows beyond that narrow change set, stop using the exception and
-  return to the normal approved-spec workflow.
-
-Planning behavior:
-
-- In `/plan` or any planning-only workflow, explore first, then bias toward a
-  question-heavy planning loop before finalizing the plan.
-- Do not jump straight from exploration to a completed plan when meaningful
-  product, UX, or implementation preferences could still be confirmed with the
-  user.
-- After exploration, summarize the discovered context and ask follow-up
-  questions that lock preferences or tradeoffs even when a reasonable default
-  seems likely.
-- When `/plan` input came from `docs/pre-specs/`, treat it as user-editable
-  planning context only. Still explore the repository, resolve discoverable
-  facts, and ask preference-locking questions before creating or updating any
-  approved spec in `specs/`.
-- Prefer at least one round of preference-locking questions for non-trivial
-  planning work and a second round when implementation choices would otherwise
-  be left to inference.
-- Only skip those extra planning questions when the remaining decisions are
-  truly mechanical or already explicitly settled by the user or repository
-  governance.
-
-Quality checkpoints:
-
-- `/review` is a fast targeted review checkpoint on the relevant draft, diff, or
-  scoped change set.
-- `audit` is for deeper Django view behavior, architecture, security, reuse, and
-  performance inspection.
-- `template-presentation-audit` is for focused same-page presentation, CSS
-  cascade, computed-style, and responsive-layout review of one concrete Django
-  template.
-- `governance-markdown-auditor` is for repository governance markdown,
-  ownership boundaries, coordination gaps, and audit workflow rules.
-- Evaluate whether `/review`, `audit`, or a focused audit skill should be used
-  for each non-trivial spec or implementation task, especially when the target
-  flow already exists.
-- Prefer `/review` first when both checkpoints could fit the scope.
-- If neither checkpoint is used, say so explicitly in the working response and
-  give a brief reason for skipping it or discarding it for that scope.
-- Only surface findings that are medium or high severity; do not raise low
-  severity findings as active review/audit findings.
-- Before continuing past the relevant gate, explicitly ask the user whether
-  each surfaced finding should be addressed or discarded, then update the
-  review/audit record accordingly.
-- Do not fix findings directly just because they were found; implement fixes
-  only after the user chooses to address them.
-- When Django model/schema changes are introduced, generate and apply the
-  required migrations in development before treating the task as complete.
-
-Post-release:
-
-- After a successful tagged release and back-merge from `main` to `develop`,
-  perform pending spec consolidation before starting new SDD work. Use the
-  shipped production release as history: consolidate only loose files marked
-  with the shipped `vX.Y.Z`, fold completed backlog outcomes into the final
-  release-summary wording when relevant, keep the changelog section grouped by
-  stable categories, roll unshipped planned-version work into the next
-  production release that ships it, and create a new loose spec for
-  post-release follow-up instead of extending a shipped file.
-
-## 4. Handoff Requirements
-
-Every implementation response must include:
-
-- Technical Summary
-- Files Modified
-- Tests added or modified, with command and result summary
-- Changelog Entry with the exact text added
-- Human readable summary of changes
-- 3-6 Manual Functional Checks
-- Recommended Commit Message covering the full accumulated uncommitted change
-  set since the last commit
-
-Before any commit, push, or closure step:
-
-- Ask whether the user wants to continue developing.
-- If not, ask: `Do you want me to proceed with staging changes, committing with
-  the recommended commit message, pushing to the remote branch, and closing the
-  current development cycle?`
-- Exception: if the user explicitly says `close cycle`, `close specification`,
-  or gives equivalent direct closure authorization, treat that as approval to
-  stage, commit, and push without asking the extra confirmation question.
-
-If the user confirms closure:
-
-- Update each in-scope loose spec from `Status: approved` to
-  `Status: implemented` when the scoped work is complete and that development
-  cycle is being closed, before staging and committing the closure.
-- Stage, commit, and push in the same flow.
-- Run closure git operations sequentially, never in parallel; `git add`,
-  `git commit`, and `git push` must each finish before the next one starts.
-- Use `git commit --no-gpg-sign` for commits in this environment; do not first
-  try signed commits when the local GPG key is unavailable.
-- Reconcile any completed backlog items in `BACKLOG.md` that belong to the
-  requested scope by removing them from backlog and ensuring the implemented
-  outcome is reflected in `CHANGELOG.md`.
-- Backlog reconciliation is owned by development-cycle closure. Release
-  consolidation may still use completed backlog wording as source material for
-  the final grouped changelog summary when that wording is available.
-- Keep processing remaining requested-work changes until `git status --short`
-  is clean.
-- After closure, suggest next steps if relevant.
-
-## 5. Markdown Handling
-
-For changed Markdown files:
-
-- Keep new or rewritten Markdown light and schematic by default.
-- Prefer short sections, direct bullets, compact summaries, and no duplicate
-  restatement.
-- `CHANGELOG.md` should record shipped outcomes, not process narration.
-- Keep `CHANGELOG.md` entries scannable by prefixing bullets with stable domain
-  categories when a release mixes different kinds of work, for example
-  `UI/UX`, `Governance`, `Release`, `Backend`, `Data`, `Mobile`, `Tests`, or
-  `Docs`.
-- During release consolidation, merge repetitive same-category changelog notes
-  into a few outcome-focused bullets. Use shipped specs, existing changelog
-  notes, and completed backlog descriptions as source material; do not copy
-  backlog or spec wording verbatim when a compact grouped summary is clearer.
-- Active-work specs should capture only the scope, constraints, and checks
-  needed to execute the task.
-- Consolidated release files should be compact provenance records, not embedded
-  copies of prior source files.
-- Do not add `markdownlint-disable` directives unless explicitly requested.
-- Keep `MD022` and `MD032` compliant.
-- Treat `MD013` as non-blocking.
-- `CHANGELOG.md` may keep an `MD024` disable because repeated Keep a Changelog
-  category headings are intentional there.
-- Preserve authoritative generated text unless a structural correction is
-  required.
-- Run markdownlint on changed Markdown files when available and fix violations
-  in the same change set except `MD013`.
+- Run markdownlint on changed Markdown files when available; `MD013` is non-blocking.
+- For code changes, run the smallest relevant test scope and report the command
+  plus result.

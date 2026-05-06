@@ -68,9 +68,11 @@ reintroduced.
 ## Important Repository Paths
 
 - [docs/PROJECT_INSTRUCTIONS.md](/workspaces/paddle/docs/PROJECT_INSTRUCTIONS.md):
-  compact repository constraints and minimum SDD gates.
-- [AGENTS.md](/workspaces/paddle/AGENTS.md): Codex execution behavior, workflow
-  mechanics, and handoff rules.
+  ChatGPT conversational design and copy-paste pre-spec guidance.
+- [AGENTS.md](/workspaces/paddle/AGENTS.md): compact Codex router for
+  authority, minimum safety gates, skill routing, and validation.
+- [.codex/skills](/workspaces/paddle/.codex/skills): task-triggered Codex
+  workflows and audit procedures.
 - [CHANGELOG.md](/workspaces/paddle/CHANGELOG.md): release history and
   unreleased documented changes.
 - [BACKLOG.md](/workspaces/paddle/BACKLOG.md): pending work inventory.
@@ -88,22 +90,22 @@ reintroduced.
   notes about the view-module split.
 - [specs](/workspaces/paddle/specs): active work specs, the task template, and
   consolidated release specs.
-- SDD lifecycle rules live in
-  [docs/PROJECT_INSTRUCTIONS.md](/workspaces/paddle/docs/PROJECT_INSTRUCTIONS.md);
-  release consolidation rules live in [RELEASE.md](/workspaces/paddle/RELEASE.md).
+- SDD lifecycle and development closure rules live in task-triggered skills
+  under [.codex/skills](/workspaces/paddle/.codex/skills); release operations
+  live in [RELEASE.md](/workspaces/paddle/RELEASE.md).
 
 ## Codex CLI Guide
 
 Read this repository in this order when the task touches product behavior:
 
 1. Explicit user task brief.
-2. [docs/PROJECT_INSTRUCTIONS.md](/workspaces/paddle/docs/PROJECT_INSTRUCTIONS.md).
-3. [AGENTS.md](/workspaces/paddle/AGENTS.md).
+2. [AGENTS.md](/workspaces/paddle/AGENTS.md).
+3. The task-relevant skill under [.codex/skills](/workspaces/paddle/.codex/skills).
 4. The active-work spec for the task:
    the latest approved non-release file in [specs](/workspaces/paddle/specs)
    created for that task. For small, low-risk documentation or governance
-   updates, this may be skipped only when the higher-authority governance docs
-   allow the reduced-process path for that request.
+   updates, this may be skipped when `AGENTS.md` and the relevant skill allow
+   the reduced-process path.
 5. The relevant app code and tests.
 
 Quick routing:
@@ -111,9 +113,11 @@ Quick routing:
 - Use [CHANGELOG.md](/workspaces/paddle/CHANGELOG.md) for release history.
 - Use [RELEASE.md](/workspaces/paddle/RELEASE.md) for release flow.
 - Use [docs/PROJECT_INSTRUCTIONS.md](/workspaces/paddle/docs/PROJECT_INSTRUCTIONS.md)
-  for compact repository constraints.
-- Use [AGENTS.md](/workspaces/paddle/AGENTS.md) for execution and handoff
-  behavior.
+  for ChatGPT high-level design and pre-spec guidance.
+- Use [AGENTS.md](/workspaces/paddle/AGENTS.md) for Codex routing and minimum
+  execution gates.
+- Use [.codex/skills](/workspaces/paddle/.codex/skills) for detailed Codex
+  workflows, audits, governance maintenance, and closure behavior.
 
 ## Project Structure
 

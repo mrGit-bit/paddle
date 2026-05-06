@@ -1,0 +1,3 @@
+display_name: Governance Maintenance
+short_description: Maintain lightweight governance docs backed by workflow skills.
+default_prompt: Use $governance-maintenance to update governance markdown, align instruction metadata, and validate the result.

@@ -9,6 +9,7 @@ from . import views
 # - `/ranking/male/`: Male ranking page
 # - `/ranking/female/`: Female ranking page
 # - `/ranking/mixed/`: Mixed ranking page
+# - `/medallero/`: Public medal board
 # - `/register/`: User registration
 # - `/matches/`: Matches list/add/delete
 # - `/users/<id>/`: Edit user details
@@ -29,6 +30,7 @@ urlpatterns = [
     path('ranking/male/', views.ranking_view, {"scope": "male"}, name='ranking_male'),
     path('ranking/female/', views.ranking_view, {"scope": "female"}, name='ranking_female'),
     path('ranking/mixed/', views.ranking_view, {"scope": "mixed"}, name='ranking_mixed'),
+    path("medallero/", views.medallero_view, name="medallero"),
     path("players/", views.players_view, name="players"),
     path("players/<int:player_id>/", views.player_detail_view, name="player_detail"),
     path('register/', views.register_view, name='register'),

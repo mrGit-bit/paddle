@@ -14,7 +14,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from games.models import Match, Player
-from frontend.services.ranking import compute_ranking
+from frontend.services.ranking import compute_ranking, compute_rankings_for_scopes
 
 from .common import (
     build_all_players,
@@ -133,8 +133,18 @@ def _build_ranking_progress_fields(scoped_player, ranking_total: int) -> dict:
     }
 
 
-def _get_scoped_player_page_and_total(scope: str, player_id: int, page_size: int = 12, *, group=None):
-    ranked_players, _, _ = compute_ranking(scope, group=group)
+def _get_scoped_player_page_and_total(
+    scope: str,
+    player_id: int,
+    page_size: int = 12,
+    *,
+    group=None,
+    ranking_results=None,
+):
+    if ranking_results is None:
+        ranked_players, _, _ = compute_ranking(scope, group=group)
+    else:
+        ranked_players, _, _ = ranking_results[scope]
     scoped_player = next((player for player in ranked_players if player.id == player_id), None)
     if not scoped_player:
         return None, None, len(ranked_players)
@@ -788,12 +798,18 @@ def player_detail_view(request, player_id):
         scope_rows.append({"label": "Fem.", "scope": "female", "url_name": "ranking_female"})
     scope_rows.append({"label": "Mixtos", "scope": "mixed", "url_name": "ranking_mixed"})
 
+    ranking_results = compute_rankings_for_scopes(
+        [row["scope"] for row in scope_rows],
+        group=profile_player.group,
+    )
+
     for row in scope_rows:
         _add_scope_classes(row, row["scope"])
         scoped_player, page, ranking_total = _get_scoped_player_page_and_total(
             row["scope"],
             profile_player.id,
             group=profile_player.group,
+            ranking_results=ranking_results,
         )
         row["scoped_player"] = scoped_player
         row.update(_build_ranking_progress_fields(scoped_player, ranking_total))

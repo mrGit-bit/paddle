@@ -8,6 +8,7 @@ from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
 from frontend import views
+from frontend.view_modules import common
 from games.models import Group, Match, Player
 
 User = get_user_model()
@@ -444,6 +445,40 @@ class TestFrontendViews:
         request = self.client.request().wsgi_request
         request.user = User.objects.create_user(username="no_player", password="pass")
         assert views.get_new_match_ids(request) == []
+
+    def test_get_new_match_ids_uses_id_queryset(self, monkeypatch):
+        class FakeMatchQueryset:
+            def __init__(self):
+                self.excluded = None
+
+            def exclude(self, **kwargs):
+                self.excluded = kwargs
+                return self
+
+            def values_list(self, *args, **kwargs):
+                assert args == ("id",)
+                assert kwargs == {"flat": True}
+                return [self.match_id]
+
+            def __iter__(self):
+                raise AssertionError("get_new_match_ids should not load full Match objects")
+
+        fake_queryset = FakeMatchQueryset()
+        fake_queryset.match_id = self.match.id
+
+        self.client.login(username="testuser", password="testpass")
+        response = self.client.get(reverse("hall_of_fame"))
+        request = response.wsgi_request
+        request.session["seen_matches"] = [999]
+
+        monkeypatch.setattr(
+            common,
+            "build_player_participation_queryset",
+            lambda player: fake_queryset,
+        )
+
+        assert views.get_new_match_ids(request) == [self.match.id]
+        assert fake_queryset.excluded == {"id__in": {999}}
 
     def test_fetch_paginated_data_invalid_page(self):
         # Covers lines 123-124

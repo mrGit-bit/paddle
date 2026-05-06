@@ -1,0 +1,3 @@
+display_name: SDD Workflow
+short_description: Plan and implement rankingdepadel.club work through the active-spec workflow.
+default_prompt: Use $sdd-workflow to plan this task, apply repository constraints, and choose the right review or audit gate.
