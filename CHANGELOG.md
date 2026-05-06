@@ -12,6 +12,9 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `Governance`: Added the `$write-a-skill` skill for adapting and maintaining
+  repository-local Codex skills with concise metadata, progressive disclosure,
+  and validation guidance.
 - `Release`: Updated release automation to fall back from required PR checks
   to visible PR checks when branch protection reports no required checks, and
   made release back-merges independent of local GPG signing keys.

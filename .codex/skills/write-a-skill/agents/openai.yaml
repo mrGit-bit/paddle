@@ -1,0 +1,3 @@
+display_name: Write a Skill
+short_description: Create concise repo-local Codex skills.
+default_prompt: Use $write-a-skill to create or update a repository-local Codex skill.

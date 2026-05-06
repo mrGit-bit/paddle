@@ -1,7 +1,7 @@
 # AGENTS.md — Codex Router
 
-Instruction Set Version: 2.4.3
-Last Updated: 2026-05-04
+Instruction Set Version: 2.4.4
+Last Updated: 2026-05-06
 
 ## Authority
 
@@ -35,6 +35,8 @@ aligned. `docs/PROJECT_INSTRUCTIONS.md` guides ChatGPT, not Codex execution.
 - Governance ownership, markdown rules, versioning, and validation: use
   `$governance-maintenance`.
 - Governance markdown audits: use `$governance-markdown-auditor`.
+- Creating, adapting, or updating repository Codex skills: use
+  `$write-a-skill`.
 - Test creation, test refactors, and brittle assertion reviews: use
   `$test-design`.
 - Django view audits: use `$audit`.
