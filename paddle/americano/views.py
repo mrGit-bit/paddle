@@ -307,6 +307,7 @@ def americano_detail(request, pk):
     )
 
 @login_required
+@require_POST
 def americano_new_round(request, pk):
     tournament = get_object_or_404(AmericanoTournament, pk=pk)
 

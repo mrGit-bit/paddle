@@ -316,8 +316,13 @@ def test_delete_last_round_then_can_create_new_round(client, user, player_user, 
     assert res.status_code == 302
     assert t.rounds.count() == 0
 
-    # create new round
+    # GET must not create a round.
     res = client.get(reverse("americano_new_round", kwargs={"pk": t.pk}))
+    assert res.status_code == 405
+    assert t.rounds.count() == 0
+
+    # POST creates a new round.
+    res = client.post(reverse("americano_new_round", kwargs={"pk": t.pk}))
     assert res.status_code == 302
     assert t.rounds.count() == 1
 
@@ -380,7 +385,7 @@ def test_americano_new_round_denied_for_non_participant(client, user, other_user
     t = _create_tournament(creator=user, players=players_pool[:4])
     client.login(username="u2", password="pass1234")
 
-    res = client.get(reverse("americano_new_round", kwargs={"pk": t.pk}))
+    res = client.post(reverse("americano_new_round", kwargs={"pk": t.pk}))
     assert res.status_code == 302
 
     # no rounds created

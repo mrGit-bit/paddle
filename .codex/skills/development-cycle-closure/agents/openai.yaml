@@ -1,0 +1,3 @@
+display_name: Development Cycle Closure
+short_description: Prepare handoffs, changelog entries, spec closure, commits, and pushes.
+default_prompt: Use $development-cycle-closure to finish this implementation cycle, reconcile metadata, and prepare the commit flow.

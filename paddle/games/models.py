@@ -1,7 +1,7 @@
 # absolute path: /workspaces/paddle/paddle/games/models.py
 
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, transaction
 from django.db.models.functions import Lower
 from django.contrib.auth.models import User
 from django.utils.text import slugify
@@ -315,11 +315,6 @@ class Match(models.Model):
     def save(self, *args, **kwargs):
         is_new = self._state.adding
 
-        # If editing, revert old effects first (uses old FKs)
-        if not is_new:
-            old = Match.objects.get(pk=self.pk)
-            old.revert_match_effects()
-
         if not self.group_id:
             self.group = self.team1_player1.group
 
@@ -327,10 +322,16 @@ class Match(models.Model):
         self.clean()
         self.match_gender_type = self.compute_gender_type()
 
-        super().save(*args, **kwargs)
+        with transaction.atomic():
+            # If editing, revert old effects only after the new state validates.
+            if not is_new:
+                old = Match.objects.get(pk=self.pk)
+                old.revert_match_effects()
 
-        # Apply effects using current FKs
-        self.apply_match_effects()
+            super().save(*args, **kwargs)
+
+            # Apply effects using current FKs
+            self.apply_match_effects()
 
 
     def delete(self, *args, **kwargs):

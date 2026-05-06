@@ -12,7 +12,34 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-05-06
+
+- `UI/UX`: Added a public `Medallero` navbar page with backend-owned medal
+  assignment, compact collapsed player rows, medal summary icons, and expanded
+  three-column medal cards.
+- `Governance`: Added Medallero presentation and since-last-merge code audit
+  reports for the completed development cycle.
+- `Governance`: Added the `$test-design` skill to steer tests toward
+  behavior, accessibility, structure, and style contracts instead of brittle
+  implementation or incidental-copy assertions.
+- `Governance`: Added concise Markdown guidance for Codex-created docs and
+  skills.
+- `Governance`: Added the `$sdd-grill-me` planning skill for SDD-specific
+  plan pressure-tests before specs or implementation.
+- `Governance`: Updated cycle-closure reports to suggest `/clear` after a
+  completed cycle.
+- `Governance`: Reorganized ChatGPT and Codex governance into lightweight
+  router documents backed by workflow skills for progressive context
+  disclosure.
+- `Backend`: Made Americano new-round creation POST-only and protected the
+  empty-tournament action with a CSRF form.
+- `Backend`: Kept match update side effects transactional so invalid updates
+  preserve existing player links and rankings.
+- `Performance`: Batched player-detail ranking scope computation and reduced
+  new-match badge lookups to ID-only queries.
+
 ## [1.9.4] - 2026-04-26
+
 - `UI/UX`: Tightened player-detail `Contendientes` cards to require a strict
   head-to-head rate above 60% and updated the visible labels to the shorter
   `Némesis` and `Víctimas` threshold wording.

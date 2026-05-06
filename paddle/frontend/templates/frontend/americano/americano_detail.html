@@ -275,10 +275,12 @@
 <!-- New round button for empty tournament -->
 {% if can_edit and rounds.count == 0 %}
   <div class="mt-3">
-    <a class="btn btn-sm btn-americano-header"
-      href="{% url 'americano_new_round' tournament.pk %}">
+    <form method="post" action="{% url 'americano_new_round' tournament.pk %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm btn-americano-header">
       Nueva ronda
-    </a>
+      </button>
+    </form>
   </div>
 {% endif %}
 
