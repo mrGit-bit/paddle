@@ -6,7 +6,7 @@ Use for active SDD work only.
 
 - Task ID: `medallero-public-page`
 - Status: `implemented`
-- Release tag: `unreleased`
+- Release tag: `v1.10.0`
 
 ## Summary
 
