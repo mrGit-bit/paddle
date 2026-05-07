@@ -16,5 +16,14 @@
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4"
+  },
+  "overrides": {
+    "@capacitor/assets": {
+      "@capacitor/cli": "$@capacitor/cli"
+    },
+    "replace": {
+      "minimatch": "3.1.4"
+    },
+    "tar": "7.5.14"
   }
 }

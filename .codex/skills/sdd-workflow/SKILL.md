@@ -63,8 +63,8 @@ Spec lifecycle:
 - Treat `docs/pre-specs/` files as scratch input only. Do not stage, commit,
   release-consolidate, or describe them as shipped artifacts.
 - ChatGPT pre-specs are starting points for Codex `/plan`, not active specs.
-- Active specs should capture only scope, constraints, acceptance checks, and
-  validation needed to execute safely.
+- Active specs should capture only scope, constraints, stable execution notes,
+  acceptance checks, and validation needed to execute safely.
 
 ## Quality Checkpoints
 

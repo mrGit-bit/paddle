@@ -51,50 +51,7 @@ jobs:
         env:
           VERSION: ${{ inputs.version }}
         run: |
-          python - <<'PY'
-          import os
-          import re
-          from datetime import datetime, timezone
-          from pathlib import Path
-
-          VERSION = os.environ["VERSION"]
-          path = Path("CHANGELOG.md")
-          if not path.exists():
-            raise SystemExit("CHANGELOG.md not found at repo root")
-
-          text = path.read_text(encoding="utf-8")
-
-          m = re.search(r"^## \[Unreleased\]\s*\n(?P<body>.*?)(?=^## \[|\Z)", text, flags=re.M | re.S)
-          if not m:
-            raise SystemExit("No '## [Unreleased]' section found in CHANGELOG.md")
-
-          body = m.group("body").strip("\n")
-          if not body.strip():
-            body = "- (no notable changes)\n"
-
-          today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-          new_header = f"## [{VERSION}] - {today}\n"
-          new_section = new_header + body.strip() + "\n\n"
-
-          unreleased_replacement = "## [Unreleased]\n\n"
-          new_text = re.sub(
-            r"^## \[Unreleased\]\s*\n.*?(?=^## \[|\Z)",
-            unreleased_replacement,
-            text,
-            flags=re.M | re.S
-          )
-
-          new_text = new_text.replace(unreleased_replacement, unreleased_replacement + new_section, 1)
-          new_text = re.sub(
-            r"(?m)^## \[Unreleased\]\n+(?=## \[)",
-            "## [Unreleased]\n\n",
-            new_text,
-            count=1,
-          )
-
-          path.write_text(new_text, encoding="utf-8")
-          print(f"Updated CHANGELOG.md: created {new_header.strip()}")
-          PY
+          python .github/scripts/prepare_release_changelog.py --version "$VERSION"
 
       - name: Update config.__version__
         env:

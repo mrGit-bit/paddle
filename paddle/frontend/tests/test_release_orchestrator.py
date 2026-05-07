@@ -732,28 +732,49 @@ def test_wait_for_workflow_run_accepts_single_dispatch_candidate_without_branch_
     assert run["databaseId"] == 23611535777
 
 
-def test_wait_for_required_checks_retries_until_checks_appear(monkeypatch):
+def test_wait_for_pr_checks_uses_required_checks_when_configured(monkeypatch):
     calls = []
 
     def fake_run_command(args, *, cwd, capture_output=True, input_text=None):
         calls.append(args)
-        if len(calls) == 1:
+        return subprocess.CompletedProcess(args, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(release_orchestrator, "run_command", fake_run_command)
+    monkeypatch.setattr(release_orchestrator.time, "sleep", lambda seconds: None)
+
+    release_orchestrator.wait_for_pr_checks(83, cwd=Path("/tmp/repo"))
+
+    assert len(calls) == 1
+    assert calls[0][-1] == "--required"
+
+
+def test_wait_for_pr_checks_uses_visible_checks_when_required_checks_are_not_configured(
+    monkeypatch,
+):
+    calls = []
+
+    def fake_run_command(args, *, cwd, capture_output=True, input_text=None):
+        calls.append(args)
+        if "--required" in args:
             raise subprocess.CalledProcessError(
                 1,
                 args,
-                output="no checks reported on the 'chore/release-v1.6.0' branch\n",
+                output="no required checks reported on the 'staging' branch\n",
             )
         return subprocess.CompletedProcess(args, 0, stdout="", stderr="")
 
     monkeypatch.setattr(release_orchestrator, "run_command", fake_run_command)
     monkeypatch.setattr(release_orchestrator.time, "sleep", lambda seconds: None)
 
-    release_orchestrator.wait_for_required_checks(83, cwd=Path("/tmp/repo"))
+    release_orchestrator.wait_for_pr_checks(83, cwd=Path("/tmp/repo"))
 
-    assert len(calls) == 2
+    assert calls == [
+        ["gh", "pr", "checks", "83", "--watch", "--required"],
+        ["gh", "pr", "checks", "83", "--watch"],
+    ]
 
 
-def test_wait_for_required_checks_raises_when_checks_never_appear(monkeypatch):
+def test_wait_for_pr_checks_raises_when_checks_never_appear(monkeypatch):
     def fake_run_command(args, *, cwd, capture_output=True, input_text=None):
         raise subprocess.CalledProcessError(
             1,
@@ -767,9 +788,9 @@ def test_wait_for_required_checks_raises_when_checks_never_appear(monkeypatch):
     monkeypatch.setattr(release_orchestrator, "REQUIRED_CHECK_APPEAR_POLL_SECONDS", 5)
 
     with pytest.raises(release_orchestrator.ReleaseError) as exc_info:
-        release_orchestrator.wait_for_required_checks(83, cwd=Path("/tmp/repo"))
+        release_orchestrator.wait_for_pr_checks(83, cwd=Path("/tmp/repo"))
 
-    assert str(exc_info.value) == "Required checks did not appear for PR #83 within 10 seconds."
+    assert str(exc_info.value) == "PR checks did not appear for PR #83 within 10 seconds."
 
 
 def test_run_release_validation_suite_records_success(monkeypatch):

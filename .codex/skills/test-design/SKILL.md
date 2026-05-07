@@ -1,6 +1,6 @@
 ---
 name: test-design
-description: Use for rankingdepadel.club test creation, test refactors, brittle assertion reviews, and choosing behavior-focused validation that avoids coupling tests to incidental copy, markup, CSS text, or implementation details.
+description: Use for rankingdepadel.club test creation, TDD loops, test refactors, brittle assertion reviews, and choosing behavior-focused validation that avoids coupling tests to incidental copy, markup, CSS text, or implementation details.
 ---
 
 # Test Design
@@ -27,6 +27,21 @@ or wording changes.
   detail on the page.
 - Do not remove meaningful assertions only to make a change pass; replace
   brittle assertions with stronger contract-level checks.
+
+## TDD Loop
+
+For non-trivial behavior changes, prefer a vertical red-green-refactor loop:
+
+1. Add one test for one observable behavior.
+2. Run it and confirm it fails for the expected reason.
+3. Implement the smallest change that makes it pass.
+4. Run the focused test again.
+5. Repeat for the next behavior.
+6. Refactor only while tests are green.
+
+Avoid writing all tests before implementation. Keep each test tied to public
+behavior, rendered structure, persisted data, permissions, ordering, or another
+stable contract.
 
 ## Preferred Assertions
 

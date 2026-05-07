@@ -120,8 +120,8 @@ truth for the remote deploy steps.
 
 ## GitHub Actions Used
 
-- `.github/workflows/release-prep-no-ai.yml`: manual dispatch workflow used to
-  prepare `CHANGELOG.md` and `paddle/config/__init__.py`, create
+- `.github/workflows/release-prep-no-ai.yml`: active manual dispatch workflow
+  used to prepare `CHANGELOG.md` and `paddle/config/__init__.py`, create
   `chore/release-vX.Y.Z`, and open the release-prep PR.
 - `.github/workflows/ci.yml`: required PR checks for `develop`, `staging`, and
   `main` promotions.
@@ -136,14 +136,15 @@ truth for the remote deploy steps.
 2. Dispatch `Release Prep (no-AI)` for `X.Y.Z` from `develop`.
 3. Wait for the workflow run and locate PR
    `version(release): prepare release vX.Y.Z`.
-4. Wait for required checks when they exist, squash-merge the release-prep PR,
-   and delete `chore/release-vX.Y.Z`.
+4. Wait for required checks when they exist, otherwise fall back to visible PR
+   checks, squash-merge the release-prep PR, and delete
+   `chore/release-vX.Y.Z`.
 5. Pull the merged release-prep changes onto local `develop`, then run the
    local CI-equivalent pytest and coverage commands for `frontend` and
    `americano`. If either command fails, stop the release before opening the
    promotion PR.
-6. Create PR `develop -> staging`, wait for required checks from
-   `.github/workflows/ci.yml`, and merge it.
+6. Create PR `develop -> staging`, wait for required or visible PR checks
+   from `.github/workflows/ci.yml`, and merge it.
 7. Deploy staging with `ssh -F .codex/private/release_ssh/config
    staging-update`, then have the orchestrator run `python manage.py migrate
    --settings=config.settings.prod` on the staging host and fail if any
@@ -151,13 +152,15 @@ truth for the remote deploy steps.
    `paddle/config/__init__.py` at `X.Y.Z`.
 8. Print 3-6 manual functional checks for staging and wait for explicit user
    approval.
-9. If approved, create PR `staging -> main`, wait for CI, and merge it.
+9. If approved, create PR `staging -> main`, wait for required or visible CI,
+   and merge it.
 10. Deploy production with `ssh -F .codex/private/release_ssh/config
    prod-update`, then have the orchestrator run `python manage.py migrate
    --settings=config.settings.prod` on the production host and fail if any
    migrations remain pending; only then verify the remote host reports
    `paddle/config/__init__.py` at `X.Y.Z`.
-11. Back-merge `origin/main` into local `develop`.
+11. Back-merge `origin/main` into local `develop` with an unsigned merge
+    commit so local GPG configuration cannot block the release.
 12. Consolidate only the loose spec files explicitly marked with
     `Release tag: vX.Y.Z` and a closure-complete `Status`
     (`implemented` or `shipped`) into `specs/release-X.Y.Z-consolidated.md`.
@@ -184,8 +187,7 @@ version, the orchestrator aborts instead of continuing to the next release
 step.
 
 Backlog reconciliation is owned by development-cycle closure. Release
-consolidation only uses completed backlog wording as release-summary source
-material when that wording is still available.
+consolidation does not clean up backlog items.
 
 If a planned version never reaches production, do not keep a synthetic release
 record for it. Fold its unshipped specs and changelog notes into the next

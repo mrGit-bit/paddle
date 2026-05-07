@@ -1,4 +1,5 @@
 import importlib.util
+from datetime import date
 from pathlib import Path
 
 
@@ -7,6 +8,20 @@ spec = importlib.util.spec_from_file_location("release_pr_body", SCRIPT_PATH)
 release_pr_body = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
 spec.loader.exec_module(release_pr_body)
+
+CHANGELOG_SCRIPT_PATH = (
+    Path(__file__).resolve().parents[3]
+    / ".github"
+    / "scripts"
+    / "prepare_release_changelog.py"
+)
+changelog_spec = importlib.util.spec_from_file_location(
+    "prepare_release_changelog",
+    CHANGELOG_SCRIPT_PATH,
+)
+prepare_release_changelog = importlib.util.module_from_spec(changelog_spec)
+assert changelog_spec.loader is not None
+changelog_spec.loader.exec_module(prepare_release_changelog)
 
 
 def test_render_release_pr_body_populates_summary_and_metadata():
@@ -57,3 +72,27 @@ def test_extract_release_section_raises_for_missing_version():
         assert False, "Expected ValueError when version section is missing"
     except ValueError as exc:
         assert "1.4.0" in str(exc)
+
+
+def test_move_unreleased_to_version_preserves_markdown_spacing():
+    changelog = """# Changelog
+
+## [Unreleased]
+
+- Added release check fallback.
+
+## [1.10.0] - 2026-05-06
+
+- Previous release.
+"""
+
+    output = prepare_release_changelog.move_unreleased_to_version(
+        changelog,
+        "1.11.0",
+        date(2026, 5, 7),
+    )
+
+    assert (
+        "## [Unreleased]\n\n## [1.11.0] - 2026-05-07\n\n"
+        "- Added release check fallback."
+    ) in output

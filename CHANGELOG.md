@@ -12,6 +12,25 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+## [1.10.1] - 2026-05-07
+- `Dependencies`: Updated vulnerable Python and mobile npm dependencies reported
+  by Dependabot, kept patched minimum Python dependency floors in
+  `requirements.in`, and removed unused PostgreSQL, WhiteNoise, and
+  `dj-database-url` packages while retaining Gunicorn for staging and
+  production.
+- `Governance`: Resolved repository-governance audit findings by tightening
+  router wording, consolidating backlog and release ownership, removing the
+  obsolete Codex release-prep workflow, and loosening active spec execution
+  notes.
+- `Governance`: Added the `$write-a-skill` skill for adapting and maintaining
+  repository-local Codex skills with concise metadata, progressive disclosure,
+  and validation guidance.
+- `Release`: Updated release automation to fall back from required PR checks
+  to visible PR checks when branch protection reports no required checks, and
+  made release back-merges independent of local GPG signing keys.
+- `Release`: Moved release-prep changelog editing into a tested helper that
+  preserves Markdown spacing between generated version headers and bullets.
+
 ## [1.10.0] - 2026-05-06
 
 - `UI/UX`: Added a public `Medallero` navbar page with backend-owned medal
