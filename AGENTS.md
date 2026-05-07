@@ -1,7 +1,7 @@
 # AGENTS.md — Codex Router
 
-Instruction Set Version: 2.4.3
-Last Updated: 2026-05-04
+Instruction Set Version: 2.4.6
+Last Updated: 2026-05-07
 
 ## Authority
 
@@ -9,37 +9,35 @@ Last Updated: 2026-05-04
 2. `AGENTS.md`
 3. Task-relevant skills under `.codex/skills/`
 
-Keep `docs/PROJECT_INSTRUCTIONS.md` and `AGENTS.md` version/date headers
-aligned. `docs/PROJECT_INSTRUCTIONS.md` guides ChatGPT, not Codex execution.
+Keep `docs/PROJECT_INSTRUCTIONS.md` and this file aligned by version/date.
+`docs/PROJECT_INSTRUCTIONS.md` guides ChatGPT, not Codex execution.
 
 ## Minimum Execution Rules
 
-- Verify the branch before development or implementation.
-- If not on `develop`, warn and wait for confirmation before editing.
-- Use the latest approved non-release spec for non-trivial implementation work.
-- Do not implement before the active-work spec is approved.
+- Verify the branch before development; if not on `develop`, warn and wait
+  before editing.
+- For non-trivial implementation, use the latest approved non-release spec and
+  do not start before approval.
 - Small, low-risk docs, governance, or repository-guidance edits may skip a new
   active-work spec.
-- Keep edits scoped to the task and never revert user changes unless explicitly
-  requested.
-- Create concise, specific Markdown, including skills. Avoid verbosity, long
-  grammar constructions, and repeated restatement.
+- Keep edits scoped and never revert user changes unless explicitly requested.
+- Keep Markdown concise and specific.
 
 ## Skill Routing
 
-- Product, code, SDD planning, specs, audit gates, and repo constraints: use
+- Product, code, SDD planning, specs, audit gates, and repo constraints:
   `$sdd-workflow`.
 - Grill-me planning and pressure-tests: use `$sdd-grill-me`.
-- Handoffs, reconciliation, commits, pushes, and closure: use
+- Handoffs, reconciliation, commits, pushes, and closure:
   `$development-cycle-closure`.
-- Governance ownership, markdown rules, versioning, and validation: use
+- Governance ownership, markdown rules, versioning, and validation:
   `$governance-maintenance`.
-- Governance markdown audits: use `$governance-markdown-auditor`.
-- Test creation, test refactors, and brittle assertion reviews: use
+- Governance markdown audits: `$governance-markdown-auditor`.
+- Creating, adapting, or updating repository Codex skills: `$write-a-skill`.
+- Test creation, TDD loops, test refactors, and brittle assertion reviews:
   `$test-design`.
-- Django view audits: use `$audit`.
-- Django template CSS and presentation audits: use
-  `$template-presentation-audit`.
+- Django view audits: `$audit`.
+- Django template CSS and presentation audits: `$template-presentation-audit`.
 
 ## Required Validation
 
