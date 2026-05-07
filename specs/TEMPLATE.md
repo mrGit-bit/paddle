@@ -32,7 +32,9 @@ development cycle for that spec is being closed. Only then move the spec to
 
 - List explicitly.
 
-## Implementation Plan
+## Execution Notes
+
+Use this section only for stable sequencing constraints or required checkpoints.
 
 - [ ] Step 1
 - [ ] Step 2

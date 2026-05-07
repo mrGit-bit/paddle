@@ -21,11 +21,8 @@ Rules:
 - Order tasks by `priority` (**PRI**) from highest to lowest.
 - For equal `priority`, sort by `simplicity` (**SIMP**) so easier work comes
   first.
-- During development-cycle closure, remove completed in-scope items and ensure
-  [CHANGELOG.md](CHANGELOG.md) reflects the outcome.
-- During release consolidation, use recently completed backlog descriptions as
-  source material for compact grouped release-summary bullets when they are
-  still available.
+- Reconcile completed items during development-cycle closure using
+  `$development-cycle-closure`.
 
 | Requirement | IMP. | SIMP. | PRI. |
 | --- | --- | --- | --- |

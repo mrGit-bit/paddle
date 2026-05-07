@@ -120,8 +120,8 @@ truth for the remote deploy steps.
 
 ## GitHub Actions Used
 
-- `.github/workflows/release-prep-no-ai.yml`: manual dispatch workflow used to
-  prepare `CHANGELOG.md` and `paddle/config/__init__.py`, create
+- `.github/workflows/release-prep-no-ai.yml`: active manual dispatch workflow
+  used to prepare `CHANGELOG.md` and `paddle/config/__init__.py`, create
   `chore/release-vX.Y.Z`, and open the release-prep PR.
 - `.github/workflows/ci.yml`: required PR checks for `develop`, `staging`, and
   `main` promotions.
@@ -187,8 +187,7 @@ version, the orchestrator aborts instead of continuing to the next release
 step.
 
 Backlog reconciliation is owned by development-cycle closure. Release
-consolidation only uses completed backlog wording as release-summary source
-material when that wording is still available.
+consolidation does not clean up backlog items.
 
 If a planned version never reaches production, do not keep a synthetic release
 record for it. Fold its unshipped specs and changelog notes into the next

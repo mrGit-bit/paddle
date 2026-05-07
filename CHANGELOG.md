@@ -12,6 +12,10 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `Governance`: Resolved repository-governance audit findings by tightening
+  router wording, consolidating backlog and release ownership, removing the
+  obsolete Codex release-prep workflow, and loosening active spec execution
+  notes.
 - `Governance`: Added the `$write-a-skill` skill for adapting and maintaining
   repository-local Codex skills with concise metadata, progressive disclosure,
   and validation guidance.
