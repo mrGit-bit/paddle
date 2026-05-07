@@ -12,6 +12,7 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+## [1.10.1] - 2026-05-07
 - `Dependencies`: Updated vulnerable Python and mobile npm dependencies reported
   by Dependabot, kept patched minimum Python dependency floors in
   `requirements.in`, and removed unused PostgreSQL, WhiteNoise, and
