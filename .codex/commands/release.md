@@ -23,6 +23,14 @@ Execution rules:
 - Leave unrelated in-progress loose specs on `Status: approved` with
   `Release tag: unreleased` so consolidation skips them.
 - Keep the interaction focused on the script output.
+- Keep release sessions context-light: summarize long-running command progress
+  instead of pasting repeated poll output, avoid full diffs unless diagnosing a
+  failure, and report only the decision-relevant lines from GitHub, SSH deploy,
+  and validation commands.
 - If the script reports missing prerequisites or pauses at the staging approval
   gate, surface that result directly instead of improvising extra release
   actions.
+- Treat the initial release request as permission to reach staging only. Never
+  promote staging to production unless the user explicitly approves production
+  promotion after the staging manual checks, or supplies the documented
+  `--staging-approved` resume command.

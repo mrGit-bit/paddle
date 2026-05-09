@@ -12,7 +12,16 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `Release`: Clarified that release requests only authorize deployment through
+  staging, and that production promotion must wait for explicit approval after
+  staging manual checks or the documented staging-approval resume command.
+- `Release`: Added release-session context guidance to summarize polling,
+  deploy logs, validation output, and diffs instead of filling the conversation
+  with full command streams; `/clear` remains an optional post-cycle
+  suggestion.
+
 ## [1.10.1] - 2026-05-07
+
 - `Dependencies`: Updated vulnerable Python and mobile npm dependencies reported
   by Dependabot, kept patched minimum Python dependency floors in
   `requirements.in`, and removed unused PostgreSQL, WhiteNoise, and

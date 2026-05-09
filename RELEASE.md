@@ -150,8 +150,10 @@ truth for the remote deploy steps.
    --settings=config.settings.prod` on the staging host and fail if any
    migrations remain pending; only then verify the remote host reports
    `paddle/config/__init__.py` at `X.Y.Z`.
-8. Print 3-6 manual functional checks for staging and wait for explicit user
-   approval.
+8. Print 3-6 manual functional checks for staging and stop for explicit user
+   approval. A prior request to `release`, `close cycle and release`, or
+   similar authorizes reaching staging only; it does not approve production
+   promotion.
 9. If approved, create PR `staging -> main`, wait for required or visible CI,
    and merge it.
 10. Deploy production with `ssh -F .codex/private/release_ssh/config
@@ -172,6 +174,12 @@ truth for the remote deploy steps.
 If the user declines at the staging gate, the command stops after staging and
 reports the paused state.
 
+Never infer staging approval from the initial release request, successful
+automated checks, successful staging deployment, or verified staging version.
+Only continue to production after the user explicitly approves production
+promotion after reviewing the staging manual checks, or after the user runs the
+documented `--staging-approved` resume command.
+
 If the command reaches staging in a non-interactive session, it now prints the
 manual checks and exits with resume guidance instead of crashing on `input()`.
 After the checks are complete, resume with:
@@ -185,6 +193,11 @@ If staging is not approved, record the pause cleanly with:
 If a remote deploy command returns but the host still reports the wrong app
 version, the orchestrator aborts instead of continuing to the next release
 step.
+
+Keep release sessions context-light. Summarize repeated polling, PR checks,
+SSH deploy logs, and validation output instead of pasting full command streams
+unless a failure needs diagnosis. Avoid large diffs during release operations;
+use compact file lists and decision-relevant summaries.
 
 Backlog reconciliation is owned by development-cycle closure. Release
 consolidation does not clean up backlog items.

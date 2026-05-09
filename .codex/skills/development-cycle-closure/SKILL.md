@@ -21,7 +21,7 @@ Every implementation response must include:
 - Recommended Commit Message covering the full accumulated uncommitted change
   set since the last commit
 - After the report, suggest running `/clear` to reset the context window when
-  the cycle is closed.
+  the cycle is closed; this is only a suggestion, never a required step.
 
 ## Changelog and Backlog
 
@@ -53,6 +53,18 @@ When closure is authorized:
 4. Use `git commit --no-gpg-sign`; do not try a signed commit first in this
    environment.
 5. Keep processing requested-work changes until `git status --short` is clean.
+
+Release authorization is not production authorization. If a closure request
+also asks for release, proceed only through staging deployment and staging
+verification, then stop for the staging manual checks. Do not create or merge
+the `staging -> main` PR, deploy production, or back-merge `main` until the user
+explicitly approves production promotion after those staging checks, or supplies
+the documented `--staging-approved` resume command.
+
+Keep release closure context-light. Summarize command results instead of
+pasting repeated polling output, avoid full diffs unless diagnosing a failure,
+and report only the decision-relevant lines from GitHub checks, SSH deploys,
+and validation commands. Prefer one concise status update per release phase.
 
 ## Release Consolidation
 
