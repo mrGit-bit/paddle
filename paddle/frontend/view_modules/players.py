@@ -67,6 +67,12 @@ SCOPE_CLASS_BY_KEY = {
     "gender": (SCOPE_COLOR_CLASSES[1], SCOPE_PROGRESS_COLOR_CLASSES[1], SCOPE_STYLE_CLASSES[1]),
     "mixed": (SCOPE_COLOR_CLASSES[2], SCOPE_PROGRESS_COLOR_CLASSES[2], SCOPE_STYLE_CLASSES[2]),
 }
+MEDAL_SCOPE_URL_NAMES = {
+    "all": "hall_of_fame",
+    "male": "ranking_male",
+    "female": "ranking_female",
+    "mixed": "ranking_mixed",
+}
 
 
 def build_player_matches_queryset(player):
@@ -132,6 +138,19 @@ def _build_ranking_progress_fields(scoped_player, ranking_total: int) -> dict:
         "record_label": f"{scoped_player.display_wins}🏆/{scoped_player.display_matches}🏓",
         "progress_aria_label": support_text,
     }
+
+
+def _add_medallero_card_hrefs(medal_row: dict | None, *, group=None) -> None:
+    if not medal_row:
+        return
+    for medal in medal_row.get("medals", []):
+        scoped_player, page, _ = _get_scoped_player_page_and_total(
+            medal["scope"],
+            medal_row["player"].id,
+            group=group,
+        )
+        url_name = MEDAL_SCOPE_URL_NAMES.get(medal["scope"])
+        medal["href"] = None if not scoped_player or page is None or not url_name else f'{reverse(url_name)}?page={page}#top'
 
 
 def _get_scoped_player_page_and_total(
@@ -951,6 +970,7 @@ def player_detail_view(request, player_id):
     player_insights = build_player_insights(profile_player)
     player_stats_summary = _build_player_stats_summary(scope_rows, player_insights)
     profile_medal_row = build_player_medallero_row(profile_player, group=profile_player.group)
+    _add_medallero_card_hrefs(profile_medal_row, group=profile_player.group)
 
     new_match_ids = get_new_match_ids(request) or []
     return render(

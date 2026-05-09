@@ -12,6 +12,9 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `UI/UX`: Linked medallero cards to the selected player's scope-specific
+  ranking page and kept the player-detail medal cards clickable to the same
+  destination.
 - `UI/UX`: Limited player-detail `Contendientes` nemesis and victim cards to
   opponents with at least five shared matches before applying the existing
   head-to-head efficiency thresholds.

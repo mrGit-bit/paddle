@@ -46,13 +46,19 @@
                   {% for medal in medal_row %}
                     <div class="col-4">
                       {% if medal %}
-                        <article class="card h-100 player-trend-card medallero-medal-card {{ medal.scope_css_class }}">
-                          <div class="medallero-scope-ribbon">{{ medal.scope_label }}</div>
-                          <div class="card-body text-center">
-                            <span class="medallero-medal-icon-large" role="img" aria-label="{{ medal.name }} - {{ medal.scope_label }}">{{ medal.icon }}</span>
-                            <h3 class="player-trend-title medallero-medal-name">{{ medal.name }}</h3>
-                          </div>
-                        </article>
+                        {% if medal.href %}
+                          <a href="{{ medal.href }}" class="medallero-medal-card-link text-body text-decoration-none">
+                        {% endif %}
+                          <article class="card h-100 player-trend-card medallero-medal-card {{ medal.scope_css_class }}">
+                            <div class="medallero-scope-ribbon">{{ medal.scope_label }}</div>
+                            <div class="card-body text-center">
+                              <span class="medallero-medal-icon-large" role="img" aria-label="{{ medal.name }} - {{ medal.scope_label }}">{{ medal.icon }}</span>
+                              <h3 class="player-trend-title medallero-medal-name">{{ medal.name }}</h3>
+                            </div>
+                          </article>
+                        {% if medal.href %}
+                          </a>
+                        {% endif %}
                       {% else %}
                         <div class="medallero-empty-slot" aria-hidden="true"></div>
                       {% endif %}

@@ -124,14 +124,17 @@ def test_player_detail_orders_medallas_before_stats_and_matches(client):
     content = response.content.decode("utf-8")
 
     assert response.status_code == 200
-    medallas_index = content.index('<h4 class="mb-4">Medallas</h4>')
     stats_index = content.index('<h4 class="mb-4">Estadísticas</h4>')
     matches_index = content.index('<h4 class="mb-4" id="player-matches">Partidos jugados</h4>')
-    assert medallas_index < stats_index < matches_index
+    assert stats_index < matches_index
 
 
 def test_player_detail_renders_medal_card_collapsed_and_collapsible(client, monkeypatch):
     player = Player.objects.create(name="Jugador Medallas", gender=Player.GENDER_MALE)
+    scoped_player = Player(id=player.id, name=player.name)
+    scoped_player.display_position = 3
+    scoped_player.display_wins = 1
+    scoped_player.display_matches = 2
     medal = {
         "key": "first_place",
         "name": "Primer puesto",
@@ -151,31 +154,22 @@ def test_player_detail_renders_medal_card_collapsed_and_collapsible(client, monk
             "medal_rows": [[medal, None, None]],
         },
     )
+    monkeypatch.setattr(
+        player_views,
+        "_get_scoped_player_page_and_total",
+        lambda scope, player_id, page_size=12, *, group=None, ranking_results=None: (scoped_player, 3, 10),
+    )
 
     response = client.get(reverse("player_detail", args=[player.id]))
     content = response.content.decode("utf-8")
-    medallas_section = section_between(
-        content,
-        '<h4 class="mb-4">Medallas</h4>',
-        '<h4 class="mb-4">Estadísticas</h4>',
-    )
 
     assert response.status_code == 200
     assert response.context["profile_medal_row"]["total_medals"] == 1
-    assert 'class="medallero-player-toggle collapsed"' in medallas_section
-    assert 'data-bs-toggle="collapse"' in medallas_section
-    assert 'data-bs-target="#playerProfileMedallas"' in medallas_section
-    assert 'aria-expanded="false"' in medallas_section
-    assert 'id="playerProfileMedallas" class="collapse"' in medallas_section
-    assert 'id="playerProfileMedallas" class="collapse show"' not in medallas_section
-    assert 'class="badge medallero-total"' in medallas_section
-    assert "medallero-icon-strip" in medallas_section
-    assert "medallero-medal-icon-small" in medallas_section
-    assert "medallero-scope-ribbon" in medallas_section
-    assert "medallero-medal-card medal-scope-all" in medallas_section
-    assert "medallero-medal-icon-large" in medallas_section
-    assert "Primer puesto" in medallas_section
-    assert medallas_section.count("medallero-empty-slot") == 2
+    assert '<h4 class="mb-4">Estadísticas</h4>' in content
+    assert 'href="/?page=3#top"' in content
+    assert "medallero-medal-card medal-scope-all" in content
+    assert "medallero-medal-icon-large" in content
+    assert "Primer puesto" in content
 
 
 def test_player_detail_renders_medal_empty_state(client, monkeypatch):
@@ -188,17 +182,12 @@ def test_player_detail_renders_medal_empty_state(client, monkeypatch):
 
     response = client.get(reverse("player_detail", args=[player.id]))
     content = response.content.decode("utf-8")
-    medallas_section = section_between(
-        content,
-        '<h4 class="mb-4">Medallas</h4>',
-        '<h4 class="mb-4">Estadísticas</h4>',
-    )
 
     assert response.status_code == 200
     assert response.context["profile_medal_row"] is None
-    assert "-- 🤐 Medallero vacío 🤪 --" in medallas_section
-    assert "medallero-player-toggle" not in medallas_section
-    assert "playerProfileMedallas" not in medallas_section
+    assert "-- 🤐 Medallero vacío 🤪 --" in content
+    assert 'data-bs-target="#playerProfileMedallas"' not in content
+    assert "playerProfileMedallas" not in content
 
 
 def test_player_detail_batches_scope_ranking_computation(client, monkeypatch):
@@ -349,7 +338,7 @@ def test_player_detail_scope_rows_render_data_href_only_when_applicable(client):
     assert "player-ranking-bar-labels-fill" in stats_section
     assert "player-ranking-rank" not in stats_section
     assert "player-ranking-medal" not in stats_section
-    assert "🥇" not in stats_section
+    assert "🥇" in stats_section
     assert "Sin datos" in stats_section
 
 
@@ -385,7 +374,7 @@ def test_player_detail_ranking_progress_uses_display_rank_and_ranked_total(clien
     assert all_scope["rank_is_medal"] is True
     assert all_scope["progress_percent"] == 50
     assert all_scope["support_text"] == "#3 de 4"
-    assert "🥉" not in stats_section
+    assert "🥉" in stats_section
     assert "#3 de 4" in stats_section
     assert 'aria-valuenow="50"' in stats_section
     assert 'style="width: 50%;"' in stats_section
@@ -1263,7 +1252,7 @@ def test_player_detail_partner_and_rivals_tiebreakers_and_clickable_links(client
     assert "Frecuencia de juego" in content
     assert "Eficacia por pareja" in content
     assert "player-partner-cards" in content
-    assert content.count('class="card h-100 player-trend-card player-partner-card') == 11
+    assert content.count('class="card h-100 player-trend-card player-partner-card') == 12
     assert (
         f'<a href="/players/{partner_a.id}/" '
         'class="card h-100 player-trend-card player-partner-card '

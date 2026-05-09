@@ -167,6 +167,7 @@ def fake_medallero_rows(group=None, medals=None):
 @pytest.mark.django_db
 def test_medallero_page_renders_publicly_with_metadata_and_empty_slots(client, monkeypatch):
     monkeypatch.setattr(ranking_views, "build_medallero_rows", fake_medallero_rows)
+    monkeypatch.setattr(ranking_views, "get_player_page_in_scope", lambda scope, player_id, page_size=12, *, group=None: 4)
 
     response = client.get(reverse("medallero"))
     content = response.content.decode("utf-8")
@@ -190,6 +191,7 @@ def test_medallero_page_renders_publicly_with_metadata_and_empty_slots(client, m
     assert "Todos" in content
     assert "medal-scope-all" in content
     assert "medallero-scope-ribbon" in content
+    assert 'href="/?page=4#top"' in content
     assert "medallero-medal-icon-large" in content
     assert "Ocupa la primera posición de su ranking." not in content
     assert "circular-progress" not in content
