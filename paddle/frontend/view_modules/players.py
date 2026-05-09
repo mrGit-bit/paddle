@@ -628,7 +628,7 @@ def _build_ranking_summary_badges(scope_rows, efficiency_scopes):
         summary_rows.append(
             {
                 "label": row["label"],
-                "value": f"{position_label}/{efficiency_label}",
+                "value": f"{position_label} / {efficiency_label}",
                 "color_class": row["color_class"],
                 "text_class": "text-dark" if row["color_class"] == "bg-warning" else "",
             }

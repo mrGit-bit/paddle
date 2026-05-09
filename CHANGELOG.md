@@ -12,6 +12,9 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `UI/UX`: Moved the player-detail `Pulsa para detalles` helper into the
+  `Estadísticas` heading row and formatted ranking pills as `1 / 75%` without
+  brackets.
 - `UI/UX`: Linked medallero cards to the selected player's scope-specific
   ranking page and kept the player-detail medal cards clickable to the same
   destination.
