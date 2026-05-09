@@ -1,7 +1,7 @@
 # AGENTS.md — Codex Router
 
-Instruction Set Version: 2.4.6
-Last Updated: 2026-05-07
+Instruction Set Version: 2.4.7
+Last Updated: 2026-05-09
 
 ## Authority
 
@@ -33,6 +33,7 @@ Keep `docs/PROJECT_INSTRUCTIONS.md` and this file aligned by version/date.
 - Governance ownership, markdown rules, versioning, and validation:
   `$governance-maintenance`.
 - Governance markdown audits: `$governance-markdown-auditor`.
+- Low-context/token-budget reviews: `$context-budget-review`.
 - Creating, adapting, or updating repository Codex skills: `$write-a-skill`.
 - Test creation, TDD loops, test refactors, and brittle assertion reviews:
   `$test-design`.
@@ -42,6 +43,6 @@ Keep `docs/PROJECT_INSTRUCTIONS.md` and this file aligned by version/date.
 ## Required Validation
 
 - Run `python scripts/validate_governance.py` after governance edits.
-- Run markdownlint on changed Markdown files when available; `MD013` is non-blocking.
+- Run markdownlint on changed Markdown; `MD013` is non-blocking.
 - For code changes, run the smallest relevant test scope and report the command
   plus result.

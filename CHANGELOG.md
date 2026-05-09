@@ -12,6 +12,10 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `Governance`: Added the `$context-budget-review` skill for low-context
+  governance and workflow reviews, with a 40% warning threshold and 60%
+  conversation budget, and compacted the Django view audit skill to defer
+  checklist and report details to references.
 - `Release`: Clarified that release requests only authorize deployment through
   staging, and that production promotion must wait for explicit approval after
   staging manual checks or the documented staging-approval resume command.

@@ -1,0 +1,3 @@
+display_name: Context Budget Review
+short_description: Review repo guidance and workflows for low context usage.
+default_prompt: Use $context-budget-review to reduce context usage and keep the conversation under budget.
