@@ -561,6 +561,34 @@ and replaced by an ellipsis (…) */
   line-height: 1.5;
 }
 
+.player-stats-card {
+  overflow: hidden;
+}
+
+.player-stats-toggle {
+  min-height: 3.4rem;
+}
+
+.player-stats-toggle .medallero-player-summary {
+  flex: 0 0 auto;
+}
+
+.player-stats-summary {
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.player-stats-summary-badge {
+  flex: 0 1 auto;
+  max-width: min(12rem, 34vw);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Alignments */
 /* Align all numeric table headers to the center for better readability */
 .table thead th:nth-child(3),

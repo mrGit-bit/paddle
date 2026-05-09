@@ -19,11 +19,11 @@
 {% if profile_medal_row %}
   <section class="card shadow mb-4 medallero-player-card">
     <button
-      class="medallero-player-toggle"
+      class="medallero-player-toggle collapsed"
       type="button"
       data-bs-toggle="collapse"
       data-bs-target="#playerProfileMedallas"
-      aria-expanded="true"
+      aria-expanded="false"
       aria-controls="playerProfileMedallas"
     >
       <span class="medallero-player-summary">
@@ -39,7 +39,7 @@
       </span>
     </button>
 
-    <div id="playerProfileMedallas" class="collapse show">
+    <div id="playerProfileMedallas" class="collapse">
       <div class="card-body medallero-detail-body">
         <div class="medallero-medal-grid">
           {% for medal_row in profile_medal_row.medal_rows %}
@@ -68,16 +68,34 @@
 {% else %}
   <div class="card shadow mb-4">
     <div class="card-body text-center">
-      <p class="mb-0 text-muted">Todavía no tiene medallas.</p>
+      <p class="mb-0 text-muted">-- 🤐 Medallero vacío 🤪 --</p>
     </div>
   </div>
 {% endif %}
 
 <h4 class="mb-4">Estadísticas</h4>
 
-<div class="card shadow mb-4">
-  <div class="card-body">
-    <h4 class="mb-2">Rankings</h4>
+<div id="playerStatsAccordion">
+  <section class="card shadow mb-4 player-stats-card">
+    <button
+      class="medallero-player-toggle collapsed player-stats-toggle"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#playerStatsRankings"
+      aria-expanded="false"
+      aria-controls="playerStatsRankings"
+    >
+      <span class="medallero-player-summary">
+        <span class="h4 mb-0 medallero-player-name">Rankings</span>
+      </span>
+      <span class="medallero-header-meta player-stats-summary">
+        {% for row in player_stats_summary.rankings %}
+          <span class="badge rounded-pill player-stats-summary-badge {{ row.color_class }} {{ row.text_class }}" title="{{ row.label }}">{{ row.value }}</span>
+        {% endfor %}
+      </span>
+    </button>
+    <div id="playerStatsRankings" class="collapse" data-bs-parent="#playerStatsAccordion">
+      <div class="card-body">
     <div class="player-partner-metric-label text-muted">Posición</div>
     <div class="player-ranking-progress-list mb-3">
       {% for row in scope_rows %}
@@ -165,12 +183,30 @@
         </div>
       {% endfor %}
     </div>
-  </div>
-</div>
+      </div>
+    </div>
+  </section>
 
-<div class="card shadow mb-4">
-  <div class="card-body">
-    <h4 class="mb-2">Últimos partidos</h4>
+  <section class="card shadow mb-4 player-stats-card">
+    <button
+      class="medallero-player-toggle collapsed player-stats-toggle"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#playerStatsRecentForm"
+      aria-expanded="false"
+      aria-controls="playerStatsRecentForm"
+    >
+      <span class="medallero-player-summary">
+        <span class="h4 mb-0 medallero-player-name">Últimos partidos</span>
+      </span>
+      <span class="medallero-header-meta player-stats-summary">
+        {% for row in player_stats_summary.recent_form %}
+          <span class="badge rounded-pill player-stats-summary-badge {{ row.color_class }} {{ row.text_class }}" title="{{ row.label }}">{{ row.label }}</span>
+        {% endfor %}
+      </span>
+    </button>
+    <div id="playerStatsRecentForm" class="collapse" data-bs-parent="#playerStatsAccordion">
+      <div class="card-body">
     <div>
       <div class="player-partner-metric-label text-muted">Balance acumulado</div>
       <div class="border rounded p-3">
@@ -189,12 +225,30 @@
         {% endif %}
       </div>
     </div>
-  </div>
-</div>
+      </div>
+    </div>
+  </section>
 
-<div class="card shadow mb-4">
-  <div class="card-body">
-    <h4 class="mb-2">Pareja habitual</h4>
+  <section class="card shadow mb-4 player-stats-card">
+    <button
+      class="medallero-player-toggle collapsed player-stats-toggle"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#playerStatsPartners"
+      aria-expanded="false"
+      aria-controls="playerStatsPartners"
+    >
+      <span class="medallero-player-summary">
+        <span class="h4 mb-0 medallero-player-name">Pareja habitual</span>
+      </span>
+      <span class="medallero-header-meta player-stats-summary">
+        {% for row in player_stats_summary.partners %}
+          <span class="badge rounded-pill player-stats-summary-badge {{ row.color_class }} {{ row.text_class }}" title="{{ row.label }}">{{ row.label }}</span>
+        {% endfor %}
+      </span>
+    </button>
+    <div id="playerStatsPartners" class="collapse" data-bs-parent="#playerStatsAccordion">
+      <div class="card-body">
     <div>
       {% if player_insights.partner_distribution %}
         <div class="player-partner-metric-label text-muted">Frecuencia de juego</div>
@@ -250,12 +304,30 @@
         <p class="text-center text-muted mb-0">Sin datos</p>
       {% endif %}
     </div>
-  </div>
-</div>
+      </div>
+    </div>
+  </section>
   
-<div class="card shadow mb-4">
-  <div class="card-body">
-    <h4 class="mb-2">Parejas rivales frecuentes</h4>
+  <section class="card shadow mb-4 player-stats-card">
+    <button
+      class="medallero-player-toggle collapsed player-stats-toggle"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#playerStatsRivals"
+      aria-expanded="false"
+      aria-controls="playerStatsRivals"
+    >
+      <span class="medallero-player-summary">
+        <span class="h4 mb-0 medallero-player-name">Parejas rivales</span>
+      </span>
+      <span class="medallero-header-meta player-stats-summary">
+        {% for row in player_stats_summary.rivals %}
+          <span class="badge rounded-pill player-stats-summary-badge {{ row.color_class }} {{ row.text_class }}" title="{{ row.label }}">{{ row.label }}</span>
+        {% endfor %}
+      </span>
+    </button>
+    <div id="playerStatsRivals" class="collapse" data-bs-parent="#playerStatsAccordion">
+      <div class="card-body">
     <div>
       {% if player_insights.rival_distribution %}
         <div class="player-partner-metric-label text-muted">Frecuencia de partidos</div>
@@ -318,12 +390,30 @@
         {% endfor %}
       </div>
     </div>
-  </div>
-</div>
+      </div>
+    </div>
+  </section>
 
-<div class="card shadow mb-4">
-  <div class="card-body">
-    <h4 class="mb-2">Contendientes</h4>
+  <section class="card shadow mb-4 player-stats-card">
+    <button
+      class="medallero-player-toggle collapsed player-stats-toggle"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#playerStatsContenders"
+      aria-expanded="false"
+      aria-controls="playerStatsContenders"
+    >
+      <span class="medallero-player-summary">
+        <span class="h4 mb-0 medallero-player-name">Contendientes</span>
+      </span>
+      <span class="medallero-header-meta player-stats-summary">
+        {% for row in player_stats_summary.contenders %}
+          <span class="badge rounded-pill player-stats-summary-badge {{ row.color_class }} {{ row.text_class }}" title="{{ row.label }}">{{ row.label }}</span>
+        {% endfor %}
+      </span>
+    </button>
+    <div id="playerStatsContenders" class="collapse" data-bs-parent="#playerStatsAccordion">
+      <div class="card-body">
     <div class="mb-3">
       <p class="player-partner-metric-label text-muted mb-2">Némesis: efic&gt;60% y más derrotas</p>
       {% if player_insights.nemesis_cards %}
@@ -392,7 +482,9 @@
         </div>
       {% endif %}
     </div>
-  </div>
+      </div>
+    </div>
+  </section>
 </div>
 
 <h4 class="mb-4" id="player-matches">Partidos jugados</h4>

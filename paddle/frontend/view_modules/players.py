@@ -246,6 +246,14 @@ def _format_recent_form_balance_label(balance: int) -> str:
     return "Balance negativo"
 
 
+def _get_recent_form_summary_color_class(balance: int) -> str:
+    if balance > 0:
+        return "bg-success"
+    if balance < 0:
+        return "bg-danger"
+    return "bg-secondary"
+
+
 def _build_recent_form_chart(match_results: list[dict]) -> dict:
     recent_results = list(reversed(match_results[:10]))
     points = [{"x": 0, "y": 0}]
@@ -529,6 +537,113 @@ def _build_head_to_head_cards(opponent_rows, mode):
             }
         )
     return card_rows
+
+
+def _filter_summary_cards(card_rows):
+    return [row for row in card_rows if row and not row.get("is_placeholder")]
+
+
+def _first_summary_card(card_rows):
+    return next(iter(_filter_summary_cards(card_rows)), None)
+
+
+def _build_name_summary_badges(card_rows, empty_label="Sin datos"):
+    summary_rows = [
+        {
+            "label": row["label"],
+            "color_class": row.get("color_class") or "bg-secondary",
+            "text_class": "text-dark" if row.get("color_class") == "bg-warning" else "",
+        }
+        for row in _filter_summary_cards(card_rows)
+    ]
+    if summary_rows:
+        return summary_rows
+    return [{"label": empty_label, "color_class": "bg-secondary", "text_class": ""}]
+
+
+def _build_contender_summary_badges(nemesis_cards, victim_cards):
+    summary_rows = []
+    for row in [_first_summary_card(nemesis_cards)]:
+        if not row:
+            continue
+        summary_rows.append(
+            {
+                "label": row["label"],
+                "color_class": row.get("color_class") or "bg-danger",
+                "text_class": "",
+            }
+        )
+    for row in [_first_summary_card(victim_cards)]:
+        if not row:
+            continue
+        summary_rows.append(
+            {
+                "label": row["label"],
+                "color_class": row.get("color_class") or "bg-success",
+                "text_class": "",
+            }
+        )
+    if summary_rows:
+        return summary_rows
+    return [{"label": "Sin datos", "color_class": "bg-secondary", "text_class": ""}]
+
+
+def _build_ranking_summary_badges(scope_rows, efficiency_scopes):
+    efficiency_by_key = {
+        ("gender" if scope["key"] in {"male", "female"} else scope["key"]): scope
+        for scope in efficiency_scopes
+    }
+    summary_rows = []
+    for row in scope_rows:
+        efficiency_key = "gender" if row["scope"] in {"male", "female"} else row["scope"]
+        efficiency = efficiency_by_key.get(efficiency_key)
+        if efficiency and efficiency["selector"]["matches"] > 0:
+            efficiency_label = f"{efficiency['selector']['win_rate_percent']}%"
+        else:
+            efficiency_label = "--%"
+        position_label = (
+            str(row["scoped_player"].display_position)
+            if row.get("scoped_player")
+            else "--"
+        )
+        summary_rows.append(
+            {
+                "label": row["label"],
+                "value": f"{position_label}/{efficiency_label}",
+                "color_class": row["color_class"],
+                "text_class": "text-dark" if row["color_class"] == "bg-warning" else "",
+            }
+        )
+    return summary_rows
+
+
+def _build_player_stats_summary(scope_rows, player_insights):
+    recent_form_chart = player_insights["recent_form_chart"]
+    return {
+        "rankings": _build_ranking_summary_badges(
+            scope_rows,
+            player_insights["efficiency_scopes"],
+        ),
+        "recent_form": [
+            {
+                "label": recent_form_chart["record_label"],
+                "color_class": _get_recent_form_summary_color_class(
+                    recent_form_chart["balance"],
+                ),
+                "text_class": "",
+            }
+        ],
+        "partners": _build_name_summary_badges(
+            [_first_summary_card(player_insights["partner_efficiency_cards"])]
+        ),
+        "rivals": _build_name_summary_badges(
+            [_first_summary_card(player_insights["rival_efficiency_cards"])]
+        ),
+        "contenders": _build_contender_summary_badges(
+            player_insights["nemesis_cards"],
+            player_insights["victim_cards"],
+        ),
+    }
 
 
 def build_player_insights(player):
@@ -826,6 +941,7 @@ def player_detail_view(request, player_id):
     profile_matches, profile_pagination = fetch_paginated_data(profile_matches_qs, request)
     profile_matches = process_matches_plain(profile_matches)
     player_insights = build_player_insights(profile_player)
+    player_stats_summary = _build_player_stats_summary(scope_rows, player_insights)
     profile_medal_row = build_player_medallero_row(profile_player, group=profile_player.group)
 
     new_match_ids = get_new_match_ids(request) or []
@@ -840,6 +956,7 @@ def player_detail_view(request, player_id):
             "profile_matches": profile_matches,
             "profile_pagination": profile_pagination,
             "player_insights": player_insights,
+            "player_stats_summary": player_stats_summary,
             "profile_medal_row": profile_medal_row,
             "new_match_ids": [],
             "user_matches": [],
