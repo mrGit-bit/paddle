@@ -12,6 +12,9 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `UI/UX`: Limited player-detail `Contendientes` nemesis and victim cards to
+  opponents with at least five shared matches before applying the existing
+  head-to-head efficiency thresholds.
 - `UI/UX`: Added a player-detail `Medallas` section before statistics, reusing
   medallero cards with the selected player's medal card expanded by default
   and collapsible on click.

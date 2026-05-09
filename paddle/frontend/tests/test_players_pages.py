@@ -1508,102 +1508,80 @@ def test_player_detail_contendientes_cards_use_individual_head_to_head_sorting(c
     stats_summary = response.context["player_stats_summary"]
 
     assert response.status_code == 200
-    assert [row["player"] for row in insights["nemesis_cards"]] == [
-        loss_more_a,
-        loss_more_b,
-        loss_recent_a,
-    ]
-    assert [row["opponent_wins"] for row in insights["nemesis_cards"]] == [3, 3, 2]
-    assert [row["opponent_win_rate_percent"] for row in insights["nemesis_cards"]] == [75, 75, 100]
-    assert [row["record_label"] for row in insights["nemesis_cards"]] == [
-        "3🌴/1🏆",
-        "3🌴/1🏆",
-        "2🌴/0🏆",
-    ]
-    assert [row["win_rate_percent"] for row in insights["nemesis_cards"]] == [75, 75, 100]
-    assert [row["color_class"] for row in insights["nemesis_cards"]] == [
-        "bg-danger bg-opacity-100",
-        "bg-danger bg-opacity-50",
-        "bg-danger bg-opacity-25",
-    ]
-    assert [row["progress_color_style"] for row in insights["nemesis_cards"]] == [
-        "--progress-stroke: rgba(var(--bs-danger-rgb), 1);",
-        "--progress-stroke: rgba(var(--bs-danger-rgb), 0.5);",
-        "--progress-stroke: rgba(var(--bs-danger-rgb), 0.25);",
-    ]
-
-    assert [row["player"] for row in insights["victim_cards"]] == [
-        win_more_a,
-        win_more_b,
-        win_recent_a,
-    ]
-    assert [row["player_wins"] for row in insights["victim_cards"]] == [3, 3, 2]
-    assert [row["player_win_rate_percent"] for row in insights["victim_cards"]] == [75, 75, 100]
-    assert [row["record_label"] for row in insights["victim_cards"]] == [
-        "3🏆/1🌴",
-        "3🏆/1🌴",
-        "2🏆/0🌴",
-    ]
-    assert [row["win_rate_percent"] for row in insights["victim_cards"]] == [75, 75, 100]
-    assert [row["color_class"] for row in insights["victim_cards"]] == [
-        "bg-success bg-opacity-100",
-        "bg-success bg-opacity-50",
-        "bg-success bg-opacity-25",
-    ]
-    assert [row["progress_color_style"] for row in insights["victim_cards"]] == [
-        "--progress-stroke: rgba(var(--bs-success-rgb), 1);",
-        "--progress-stroke: rgba(var(--bs-success-rgb), 0.5);",
-        "--progress-stroke: rgba(var(--bs-success-rgb), 0.25);",
-    ]
+    assert [row["player"] for row in insights["nemesis_cards"]] == [None, None, None]
+    assert all(row["is_placeholder"] for row in insights["nemesis_cards"])
+    assert [row["player"] for row in insights["victim_cards"]] == [None, None, None]
+    assert all(row["is_placeholder"] for row in insights["victim_cards"])
     assert stats_summary["contenders"] == [
         {
-            "label": "Loss More A",
-            "color_class": "bg-danger bg-opacity-100",
+            "label": "Sin datos",
+            "color_class": "bg-secondary",
             "text_class": "",
-        },
-        {
-            "label": "Win More A",
-            "color_class": "bg-success bg-opacity-100",
-            "text_class": "",
-        },
+        }
     ]
     contender_header = section_between(
         content,
         'data-bs-target="#playerStatsContenders"',
         'id="playerStatsContenders" class="collapse"',
     )
-    assert "Loss More A" in contender_header
-    assert "Win More A" in contender_header
-    assert "Loss More B" not in contender_header
-    assert "Win More B" not in contender_header
+    assert "Loss Boundary" not in contender_header
+    assert "Win Boundary" not in contender_header
+    assert "Loss More A" not in contender_header
+    assert "Win More A" not in contender_header
 
-    assert f'href="/players/{loss_more_a.id}/"' in contendientes_content
-    assert f'href="/players/{loss_more_b.id}/"' in contendientes_content
-    assert f'href="/players/{loss_recent_a.id}/"' in contendientes_content
-    assert f'href="/players/{loss_recent_b.id}/"' not in contendientes_content
     assert f'href="/players/{loss_boundary.id}/"' not in contendientes_content
+    assert f'href="/players/{loss_more_a.id}/"' not in contendientes_content
+    assert f'href="/players/{loss_more_b.id}/"' not in contendientes_content
+    assert f'href="/players/{loss_recent_a.id}/"' not in contendientes_content
+    assert f'href="/players/{loss_recent_b.id}/"' not in contendientes_content
     assert f'href="/players/{loss_above.id}/"' not in contendientes_content
-    assert f'href="/players/{win_more_a.id}/"' in contendientes_content
-    assert f'href="/players/{win_more_b.id}/"' in contendientes_content
-    assert f'href="/players/{win_recent_a.id}/"' in contendientes_content
-    assert f'href="/players/{win_recent_b.id}/"' not in contendientes_content
     assert f'href="/players/{win_boundary.id}/"' not in contendientes_content
+    assert f'href="/players/{win_more_a.id}/"' not in contendientes_content
+    assert f'href="/players/{win_more_b.id}/"' not in contendientes_content
+    assert f'href="/players/{win_recent_a.id}/"' not in contendientes_content
+    assert f'href="/players/{win_recent_b.id}/"' not in contendientes_content
     assert f'href="/players/{win_above.id}/"' not in contendientes_content
-    assert "player-trend-card player-partner-card player-partner-card-link" in contendientes_content
-    assert "player-partner-swatch bg-danger bg-opacity-100" in contendientes_content
-    assert "player-partner-swatch bg-danger bg-opacity-50" in contendientes_content
-    assert "player-partner-swatch bg-danger bg-opacity-25" in contendientes_content
-    assert "player-partner-swatch bg-success bg-opacity-100" in contendientes_content
-    assert "player-partner-swatch bg-success bg-opacity-50" in contendientes_content
-    assert "player-partner-swatch bg-success bg-opacity-25" in contendientes_content
-    assert "--progress-stroke: rgba(var(--bs-danger-rgb), 1);" in contendientes_content
-    assert "--progress-stroke: rgba(var(--bs-success-rgb), 1);" in contendientes_content
-    assert 'aria-label="Derrotas ante Loss More A: 75%"' in content
-    assert 'aria-label="Victorias ante Win Recent A: 100%"' in content
+    assert "player-trend-card player-partner-card player-partner-card-link" not in contendientes_content
+    assert "player-partner-swatch bg-danger bg-opacity-100" not in contendientes_content
+    assert "player-partner-swatch bg-success bg-opacity-100" not in contendientes_content
+    assert "--progress-stroke: rgba(var(--bs-danger-rgb), 1);" not in contendientes_content
+    assert "--progress-stroke: rgba(var(--bs-success-rgb), 1);" not in contendientes_content
     assert 'aria-label="Derrotas ante Loss Boundary: 60%"' not in content
-    assert 'aria-label="Derrotas ante Loss Above: 67%"' not in content
     assert 'aria-label="Victorias ante Win Boundary: 60%"' not in content
+    assert 'aria-label="Derrotas ante Loss More A: 75%"' not in content
+    assert 'aria-label="Victorias ante Win Recent A: 100%"' not in content
+    assert 'aria-label="Derrotas ante Loss Above: 67%"' not in content
     assert 'aria-label="Victorias ante Win Above: 67%"' not in content
+    assert contendientes_content.count("Sin datos") == 6
+
+
+def test_player_detail_contendientes_cards_require_five_common_matches(client):
+    player = Player.objects.create(name="Five Match Main", gender=Player.GENDER_MALE)
+    nemesis = Player.objects.create(name="Five Match Nemesis", gender=Player.GENDER_MALE)
+    victim = Player.objects.create(name="Five Match Victim", gender=Player.GENDER_MALE)
+    support_a = Player.objects.create(name="Five Match Support A", gender=Player.GENDER_MALE)
+    support_b = Player.objects.create(name="Five Match Support B", gender=Player.GENDER_MALE)
+
+    create_match(player, support_a, nemesis, support_b, winning_team=2, played_on=date(2026, 8, 1))
+    create_match(player, support_a, nemesis, support_b, winning_team=2, played_on=date(2026, 8, 2))
+    create_match(player, support_a, nemesis, support_b, winning_team=2, played_on=date(2026, 8, 3))
+    create_match(player, support_a, nemesis, support_b, winning_team=2, played_on=date(2026, 8, 4))
+    create_match(player, support_a, nemesis, support_b, winning_team=1, played_on=date(2026, 8, 5))
+
+    create_match(player, support_a, victim, support_b, winning_team=1, played_on=date(2026, 8, 6))
+    create_match(player, support_a, victim, support_b, winning_team=1, played_on=date(2026, 8, 7))
+    create_match(player, support_a, victim, support_b, winning_team=1, played_on=date(2026, 8, 8))
+    create_match(player, support_a, victim, support_b, winning_team=1, played_on=date(2026, 8, 9))
+    create_match(player, support_a, victim, support_b, winning_team=2, played_on=date(2026, 8, 10))
+
+    response = client.get(reverse("player_detail", args=[player.id]))
+    insights = response.context["player_insights"]
+
+    assert response.status_code == 200
+    assert [row["player"] for row in insights["nemesis_cards"]] == [nemesis]
+    assert [row["opponent_win_rate_percent"] for row in insights["nemesis_cards"]] == [80]
+    assert [row["player"] for row in insights["victim_cards"]] == [victim]
+    assert [row["player_win_rate_percent"] for row in insights["victim_cards"]] == [80]
 
 
 def test_player_detail_partner_tiebreak_prefers_win_rate_before_recent_date(client):
