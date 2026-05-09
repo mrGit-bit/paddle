@@ -14,6 +14,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from games.models import Match, Player
+from frontend.services.medals import build_player_medallero_row
 from frontend.services.ranking import compute_ranking, compute_rankings_for_scopes
 
 from .common import (
@@ -825,6 +826,7 @@ def player_detail_view(request, player_id):
     profile_matches, profile_pagination = fetch_paginated_data(profile_matches_qs, request)
     profile_matches = process_matches_plain(profile_matches)
     player_insights = build_player_insights(profile_player)
+    profile_medal_row = build_player_medallero_row(profile_player, group=profile_player.group)
 
     new_match_ids = get_new_match_ids(request) or []
     return render(
@@ -838,6 +840,7 @@ def player_detail_view(request, player_id):
             "profile_matches": profile_matches,
             "profile_pagination": profile_pagination,
             "player_insights": player_insights,
+            "profile_medal_row": profile_medal_row,
             "new_match_ids": [],
             "user_matches": [],
             "new_matches_number": len(new_match_ids),

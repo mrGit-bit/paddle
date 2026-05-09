@@ -14,6 +14,65 @@
   </div>
 </div>
 
+<h4 class="mb-4">Medallas</h4>
+
+{% if profile_medal_row %}
+  <section class="card shadow mb-4 medallero-player-card">
+    <button
+      class="medallero-player-toggle"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#playerProfileMedallas"
+      aria-expanded="true"
+      aria-controls="playerProfileMedallas"
+    >
+      <span class="medallero-player-summary">
+        <span class="h4 mb-0 medallero-player-name">{{ profile_medal_row.player.name }}</span>
+        <span class="badge medallero-total" aria-label="Total de medallas: {{ profile_medal_row.total_medals }}">{{ profile_medal_row.total_medals }}</span>
+      </span>
+      <span class="medallero-header-meta">
+        <span class="medallero-icon-strip" aria-label="Medallas de {{ profile_medal_row.player.name }}">
+          {% for medal in profile_medal_row.medals %}
+            <span class="medallero-medal-icon-small" role="img" aria-label="{{ medal.name }} - {{ medal.scope_label }}">{{ medal.icon }}</span>
+          {% endfor %}
+        </span>
+      </span>
+    </button>
+
+    <div id="playerProfileMedallas" class="collapse show">
+      <div class="card-body medallero-detail-body">
+        <div class="medallero-medal-grid">
+          {% for medal_row in profile_medal_row.medal_rows %}
+            <div class="row g-2 mb-2">
+              {% for medal in medal_row %}
+                <div class="col-4">
+                  {% if medal %}
+                    <article class="card h-100 player-trend-card medallero-medal-card {{ medal.scope_css_class }}">
+                      <div class="medallero-scope-ribbon">{{ medal.scope_label }}</div>
+                      <div class="card-body text-center">
+                        <span class="medallero-medal-icon-large" role="img" aria-label="{{ medal.name }} - {{ medal.scope_label }}">{{ medal.icon }}</span>
+                        <h3 class="player-trend-title medallero-medal-name">{{ medal.name }}</h3>
+                      </div>
+                    </article>
+                  {% else %}
+                    <div class="medallero-empty-slot" aria-hidden="true"></div>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+{% else %}
+  <div class="card shadow mb-4">
+    <div class="card-body text-center">
+      <p class="mb-0 text-muted">Todavía no tiene medallas.</p>
+    </div>
+  </div>
+{% endif %}
+
 <h4 class="mb-4">Estadísticas</h4>
 
 <div class="card shadow mb-4">

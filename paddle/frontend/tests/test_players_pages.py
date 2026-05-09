@@ -51,6 +51,10 @@ def scope_by_key(insights, key):
     return next(scope for scope in insights["efficiency_scopes"] if scope["key"] == key)
 
 
+def section_between(content, start_heading, end_heading):
+    return content.split(start_heading, 1)[1].split(end_heading, 1)[0]
+
+
 def test_players_list_is_public_200(client):
     Player.objects.create(name="Jugador Uno", gender=Player.GENDER_MALE)
     response = client.get(reverse("players"))
@@ -111,6 +115,89 @@ def test_player_detail_is_public_200(client):
     assert response.status_code == 200
     assert "Jugador Perfil" in content
     assert f"<h1 class=\"display-5\">{player.name}</h1>" in content
+
+
+def test_player_detail_orders_medallas_before_stats_and_matches(client):
+    player = Player.objects.create(name="Orden Medallas", gender=Player.GENDER_MALE)
+
+    response = client.get(reverse("player_detail", args=[player.id]))
+    content = response.content.decode("utf-8")
+
+    assert response.status_code == 200
+    medallas_index = content.index('<h4 class="mb-4">Medallas</h4>')
+    stats_index = content.index('<h4 class="mb-4">Estadísticas</h4>')
+    matches_index = content.index('<h4 class="mb-4" id="player-matches">Partidos jugados</h4>')
+    assert medallas_index < stats_index < matches_index
+
+
+def test_player_detail_renders_medal_card_expanded_and_collapsible(client, monkeypatch):
+    player = Player.objects.create(name="Jugador Medallas", gender=Player.GENDER_MALE)
+    medal = {
+        "key": "first_place",
+        "name": "Primer puesto",
+        "icon": "🥇",
+        "scope": "all",
+        "scope_label": "Todos",
+        "scope_css_class": "medal-scope-all",
+    }
+
+    monkeypatch.setattr(
+        player_views,
+        "build_player_medallero_row",
+        lambda selected_player, *, group=None: {
+            "player": selected_player,
+            "medals": [medal],
+            "total_medals": 1,
+            "medal_rows": [[medal, None, None]],
+        },
+    )
+
+    response = client.get(reverse("player_detail", args=[player.id]))
+    content = response.content.decode("utf-8")
+    medallas_section = section_between(
+        content,
+        '<h4 class="mb-4">Medallas</h4>',
+        '<h4 class="mb-4">Estadísticas</h4>',
+    )
+
+    assert response.status_code == 200
+    assert response.context["profile_medal_row"]["total_medals"] == 1
+    assert 'class="medallero-player-toggle"' in medallas_section
+    assert 'data-bs-toggle="collapse"' in medallas_section
+    assert 'data-bs-target="#playerProfileMedallas"' in medallas_section
+    assert 'aria-expanded="true"' in medallas_section
+    assert 'id="playerProfileMedallas" class="collapse show"' in medallas_section
+    assert 'class="badge medallero-total"' in medallas_section
+    assert "medallero-icon-strip" in medallas_section
+    assert "medallero-medal-icon-small" in medallas_section
+    assert "medallero-scope-ribbon" in medallas_section
+    assert "medallero-medal-card medal-scope-all" in medallas_section
+    assert "medallero-medal-icon-large" in medallas_section
+    assert "Primer puesto" in medallas_section
+    assert medallas_section.count("medallero-empty-slot") == 2
+
+
+def test_player_detail_renders_medal_empty_state(client, monkeypatch):
+    player = Player.objects.create(name="Sin Medallas", gender=Player.GENDER_MALE)
+    monkeypatch.setattr(
+        player_views,
+        "build_player_medallero_row",
+        lambda selected_player, *, group=None: None,
+    )
+
+    response = client.get(reverse("player_detail", args=[player.id]))
+    content = response.content.decode("utf-8")
+    medallas_section = section_between(
+        content,
+        '<h4 class="mb-4">Medallas</h4>',
+        '<h4 class="mb-4">Estadísticas</h4>',
+    )
+
+    assert response.status_code == 200
+    assert response.context["profile_medal_row"] is None
+    assert "Todavía no tiene medallas." in medallas_section
+    assert "medallero-player-toggle" not in medallas_section
+    assert "playerProfileMedallas" not in medallas_section
 
 
 def test_player_detail_batches_scope_ranking_computation(client, monkeypatch):
@@ -224,38 +311,43 @@ def test_player_detail_scope_rows_render_data_href_only_when_applicable(client):
 
     response = client.get(reverse("player_detail", args=[player_a.id]))
     content = response.content.decode("utf-8")
+    stats_section = section_between(
+        content,
+        '<h4 class="mb-4">Estadísticas</h4>',
+        '<h4 class="mb-4" id="player-matches">Partidos jugados</h4>',
+    )
 
     assert response.status_code == 200
-    assert "player-ranking-progress-list" in content
-    assert '<th scope="col">Rkg.</th>' not in content
-    assert 'href="/?page=1#top"' in content
-    assert 'href="/ranking/male/?page=1#top"' in content
-    assert 'data-href="/?page=1#top"' in content
-    assert 'data-href="/ranking/male/?page=1#top"' in content
-    assert 'data-href="/ranking/mixed/' not in content
-    assert "Todos" in content
-    assert "Masc." in content
-    assert "Mixtos" in content
-    assert "#1 de 4" in content
-    assert 'aria-label="#1 de 4"' in content
-    assert '<div class="progress-bar bg-primary" style="width: 100%;"></div>' in content
-    assert '<div class="progress-bar bg-success" style="width: 100%;"></div>' in content
-    assert "--player-ranking-progress-percent: 100%;" in content
-    assert "1🏆/1🏓" in content
-    assert "0🏆/0🏓" in content
-    assert "player-ranking-cards" not in content
-    assert "player-ranking-card" not in content
-    assert "player-scope-primary" in content
-    assert "player-scope-success" in content
-    assert "player-scope-warning" in content
-    assert "player-scope-danger" not in content
-    assert "player-ranking-bar-labels" in content
-    assert "player-ranking-bar-labels-track" in content
-    assert "player-ranking-bar-labels-fill" in content
-    assert "player-ranking-rank" not in content
-    assert "player-ranking-medal" not in content
-    assert "🥇" not in content
-    assert "Sin datos" in content
+    assert "player-ranking-progress-list" in stats_section
+    assert '<th scope="col">Rkg.</th>' not in stats_section
+    assert 'href="/?page=1#top"' in stats_section
+    assert 'href="/ranking/male/?page=1#top"' in stats_section
+    assert 'data-href="/?page=1#top"' in stats_section
+    assert 'data-href="/ranking/male/?page=1#top"' in stats_section
+    assert 'data-href="/ranking/mixed/' not in stats_section
+    assert "Todos" in stats_section
+    assert "Masc." in stats_section
+    assert "Mixtos" in stats_section
+    assert "#1 de 4" in stats_section
+    assert 'aria-label="#1 de 4"' in stats_section
+    assert '<div class="progress-bar bg-primary" style="width: 100%;"></div>' in stats_section
+    assert '<div class="progress-bar bg-success" style="width: 100%;"></div>' in stats_section
+    assert "--player-ranking-progress-percent: 100%;" in stats_section
+    assert "1🏆/1🏓" in stats_section
+    assert "0🏆/0🏓" in stats_section
+    assert "player-ranking-cards" not in stats_section
+    assert "player-ranking-card" not in stats_section
+    assert "player-scope-primary" in stats_section
+    assert "player-scope-success" in stats_section
+    assert "player-scope-warning" in stats_section
+    assert "player-scope-danger" not in stats_section
+    assert "player-ranking-bar-labels" in stats_section
+    assert "player-ranking-bar-labels-track" in stats_section
+    assert "player-ranking-bar-labels-fill" in stats_section
+    assert "player-ranking-rank" not in stats_section
+    assert "player-ranking-medal" not in stats_section
+    assert "🥇" not in stats_section
+    assert "Sin datos" in stats_section
 
 
 def test_player_detail_ranking_progress_uses_display_rank_and_ranked_total(client):
@@ -275,6 +367,11 @@ def test_player_detail_ranking_progress_uses_display_rank_and_ranked_total(clien
 
     response = client.get(reverse("player_detail", args=[player_c.id]))
     content = response.content.decode("utf-8")
+    stats_section = section_between(
+        content,
+        '<h4 class="mb-4">Estadísticas</h4>',
+        '<h4 class="mb-4" id="player-matches">Partidos jugados</h4>',
+    )
     scope_rows = response.context["scope_rows"]
     all_scope = next(row for row in scope_rows if row["scope"] == "all")
 
@@ -285,11 +382,11 @@ def test_player_detail_ranking_progress_uses_display_rank_and_ranked_total(clien
     assert all_scope["rank_is_medal"] is True
     assert all_scope["progress_percent"] == 50
     assert all_scope["support_text"] == "#3 de 4"
-    assert "🥉" not in content
-    assert "#3 de 4" in content
-    assert 'aria-valuenow="50"' in content
-    assert 'style="width: 50%;"' in content
-    assert "--player-ranking-progress-percent: 50%;" in content
+    assert "🥉" not in stats_section
+    assert "#3 de 4" in stats_section
+    assert 'aria-valuenow="50"' in stats_section
+    assert 'style="width: 50%;"' in stats_section
+    assert "--player-ranking-progress-percent: 50%;" in stats_section
 
 
 def test_player_detail_insights_defaults_with_zero_matches(client):
@@ -703,16 +800,21 @@ def test_player_detail_trend_windows_use_available_matches_and_round_percent(cli
         },
     ]
     content = response.content.decode("utf-8")
-    assert count_trend_wheels(content) == 22
-    assert "Total" not in content
-    assert "20 últimos" in content
-    assert "4🏆/5🏓" in content
-    assert "7🏆/10🏓" in content
-    assert "7🏆/12🏓" in content
-    assert "circular-progress-primary" in content
-    assert 'aria-valuenow="80"' in content
-    assert 'aria-valuenow="70"' in content
-    assert 'aria-valuenow="58"' in content
+    stats_section = section_between(
+        content,
+        '<h4 class="mb-4">Estadísticas</h4>',
+        '<h4 class="mb-4" id="player-matches">Partidos jugados</h4>',
+    )
+    assert count_trend_wheels(stats_section) == 22
+    assert "Total" not in stats_section
+    assert "20 últimos" in stats_section
+    assert "4🏆/5🏓" in stats_section
+    assert "7🏆/10🏓" in stats_section
+    assert "7🏆/12🏓" in stats_section
+    assert "circular-progress-primary" in stats_section
+    assert 'aria-valuenow="80"' in stats_section
+    assert 'aria-valuenow="70"' in stats_section
+    assert 'aria-valuenow="58"' in stats_section
 
 
 def test_player_detail_trend_wheels_mute_duplicate_result_windows(client):

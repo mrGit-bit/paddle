@@ -127,3 +127,10 @@ def build_medallero_rows(*, group=None) -> list[dict]:
             _award(players_by_id, player, "top3_matches", scope)
 
     return _finalize_rows(players_by_id)
+
+
+def build_player_medallero_row(player, *, group=None) -> dict | None:
+    for row in build_medallero_rows(group=group):
+        if row["player"].id == player.id:
+            return row
+    return None

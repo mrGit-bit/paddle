@@ -12,6 +12,9 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `UI/UX`: Added a player-detail `Medallas` section before statistics, reusing
+  medallero cards with the selected player's medal card expanded by default
+  and collapsible on click.
 - `Governance`: Added the `$context-budget-review` skill for low-context
   governance and workflow reviews, with a 40% warning threshold and 60%
   conversation budget, and compacted the Django view audit skill to defer
