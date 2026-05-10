@@ -93,6 +93,9 @@ def test_medal_config_defines_required_metadata():
         assert {"label", "css_class", "progress_color_class"} <= set(scope)
         assert scope["css_class"] == scope["progress_color_class"]
 
+    assert SCOPE_CONFIG["pairs"]["css_class"] == "circular-progress-danger"
+    assert SCOPE_CONFIG["pairs"]["progress_color_class"] == "circular-progress-danger"
+
 
 def test_medal_scope_styles_cover_configured_scopes():
     styles = (

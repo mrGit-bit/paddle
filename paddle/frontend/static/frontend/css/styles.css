@@ -385,6 +385,12 @@ and replaced by an ellipsis (…) */
   --medal-scope-rgb: var(--bs-info-rgb);
 }
 
+.circular-progress-danger {
+  --progress-stroke: var(--bs-danger);
+  --medal-scope-color: var(--bs-danger);
+  --medal-scope-rgb: var(--bs-danger-rgb);
+}
+
 .circular-progress-label {
   position: absolute;
   inset: 0;
@@ -963,6 +969,11 @@ ul.errorlist li {
 .medallero-medal-card.circular-progress-info {
   --medal-scope-color: var(--bs-info);
   --medal-scope-rgb: var(--bs-info-rgb);
+}
+
+.medallero-medal-card.circular-progress-danger {
+  --medal-scope-color: var(--bs-danger);
+  --medal-scope-rgb: var(--bs-danger-rgb);
 }
 
 .medallero-scope-ribbon {

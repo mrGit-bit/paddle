@@ -143,7 +143,7 @@ SCOPE_CONFIG = {
     },
     "pairs": {
         "label": "Parejas",
-        "css_class": "circular-progress-info",
-        "progress_color_class": "circular-progress-info",
+        "css_class": "circular-progress-danger",
+        "progress_color_class": "circular-progress-danger",
     },
 }
