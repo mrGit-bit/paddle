@@ -7,10 +7,15 @@ This repository uses a command-first release flow through
 
 - Primary command: `python scripts/release_orchestrator.py`
 - Argument: `x.y.z` or `vx.y.z`
+- Next patch convenience: `python scripts/release_orchestrator.py --next-patch`
+- Emergency rerun without local pytest validation:
+  `python scripts/release_orchestrator.py <version> --skip-local-validation`
 - Resume after staging checks:
-  `python scripts/release_orchestrator.py <version> --resume-from staging-approval --staging-approved`
+  `python scripts/release_orchestrator.py <version> --resume-from`
+  `staging-approval --staging-approved`
 - Record a paused stop after staging checks:
-  `python scripts/release_orchestrator.py <version> --resume-from staging-approval --staging-declined`
+  `python scripts/release_orchestrator.py <version> --resume-from`
+  `staging-approval --staging-declined`
 - Examples:
   - `python scripts/release_orchestrator.py 1.6.0`
   - `python scripts/release_orchestrator.py v1.6.0`
@@ -120,9 +125,9 @@ truth for the remote deploy steps.
 
 ## GitHub Actions Used
 
-- `.github/workflows/release-prep-no-ai.yml`: active manual dispatch workflow
-  used to prepare `CHANGELOG.md` and `paddle/config/__init__.py`, create
-  `chore/release-vX.Y.Z`, and open the release-prep PR.
+- `.github/workflows/release-prep-no-ai.yml`: fallback manual dispatch
+  workflow for release-prep recovery. The primary orchestrator path prepares
+  `CHANGELOG.md` and `paddle/config/__init__.py` locally.
 - `.github/workflows/ci.yml`: required PR checks for `develop`, `staging`, and
   `main` promotions.
 - `.github/workflows/release.yml`: runs on `main` after production promotion,
@@ -133,39 +138,42 @@ truth for the remote deploy steps.
 
 1. Validate branch, clean git state, sync state, GitHub auth, and repo-local
    SSH assets, and normalize unsafe private-key modes before deployment.
-2. Dispatch `Release Prep (no-AI)` for `X.Y.Z` from `develop`.
-3. Wait for the workflow run and locate PR
-   `version(release): prepare release vX.Y.Z`.
-4. Wait for required checks when they exist, otherwise fall back to visible PR
-   checks, squash-merge the release-prep PR, and delete
-   `chore/release-vX.Y.Z`.
-5. Pull the merged release-prep changes onto local `develop`, then run the
+2. Prepare the release locally by moving `Unreleased` notes into
+   `## [X.Y.Z] - YYYY-MM-DD`, updating `paddle/config/__init__.py`, committing
+   `version(release): prepare release vX.Y.Z`, and pushing `develop`.
+3. Fail release prep if `CHANGELOG.md` already has the target release header
+   or if `Unreleased` is empty.
+4. Run the
    local CI-equivalent pytest and coverage commands for `frontend` and
    `americano`. If either command fails, stop the release before opening the
-   promotion PR.
-6. Create PR `develop -> staging`, wait for required or visible PR checks
-   from `.github/workflows/ci.yml`, and merge it.
-7. Deploy staging with `ssh -F .codex/private/release_ssh/config
+   promotion PR. `--skip-local-validation` is reserved for explicit reruns
+   after the same SHA has already been validated.
+5. Create PR `develop -> staging`, wait for required or visible PR checks
+   from `.github/workflows/ci.yml`, and merge it. If no checks are reported,
+   fail with the PR number and `gh pr checks` inspection command.
+6. Deploy staging with `ssh -F .codex/private/release_ssh/config
    staging-update`, then have the orchestrator run `python manage.py migrate
    --settings=config.settings.prod` on the staging host and fail if any
    migrations remain pending; only then verify the remote host reports
    `paddle/config/__init__.py` at `X.Y.Z`.
-8. Print 3-6 manual functional checks for staging and stop for explicit user
+7. Print 3-6 manual functional checks for staging and stop for explicit user
    approval. A prior request to `release`, `close cycle and release`, or
    similar authorizes reaching staging only; it does not approve production
    promotion.
-9. If approved, create PR `staging -> main`, wait for required or visible CI,
-   and merge it.
-10. Deploy production with `ssh -F .codex/private/release_ssh/config
+8. If approved, create PR `staging -> main`, wait for required or visible CI,
+   and merge it. If no checks are reported, fail with an actionable diagnostic.
+9. Deploy production with `ssh -F .codex/private/release_ssh/config
    prod-update`, then have the orchestrator run `python manage.py migrate
    --settings=config.settings.prod` on the production host and fail if any
    migrations remain pending; only then verify the remote host reports
    `paddle/config/__init__.py` at `X.Y.Z`.
-11. Back-merge `origin/main` into local `develop` with an unsigned merge
+10. Back-merge `origin/main` into local `develop` with an unsigned merge
     commit so local GPG configuration cannot block the release.
-12. Consolidate only the loose spec files explicitly marked with
+11. Consolidate only the loose spec files explicitly marked with
     `Release tag: vX.Y.Z` and a closure-complete `Status`
     (`implemented` or `shipped`) into `specs/release-X.Y.Z-consolidated.md`.
+12. Fail the completed release if any loose spec remains closure-complete
+    (`implemented` or `shipped`) with `Release tag: unreleased`.
 13. Review `CHANGELOG.md` for `## [X.Y.Z]` using the shipped specs, existing
     changelog notes, and any available completed backlog wording, then keep
     the section as compact grouped category summaries.
@@ -184,11 +192,13 @@ If the command reaches staging in a non-interactive session, it now prints the
 manual checks and exits with resume guidance instead of crashing on `input()`.
 After the checks are complete, resume with:
 
-- `python scripts/release_orchestrator.py <version> --resume-from staging-approval --staging-approved`
+- `python scripts/release_orchestrator.py <version> --resume-from`
+  `staging-approval --staging-approved`
 
 If staging is not approved, record the pause cleanly with:
 
-- `python scripts/release_orchestrator.py <version> --resume-from staging-approval --staging-declined`
+- `python scripts/release_orchestrator.py <version> --resume-from`
+  `staging-approval --staging-declined`
 
 If a remote deploy command returns but the host still reports the wrong app
 version, the orchestrator aborts instead of continuing to the next release
@@ -212,9 +222,11 @@ cycle is closed, move the loose spec to `Status: implemented`. Before running
 the release flow, mark only the actually shipped loose files with the
 requested `vX.Y.Z`. During release consolidation, the command selects only
 loose specs whose `Release tag` matches and whose `Status` is already
-closure-complete (`implemented` or `shipped`). Also review the release
-changelog section and compress repetitive same-category bullets into grouped
-outcome summaries so release history stays easy to scan.
+closure-complete (`implemented` or `shipped`). If any closure-complete loose
+spec still says `Release tag: unreleased`, the release fails instead of
+claiming consolidation success. Also review the release changelog section and
+compress repetitive same-category bullets into grouped outcome summaries so
+release history stays easy to scan.
 
 ## Manual Functional Checks
 

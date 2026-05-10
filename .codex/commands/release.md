@@ -12,6 +12,7 @@ Version argument examples:
 
 - `/prompts:release 1.6.0`
 - `/prompts:release v1.6.0`
+- `/prompts:release --next-patch`
 
 Execution rules:
 
@@ -22,6 +23,8 @@ Execution rules:
   requested `Release tag: vX.Y.Z`.
 - Leave unrelated in-progress loose specs on `Status: approved` with
   `Release tag: unreleased` so consolidation skips them.
+- Treat closure-complete loose specs left at `Release tag: unreleased` as a
+  release-blocking metadata error, not as unrelated work.
 - Keep the interaction focused on the script output.
 - Keep release sessions context-light: summarize long-running command progress
   instead of pasting repeated poll output, avoid full diffs unless diagnosing a

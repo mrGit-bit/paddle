@@ -25,6 +25,67 @@ def test_normalize_version_rejects_invalid_values():
         release_orchestrator.normalize_version("release-1.6")
 
 
+def test_next_patch_version_increments_patch_component():
+    assert release_orchestrator.next_patch_version("1.10.2") == "1.10.3"
+
+
+def test_move_unreleased_to_version_strict_rejects_duplicate_header():
+    changelog = "## [Unreleased]\n\n- Added change.\n\n## [1.10.3] - 2026-05-10\n\n- Existing.\n"
+
+    with pytest.raises(release_orchestrator.ReleaseError) as exc_info:
+        release_orchestrator.move_unreleased_to_version_strict(
+            changelog,
+            "1.10.3",
+            date(2026, 5, 10),
+        )
+
+    assert "already contains a release header for 1.10.3" in str(exc_info.value)
+
+
+def test_move_unreleased_to_version_strict_rejects_empty_unreleased():
+    changelog = "## [Unreleased]\n\n## [1.10.2] - 2026-05-10\n\n- Existing.\n"
+
+    with pytest.raises(release_orchestrator.ReleaseError) as exc_info:
+        release_orchestrator.move_unreleased_to_version_strict(
+            changelog,
+            "1.10.3",
+            date(2026, 5, 10),
+        )
+
+    assert "Unreleased section is empty" in str(exc_info.value)
+
+
+def test_prepare_local_release_commits_and_pushes_release_files(monkeypatch, tmp_path):
+    repo_root = tmp_path
+    (repo_root / "paddle" / "config").mkdir(parents=True)
+    (repo_root / "CHANGELOG.md").write_text("## [Unreleased]\n\n- Added faster release.\n", encoding="utf-8")
+    (repo_root / "paddle" / "config" / "__init__.py").write_text('__version__ = "1.10.2"\n', encoding="utf-8")
+    commands = []
+
+    def fake_run_command(args, *, cwd, capture_output=True, input_text=None):
+        commands.append(args)
+        if args[:3] == ["git", "diff", "--cached"]:
+            return subprocess.CompletedProcess(args, 0, stdout="CHANGELOG.md\npaddle/config/__init__.py\n", stderr="")
+        return subprocess.CompletedProcess(args, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(release_orchestrator, "run_command", fake_run_command)
+    monkeypatch.setattr(release_orchestrator, "date", type("FakeDate", (), {"today": staticmethod(lambda: date(2026, 5, 10))}))
+    context = release_orchestrator.ReleaseContext(
+        repo_root=repo_root,
+        version="1.10.3",
+        version_tag="v1.10.3",
+        paths=release_orchestrator.ReleasePaths(repo_root),
+    )
+
+    release_orchestrator.prepare_local_release(context)
+
+    assert "## [1.10.3] - 2026-05-10" in (repo_root / "CHANGELOG.md").read_text(encoding="utf-8")
+    assert (repo_root / "paddle" / "config" / "__init__.py").read_text(encoding="utf-8") == '__version__ = "1.10.3"\n'
+    assert ["git", "commit", "--no-gpg-sign", "-m", "version(release): prepare release v1.10.3"] in commands
+    assert ["git", "push", "origin", "develop"] in commands
+    assert context.steps[-1].name == "Local Release Prep"
+
+
 def test_validate_ssh_assets_reports_missing_config_and_keys(tmp_path):
     paths = release_orchestrator.ReleasePaths(tmp_path)
 
@@ -399,6 +460,32 @@ def test_parse_args_accepts_resume_flags():
     assert args.staging_declined is False
 
 
+def test_parse_args_accepts_next_patch_without_version():
+    args = release_orchestrator.parse_args(["--next-patch"])
+
+    assert args.version is None
+    assert args.next_patch is True
+
+
+def test_resolve_requested_version_derives_next_patch(tmp_path):
+    paths = release_orchestrator.ReleasePaths(tmp_path)
+    paths.version_file.parent.mkdir(parents=True)
+    paths.version_file.write_text('__version__ = "1.10.2"\n', encoding="utf-8")
+    args = release_orchestrator.parse_args(["--next-patch"])
+
+    assert release_orchestrator.resolve_requested_version(args, paths) == ("1.10.3", "v1.10.3")
+
+
+def test_resolve_requested_version_rejects_version_with_next_patch(tmp_path):
+    paths = release_orchestrator.ReleasePaths(tmp_path)
+    args = release_orchestrator.parse_args(["1.10.3", "--next-patch"])
+
+    with pytest.raises(release_orchestrator.ReleaseError) as exc_info:
+        release_orchestrator.resolve_requested_version(args, paths)
+
+    assert "Use either an explicit version or --next-patch" in str(exc_info.value)
+
+
 def test_resume_requires_staging_decision_for_resume_mode():
     args = release_orchestrator.parse_args(["1.8.1", "--resume-from", "staging-approval"])
 
@@ -528,6 +615,30 @@ def test_collect_release_sources_skips_unreleased_files(tmp_path):
 
     assert selection.matched == []
     assert selection.skipped == [source]
+    assert selection.suspicious_unreleased == []
+
+
+def test_collect_release_sources_flags_implemented_unreleased_specs(tmp_path):
+    source = tmp_path / "031-example.md"
+    source.write_text(
+        "# Example\n\n"
+        "## Tracking\n\n"
+        "- Task ID: `example`\n"
+        "- Status: `implemented`\n"
+        "- Release tag: `unreleased`\n",
+        encoding="utf-8",
+    )
+
+    selection = release_orchestrator.collect_release_sources(
+        tmp_path,
+        "[0-9][0-9][0-9]-*.md",
+        set(),
+        release_tag="v1.7.0",
+    )
+
+    assert selection.matched == []
+    assert selection.skipped == [source]
+    assert selection.suspicious_unreleased == [source]
 
 
 def test_collect_release_sources_skips_tagged_specs_until_cycle_is_closed(tmp_path):
@@ -612,6 +723,31 @@ def test_commit_consolidation_writes_single_release_spec(monkeypatch, tmp_path, 
     captured = capsys.readouterr()
     assert "Changelog consolidation review for 1.6.0:" in captured.out
     assert "- Backlog requirements available for comparison: 1." in captured.out
+
+
+def test_commit_consolidation_fails_on_implemented_unreleased_specs(tmp_path):
+    repo_root = tmp_path
+    specs_dir = repo_root / "specs"
+    specs_dir.mkdir()
+    source = specs_dir / "037-example.md"
+    source.write_text("# Example\n", encoding="utf-8")
+    context = release_orchestrator.ReleaseContext(
+        repo_root=repo_root,
+        version="1.10.2",
+        version_tag="v1.10.2",
+        paths=release_orchestrator.ReleasePaths(repo_root),
+    )
+    selection = release_orchestrator.ReleaseSourceSelection(
+        matched=[],
+        skipped=[source],
+        suspicious_unreleased=[source],
+    )
+
+    with pytest.raises(release_orchestrator.ReleaseError) as exc_info:
+        release_orchestrator.commit_consolidation(context, selection)
+
+    assert "037-example.md" in str(exc_info.value)
+    assert "Release tag: unreleased" in str(exc_info.value)
 
 
 def test_run_command_retries_gh_without_invalid_env_tokens(monkeypatch):
@@ -784,13 +920,14 @@ def test_wait_for_pr_checks_raises_when_checks_never_appear(monkeypatch):
 
     monkeypatch.setattr(release_orchestrator, "run_command", fake_run_command)
     monkeypatch.setattr(release_orchestrator.time, "sleep", lambda seconds: None)
-    monkeypatch.setattr(release_orchestrator, "REQUIRED_CHECK_APPEAR_TIMEOUT_SECONDS", 10)
-    monkeypatch.setattr(release_orchestrator, "REQUIRED_CHECK_APPEAR_POLL_SECONDS", 5)
 
     with pytest.raises(release_orchestrator.ReleaseError) as exc_info:
-        release_orchestrator.wait_for_pr_checks(83, cwd=Path("/tmp/repo"))
+        release_orchestrator.wait_for_pr_checks(83, cwd=Path("/tmp/repo"), base="staging", head="develop")
 
-    assert str(exc_info.value) == "PR checks did not appear for PR #83 within 10 seconds."
+    assert str(exc_info.value) == (
+        "No checks were reported for PR #83 (develop -> staging). "
+        "Inspect with `gh pr checks 83` before continuing the release."
+    )
 
 
 def test_run_release_validation_suite_records_success(monkeypatch):

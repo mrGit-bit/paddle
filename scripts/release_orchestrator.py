@@ -24,6 +24,11 @@ TRACKING_LINE_RE = re.compile(
     r"^- (?P<field>Task ID|Status|Release tag):\s*`(?P<value>[^`]+)`\s*$"
 )
 CATEGORY_PREFIX_RE = re.compile(r"^`(?P<category>[^`]+)`:")
+CONFIG_VERSION_RE = re.compile(r'^__version__\s*=\s*"(?P<version>\d+\.\d+\.\d+)"$', re.M)
+UNRELEASED_SECTION_RE = re.compile(
+    r"^## \[Unreleased\]\s*\n(?P<body>.*?)(?=^## \[|\Z)",
+    re.M | re.S,
+)
 PENDING_MIGRATION_RE = re.compile(r"^\s*\[\s\]\s+(?P<name>\S+)", re.M)
 SAFE_PRIVATE_KEY_GROUP_OR_WORLD_MASK = 0o077
 DEFAULT_PRIVATE_KEY_MODE = 0o600
@@ -79,6 +84,7 @@ class ReleasePaths:
         self.prod_key = private_dir / "production-oracle-key.pem"
         self.specs_dir = self.repo_root / "specs"
         self.changelog = self.repo_root / "CHANGELOG.md"
+        self.version_file = self.repo_root / "paddle" / "config" / "__init__.py"
         self.backlog = self.repo_root / "BACKLOG.md"
         self.backmerge_script = self.repo_root / "scripts" / "backmerge_main_to_develop.sh"
 
@@ -111,6 +117,7 @@ class DeployTarget:
 class ReleaseSourceSelection:
     matched: list[Path]
     skipped: list[Path]
+    suspicious_unreleased: list[Path] = field(default_factory=list)
 
 
 def normalize_version(value: str) -> tuple[str, str]:
@@ -121,6 +128,58 @@ def normalize_version(value: str) -> tuple[str, str]:
         )
     version = match.group("version")
     return version, f"v{version}"
+
+
+def read_config_version(version_file: Path) -> str:
+    match = CONFIG_VERSION_RE.search(version_file.read_text(encoding="utf-8"))
+    if not match:
+        raise ReleaseError(f"Could not read __version__ from {version_file}.")
+    return match.group("version")
+
+
+def next_patch_version(current_version: str) -> str:
+    major, minor, patch = [int(part) for part in current_version.split(".")]
+    return f"{major}.{minor}.{patch + 1}"
+
+
+def count_changelog_release_headers(changelog_text: str, version: str) -> int:
+    return len(re.findall(rf"^## \[{re.escape(version)}\] - ", changelog_text, flags=re.M))
+
+
+def validate_single_changelog_release_header(changelog_text: str, version: str) -> None:
+    count = count_changelog_release_headers(changelog_text, version)
+    if count != 1:
+        raise ReleaseError(
+            f"CHANGELOG.md must contain exactly one release header for {version}; found {count}."
+        )
+
+
+def move_unreleased_to_version_strict(
+    changelog_text: str,
+    version: str,
+    release_date: date,
+) -> str:
+    if count_changelog_release_headers(changelog_text, version):
+        raise ReleaseError(f"CHANGELOG.md already contains a release header for {version}.")
+
+    match = UNRELEASED_SECTION_RE.search(changelog_text)
+    if not match:
+        raise ReleaseError("No '## [Unreleased]' section found in CHANGELOG.md.")
+
+    body = match.group("body").strip("\n")
+    if not body.strip():
+        raise ReleaseError("CHANGELOG.md Unreleased section is empty; refusing to create a no-op release.")
+
+    unreleased_replacement = "## [Unreleased]\n\n"
+    new_section = f"## [{version}] - {release_date.isoformat()}\n\n{body.strip()}\n\n"
+    new_text = UNRELEASED_SECTION_RE.sub(unreleased_replacement, changelog_text, count=1)
+    return new_text.replace(unreleased_replacement, unreleased_replacement + new_section, 1)
+
+
+def update_config_version_text(config_text: str, version: str) -> str:
+    if not CONFIG_VERSION_RE.search(config_text):
+        raise ReleaseError("paddle/config/__init__.py does not contain a parseable __version__.")
+    return CONFIG_VERSION_RE.sub(f'__version__ = "{version}"', config_text, count=1)
 
 
 def run_command(
@@ -260,11 +319,6 @@ def ensure_gh_authenticated(*, cwd: Path) -> None:
 def ensure_clean_synced_develop(context: ReleaseContext) -> None:
     cwd = context.repo_root
     branch = run_command(["git", "branch", "--show-current"], cwd=cwd).stdout.strip()
-    if branch != "develop":
-        raise ReleaseError(
-            f"Release automation must start from develop, but the current branch is {branch}."
-        )
-
     status = run_command(["git", "status", "--short"], cwd=cwd).stdout.strip()
     if status:
         raise ReleaseError(
@@ -272,6 +326,26 @@ def ensure_clean_synced_develop(context: ReleaseContext) -> None:
         )
 
     run_command(["git", "fetch", "origin"], cwd=cwd)
+    restored_develop = False
+    if branch != "develop":
+        try:
+            run_command(["git", "show-ref", "--verify", "--quiet", "refs/heads/develop"], cwd=cwd)
+            run_command(["git", "checkout", "develop"], cwd=cwd, capture_output=False)
+            restored_develop = True
+        except subprocess.CalledProcessError:
+            try:
+                run_command(["git", "show-ref", "--verify", "--quiet", "refs/remotes/origin/develop"], cwd=cwd)
+            except subprocess.CalledProcessError as exc:
+                raise ReleaseError(
+                    f"Release automation must start from develop, but the current branch is {branch} "
+                    "and origin/develop is not available."
+                ) from exc
+            run_command(["git", "checkout", "-b", "develop", "--track", "origin/develop"], cwd=cwd, capture_output=False)
+            restored_develop = True
+
+    if restored_develop:
+        run_command(["git", "pull", "--ff-only", "origin", "develop"], cwd=cwd, capture_output=False)
+
     counts = run_command(
         ["git", "rev-list", "--left-right", "--count", "origin/develop...develop"],
         cwd=cwd,
@@ -281,6 +355,42 @@ def ensure_clean_synced_develop(context: ReleaseContext) -> None:
         raise ReleaseError(
             "Local develop is not synchronized with origin/develop. Pull or push pending commits before /prompts:release."
         )
+
+
+def prepare_local_release(context: ReleaseContext) -> None:
+    changelog_text = context.paths.changelog.read_text(encoding="utf-8")
+    context.paths.changelog.write_text(
+        move_unreleased_to_version_strict(changelog_text, context.version, date.today()),
+        encoding="utf-8",
+    )
+    config_text = context.paths.version_file.read_text(encoding="utf-8")
+    context.paths.version_file.write_text(
+        update_config_version_text(config_text, context.version),
+        encoding="utf-8",
+    )
+    validate_single_changelog_release_header(
+        context.paths.changelog.read_text(encoding="utf-8"),
+        context.version,
+    )
+
+    run_command(
+        ["git", "add", str(context.paths.changelog), str(context.paths.version_file)],
+        cwd=context.repo_root,
+    )
+    diff = run_command(["git", "diff", "--cached", "--name-only"], cwd=context.repo_root).stdout.strip()
+    if not diff:
+        raise ReleaseError("Release prep did not stage any changes.")
+    run_command(
+        ["git", "commit", "--no-gpg-sign", "-m", f"version(release): prepare release {context.version_tag}"],
+        cwd=context.repo_root,
+        capture_output=False,
+    )
+    run_command(["git", "push", "origin", "develop"], cwd=context.repo_root, capture_output=False)
+    record_success(
+        context,
+        "Local Release Prep",
+        f"Committed and pushed CHANGELOG.md and __version__ updates for {context.version_tag}.",
+    )
 
 
 def display_path(path: Path, *, repo_root: Path) -> str:
@@ -600,38 +710,33 @@ def create_or_reuse_promotion_pr(base: str, head: str, version_tag: str, *, cwd:
     return wait_for_pr(base, head, title, cwd=cwd)
 
 
-def wait_for_pr_checks(pr_number: int, *, cwd: Path) -> None:
-    attempts = max(1, REQUIRED_CHECK_APPEAR_TIMEOUT_SECONDS // REQUIRED_CHECK_APPEAR_POLL_SECONDS)
-    for _ in range(attempts):
-        try:
-            run_command(
-                ["gh", "pr", "checks", str(pr_number), "--watch", "--required"],
-                cwd=cwd,
-                capture_output=False,
-            )
-            return
-        except subprocess.CalledProcessError as exc:
-            if not NO_CHECKS_REPORTED_RE.search(command_error_output(exc)):
-                raise
+def wait_for_pr_checks(pr_number: int, *, cwd: Path, base: str = "unknown", head: str = "unknown") -> None:
+    try:
+        run_command(
+            ["gh", "pr", "checks", str(pr_number), "--watch", "--required"],
+            cwd=cwd,
+            capture_output=False,
+        )
+        return
+    except subprocess.CalledProcessError as exc:
+        if not NO_CHECKS_REPORTED_RE.search(command_error_output(exc)):
+            raise
 
-        try:
-            print(
-                f"No required checks reported for PR #{pr_number}; waiting for visible checks instead."
-            )
-            run_command(
-                ["gh", "pr", "checks", str(pr_number), "--watch"],
-                cwd=cwd,
-                capture_output=False,
-            )
-            return
-        except subprocess.CalledProcessError as exc:
-            if not NO_CHECKS_REPORTED_RE.search(command_error_output(exc)):
-                raise
+    try:
+        print(f"No required checks reported for PR #{pr_number}; waiting for visible checks instead.")
+        run_command(
+            ["gh", "pr", "checks", str(pr_number), "--watch"],
+            cwd=cwd,
+            capture_output=False,
+        )
+        return
+    except subprocess.CalledProcessError as exc:
+        if not NO_CHECKS_REPORTED_RE.search(command_error_output(exc)):
+            raise
 
-        time.sleep(REQUIRED_CHECK_APPEAR_POLL_SECONDS)
     raise ReleaseError(
-        f"PR checks did not appear for PR #{pr_number} within "
-        f"{REQUIRED_CHECK_APPEAR_TIMEOUT_SECONDS} seconds."
+        f"No checks were reported for PR #{pr_number} ({head} -> {base}). "
+        f"Inspect with `gh pr checks {pr_number}` before continuing the release."
     )
 
 
@@ -811,6 +916,7 @@ def collect_release_sources(
 ) -> ReleaseSourceSelection:
     matched: list[Path] = []
     skipped: list[Path] = []
+    suspicious_unreleased: list[Path] = []
     for path in sorted(directory.glob(pattern)):
         if path.name in excluded_names:
             continue
@@ -821,9 +927,16 @@ def collect_release_sources(
         source_status = metadata.get("Status")
         if source_release_tag == release_tag and source_status in {"implemented", "shipped"}:
             matched.append(path)
+        elif source_release_tag == "unreleased" and source_status in {"implemented", "shipped"}:
+            suspicious_unreleased.append(path)
+            skipped.append(path)
         else:
             skipped.append(path)
-    return ReleaseSourceSelection(matched=matched, skipped=skipped)
+    return ReleaseSourceSelection(
+        matched=matched,
+        skipped=skipped,
+        suspicious_unreleased=suspicious_unreleased,
+    )
 
 
 def parse_markdown_section_items(source_text: str, heading: str) -> list[str]:
@@ -887,6 +1000,14 @@ def build_consolidated_markdown(version: str, release_date: date, sources: list[
 
 def commit_consolidation(context: ReleaseContext, spec_selection: ReleaseSourceSelection) -> None:
     spec_sources = spec_selection.matched
+    if spec_selection.suspicious_unreleased:
+        names = ", ".join(source.name for source in spec_selection.suspicious_unreleased)
+        raise ReleaseError(
+            "Release consolidation cannot complete while implemented or shipped loose specs still "
+            f"have `Release tag: unreleased`: {names}. Tag each shipped spec with {context.version_tag} "
+            "or move it out of closure-complete status."
+        )
+
     if not spec_sources:
         skipped_sources = spec_selection.skipped
         if skipped_sources:
@@ -992,7 +1113,7 @@ def render_report(context: ReleaseContext) -> str:
 
 def continue_after_staging_approval(context: ReleaseContext) -> None:
     prod_pr = create_or_reuse_promotion_pr("main", "staging", context.version_tag, cwd=context.repo_root)
-    wait_for_pr_checks(int(prod_pr["number"]), cwd=context.repo_root)
+    wait_for_pr_checks(int(prod_pr["number"]), cwd=context.repo_root, base="main", head="staging")
     merge_pr(int(prod_pr["number"]), "--merge", cwd=context.repo_root, delete_branch=False)
     record_success(
         context,
@@ -1082,46 +1203,17 @@ def run_release_flow(context: ReleaseContext, args: argparse.Namespace) -> None:
         resume_from_staging_approval(context, args)
         return
 
-    started_at = datetime.now(timezone.utc)
-    run_command(
-        [
-            "gh",
-            "workflow",
-            "run",
-            ".github/workflows/release-prep-no-ai.yml",
-            "-f",
-            f"version={context.version}",
-            "-f",
-            "target_branch=develop",
-        ],
-        cwd=context.repo_root,
-    )
-    workflow_run = wait_for_workflow_run(
-        "release-prep-no-ai.yml",
-        started_at,
-        cwd=context.repo_root,
-        expected_identifiers=(context.version, context.version_tag, context.prep_pr_title, context.release_branch),
-    )
-    wait_for_run_completion(int(workflow_run["databaseId"]), cwd=context.repo_root)
-    record_success(
-        context,
-        "Release Prep Workflow",
-        f"Completed successfully: {workflow_run['url']}",
-    )
-
-    prep_pr = wait_for_pr("develop", context.release_branch, context.prep_pr_title, cwd=context.repo_root)
-    wait_for_pr_checks(int(prep_pr["number"]), cwd=context.repo_root)
-    merge_pr(int(prep_pr["number"]), "--squash", cwd=context.repo_root, delete_branch=True)
-    record_success(
-        context,
-        "Release Prep PR",
-        f"Squash-merged PR #{prep_pr['number']} and deleted {context.release_branch}.",
-    )
-
-    run_command(["git", "pull", "--ff-only", "origin", "develop"], cwd=context.repo_root)
-    run_release_validation_suite(context)
+    prepare_local_release(context)
+    if bool(getattr(args, "skip_local_validation", False)):
+        record_success(
+            context,
+            "Local Release Validation",
+            "Skipped local validation because --skip-local-validation was supplied.",
+        )
+    else:
+        run_release_validation_suite(context)
     staging_pr = create_or_reuse_promotion_pr("staging", "develop", context.version_tag, cwd=context.repo_root)
-    wait_for_pr_checks(int(staging_pr["number"]), cwd=context.repo_root)
+    wait_for_pr_checks(int(staging_pr["number"]), cwd=context.repo_root, base="staging", head="develop")
     merge_pr(int(staging_pr["number"]), "--merge", cwd=context.repo_root, delete_branch=False)
     record_success(
         context,
@@ -1150,7 +1242,17 @@ def run_release_flow(context: ReleaseContext, args: argparse.Namespace) -> None:
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("version", help="Release version in X.Y.Z or vX.Y.Z format.")
+    parser.add_argument("version", nargs="?", help="Release version in X.Y.Z or vX.Y.Z format.")
+    parser.add_argument(
+        "--next-patch",
+        action="store_true",
+        help="Derive the release version by incrementing the configured patch version.",
+    )
+    parser.add_argument(
+        "--skip-local-validation",
+        action="store_true",
+        help="Skip local pytest validation before opening the staging promotion PR.",
+    )
     parser.add_argument(
         "--resume-from",
         choices=("staging-approval",),
@@ -1169,18 +1271,30 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+def resolve_requested_version(args: argparse.Namespace, paths: ReleasePaths) -> tuple[str, str]:
+    if bool(getattr(args, "next_patch", False)):
+        if getattr(args, "version", None):
+            raise ReleaseError("Use either an explicit version or --next-patch, not both.")
+        return normalize_version(next_patch_version(read_config_version(paths.version_file)))
+    version = getattr(args, "version", None)
+    if not version:
+        raise ReleaseError("Version is required unless --next-patch is supplied.")
+    return normalize_version(version)
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv or sys.argv[1:])
     repo_root = Path(__file__).resolve().parents[1]
     context: ReleaseContext | None = None
     try:
-        version, version_tag = normalize_version(args.version)
+        paths = ReleasePaths(repo_root)
+        version, version_tag = resolve_requested_version(args, paths)
         resume_requires_staging_decision(args)
         context = ReleaseContext(
             repo_root=repo_root,
             version=version,
             version_tag=version_tag,
-            paths=ReleasePaths(repo_root),
+            paths=paths,
         )
         run_release_flow(context, args)
         return 0
