@@ -8,36 +8,10 @@ description: Audit Django views for project governance, security, reuse, and mai
 Use this skill when the user wants a structured audit of Django views or a
 related repository review centered on view behavior.
 
-If the user asks specifically for one template's presentation, same-page UI
-coherence, CSS reuse, cascade behavior, computed-style mismatches, or responsive
-layout risks, use `template-presentation-audit` instead. If the user asks for
-both view behavior and template presentation, keep separate reports unless they
+Route template presentation, CSS cascade, same-page UI-coherence, and
+responsive layout reviews to `template-presentation-audit`. If the user asks
+for view behavior and presentation together, keep separate reports unless they
 explicitly request a combined review.
-
-Read these files first before reviewing code:
-
-- `AGENTS.md`
-- `.codex/skills/sdd-workflow/SKILL.md`
-
-Then inspect only the files needed for the requested scope. Start with the
-target Django views and expand to related forms, templates, URLs, tests,
-JavaScript, models, app boundaries, or settings only when they materially
-affect the audited behavior.
-
-Write audit results as Markdown by default under `.codex/audits/` using
-`references/audit-review-template.md` as the output shape.
-
-Use predictable file names:
-
-- `YYYY-MM-DD_<target>_audit.md`
-- Convert path separators and spaces to `-`
-- Keep names short and stable enough for later updates
-
-Good examples:
-
-- `2026-03-10_auth-profile_audit.md`
-- `2026-03-10_match-list_audit.md`
-- `2026-03-10_ranking_audit.md`
 
 ## Audit Modes
 
@@ -52,37 +26,15 @@ mark the other reports as `Not assessed`.
 
 ## Review Workflow
 
-When exporting an audit for review, track each finding with one of these
-statuses:
-
-- `pending`
-- `accepted`
-- `discarded`
-- `solved`
-
-Use these rules:
-
-- Start new findings as `pending` unless the user says otherwise.
-- Mark a finding `accepted` only when the user explicitly accepts it.
-- Mark a finding `discarded` only when the user explicitly discards it.
-- Only surface findings that are medium or high severity as active findings in
-  the audit report; suppress low-severity suggestions instead of exporting
-  them.
-- A discarded finding may include a user-written explanation for why the
-  current state is acceptable.
-- On later audits, read prior discarded explanations before repeating the same
-  finding.
-- Suppress a discarded finding only when the stored explanation clearly still
-  applies to the current repository state.
-- Re-surface the finding if repository context changed or the discard
-  explanation no longer fits.
-- Mark a finding `solved` automatically only after:
-  - the user explicitly asks Codex CLI to solve accepted issues
-  - the related repository change has been implemented
-  - the repository state has been re-checked and the finding is resolved
-
-If the user asks to solve all accepted issues, update only accepted findings to
-`solved` after verification. Do not mark discarded findings as solved.
+1. Verify branch and scope through `AGENTS.md` and task-relevant SDD context.
+2. Start with the target Django views.
+3. Expand only to related forms, templates, URLs, tests, JavaScript, models,
+   app boundaries, or settings that materially affect the audited behavior.
+4. Read `references/audit-checklist.md` only when you need the checklist.
+5. Export or update the audit under `.codex/audits/` using
+   `references/audit-review-template.md`.
+6. Use predictable names: `YYYY-MM-DD_<target>_audit.md`, converting path
+   separators and spaces to `-`.
 
 ## Best Practices
 
@@ -107,53 +59,9 @@ Use this skill as part of the normal development loop, not only for cleanup.
 
 ## What To Check
 
-### View Audit Report
-
-Check at least these issues:
-
-- business logic in templates
-- overly large or mixed-responsibility views
-- missing ownership or access control
-- missing login protection where appropriate
-- avoidable duplicated query logic
-- weak reuse of existing helpers or forms
-- unnecessary DRF or deprecated API use or references
-- missing or weak automated test coverage
-- scope drift versus approved spec when detectable
-- Spanish UI text rule violations in templates
-
-### Architecture Review Report
-
-Review relevant apps, models, views, templates, JavaScript, and settings when
-they affect the audited flow. Look for cross-file architecture issues such as:
-
-- business logic detected in templates
-- repeated queryset logic across multiple views
-- JavaScript duplication across templates or pages
-- settings or app-boundary choices that weaken maintainability
-- view, form, and template responsibilities leaking into each other
-
-Example architecture findings:
-
-- `Business logic detected in template: ranking_table.html`
-- `Repeated queryset logic in 3 views`
-- `JS duplication in two templates`
-- `Potential N+1 query in match list`
-
-### Performance Audit Report
-
-Focus on static-analysis-friendly Django ORM inefficiencies unless the user
-explicitly asks for runtime profiling. Check for:
-
-- possible N+1 queries
-- missing `select_related`
-- missing `prefetch_related` when obviously needed
-- missing indexes when reasonably inferable from repeated filter, join, or
-  ordering patterns
-- large queryset evaluation
-- premature queryset materialization, such as avoidable `list()` or repeated
-  iteration
-- repeated count, exists, or aggregation work that could be consolidated
+Check view behavior, architecture, and ORM performance. Use
+`references/audit-checklist.md` for the full checklist instead of loading it by
+default.
 
 ## Review Rules
 
@@ -164,50 +72,6 @@ explicitly asks for runtime profiling. Check for:
 - Distinguish clearly between confirmed issues, possible risks, and suggestions.
 - Do not overstate certainty for architecture or ORM performance concerns
   inferred from static review alone.
-
-## Required Output Format
-
-Use exactly these top-level sections:
-
-### `Summary`
-
-Give a short scope summary and whether the audit covered a specific module,
-feature flow, or broader repository slice.
-
-### `View Audit Report`
-
-For each item:
-
-- `Type:` Confirmed issue, Possible risk, or Suggestion
-- `Severity:` high, medium, or low
-- `Evidence:` file path plus a short explanation
-- `Recommended minimal fix:`
-- `Tests to add or update:`
-
-### `Architecture Review Report`
-
-For each item:
-
-- `Type:` Confirmed issue, Possible risk, or Suggestion
-- `Severity:` high, medium, or low
-- `Evidence:` file path plus a short explanation
-- `Recommended minimal fix:`
-- `Tests to add or update:`
-
-### `Performance Audit Report`
-
-For each item:
-
-- `Type:` Confirmed issue, Possible risk, or Suggestion
-- `Severity:` high, medium, or low
-- `Evidence:` file path plus a short explanation
-- `Recommended minimal fix:`
-- `Tests to add or update:`
-
-### `Open Questions`
-
-Only include this section if a necessary conclusion depends on missing
-repository context. If not needed, write `None.`
 
 ## Markdown Export Rules
 
@@ -244,10 +108,13 @@ When validating or cleaning up exported audit Markdown:
 
 ## Working Style
 
-- Read `references/audit-checklist.md` when you need a compact checklist during
-  the audit.
-- Read `references/audit-review-template.md` when you need to export or update a
-  reviewable Markdown audit file.
+- Track findings as `pending`, `accepted`, `discarded`, or `solved`.
+- Start new findings as `pending` unless the user says otherwise.
+- Mark accepted or discarded only after explicit user choice.
+- Mark solved only after an explicit solve request, implementation, and
+  verification.
+- Surface only medium or high severity active findings; suppress low-severity
+  suggestions instead of exporting them.
 - Prefer direct evidence over broad generalizations.
 - Keep findings actionable and tied to the current repository patterns.
 - If no findings exist in a report section, state that explicitly instead of

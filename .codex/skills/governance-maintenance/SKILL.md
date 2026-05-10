@@ -30,6 +30,8 @@ and ownership boundaries.
   when needed.
 - New governance rules need a clear owner file or skill; avoid scattering the
   same rule across multiple surfaces.
+- Preserve user-authored text/style intent in governance and skill edits. Ask
+  before changing wording or style rules when the user's intention is unclear.
 
 ## Versioning and Validation
 

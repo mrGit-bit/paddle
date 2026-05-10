@@ -44,6 +44,8 @@ repository governance markdown, not rendered template presentation.
      border, font, display, alignment, and appearance
    - Bootstrap utility classes overriding or competing with component classes
    - selector specificity/order where state classes must override base classes
+   - component defaults that reset custom properties supplied by shared state
+     classes
    - shared partials rendered under different ancestors with different
      inherited styles
 6. When possible, verify computed styles with a browser or rendered HTML. If a
@@ -134,3 +136,5 @@ When exporting or updating an audit for review:
   a `button`, `a`, `input`, or `select`.
 - Keep Spanish UI text unchanged unless the audit scope explicitly includes
   copy review.
+- Keep user-edited style choices unchanged unless the audit scope explicitly
+  includes style redesign. Ask before changing ambiguous text or style intent.
