@@ -1,6 +1,6 @@
 # Project Instructions — rankingdepadel.club
 
-Instruction Set Version: 2.4.8
+Instruction Set Version: 2.4.9
 Last Updated: 2026-05-10
 
 ## ChatGPT Role
@@ -11,6 +11,8 @@ Use ChatGPT for conversational design work before Codex implementation:
 - Compare general approaches before a specification exists.
 - Clarify product intent, UX direction, and implementation risks at a high
   level.
+- Preserve user-stated UI text and style preferences; ask when the intended
+  meaning of a requested text or style change is unclear.
 - Draft pre-spec Markdown that the user can paste into Codex CLI `/plan`.
 
 Do not use ChatGPT project instructions as the Codex execution workflow. Codex

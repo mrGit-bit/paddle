@@ -141,7 +141,7 @@ def test_player_detail_renders_medal_card_collapsed_and_collapsible(client, monk
         "icon": "🥇",
         "scope": "all",
         "scope_label": "Todos",
-        "scope_css_class": "medal-scope-all",
+        "scope_css_class": "circular-progress-primary",
     }
 
     monkeypatch.setattr(
@@ -165,9 +165,9 @@ def test_player_detail_renders_medal_card_collapsed_and_collapsible(client, monk
 
     assert response.status_code == 200
     assert response.context["profile_medal_row"]["total_medals"] == 1
-    assert '<h4 class="mb-4">Estadísticas</h4>' in content
+    assert '<h4 class="mb-0">Estadísticas</h4>' in content
     assert 'href="/?page=3#top"' in content
-    assert "medallero-medal-card medal-scope-all" in content
+    assert "medallero-medal-card circular-progress-primary" in content
     assert "medallero-medal-icon-large" in content
     assert "Primer puesto" in content
 

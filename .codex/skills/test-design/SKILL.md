@@ -23,6 +23,10 @@ or wording changes.
   product language.
 - For helper text and descriptive microcopy, prefer structural or semantic
   assertions unless the task explicitly changes the wording contract.
+- Avoid tests that freeze exact user-editable UI text, class order, or CSS
+  declaration bodies. Prefer keys, counts, scopes, semantic attributes, parser
+  selectors, or class-combination contracts that survive later manual text and
+  style edits.
 - Keep tests narrow enough to identify the broken behavior, not every incidental
   detail on the page.
 - Do not remove meaningful assertions only to make a change pass; replace
@@ -63,6 +67,8 @@ stable contract.
 - Exact rendered HTML strings when a parser, selector, class check, or response
   context assertion would express the behavior better.
 - Exact CSS declaration blocks unless the declaration itself is the contract.
+- Tests that require specific descriptive wording after the user has manually
+  edited copy, unless the user explicitly confirms the wording is contractual.
 - Assertions against private helper names, temporary variable names, or internal
   grouping unless no public behavior exposes the risk.
 - Snapshot-style tests that fail on harmless formatting, ordering, or copy

@@ -12,12 +12,20 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `UI/UX`: Kept medallero ribbon colors scoped to each medal type and changed
+  the collapsed medal strip to stay on one row with only the overlap needed
+  to avoid wrapping.
 - `UI/UX`: Added pair-ranking medals to the medallero so top pairs, parejas
   catastróficas, and highlighted catastrophic pairs award medals to both
   players without mixing the pairs scope into individual ranking batches.
 - `UI/UX`: Moved the player-detail `Pulsa para detalles` helper into the
   `Estadísticas` heading row and formatted ranking pills as `1 / 75%` without
   brackets.
+- `Governance`: Tightened router and skill guidance so future work avoids CSS
+  cascade regressions, preserves user-edited text and style intent, and keeps
+  tests focused on durable behavior instead of brittle copy locks.
+- `Tests`: Relaxed medallero assertions to key- and structure-based checks so
+  later manual copy edits do not force test churn.
 - `UI/UX`: Linked medallero cards to the selected player's scope-specific
   ranking page and kept the player-detail medal cards clickable to the same
   destination.

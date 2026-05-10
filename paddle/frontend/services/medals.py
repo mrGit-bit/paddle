@@ -139,7 +139,7 @@ def build_medallero_rows(*, group=None) -> list[dict]:
                 "pairs_fifth_place",
             ),
         ),
-        ("pairs_of_the_century", ("pairs_catastrophic_diamond",)),
+        ("pairs_of_the_century", ("pairs_century",)),
         ("catastrophic_pairs", ("pairs_catastrophic",)),
     )
 

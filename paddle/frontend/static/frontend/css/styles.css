@@ -363,14 +363,26 @@ and replaced by an ellipsis (…) */
 
 .circular-progress-primary {
   --progress-stroke: var(--bs-primary);
+  --medal-scope-color: var(--bs-primary);
+  --medal-scope-rgb: var(--bs-primary-rgb);
 }
 
 .circular-progress-success {
   --progress-stroke: var(--bs-success);
+  --medal-scope-color: var(--bs-success);
+  --medal-scope-rgb: var(--bs-success-rgb);
 }
 
 .circular-progress-warning {
   --progress-stroke: var(--bs-warning);
+  --medal-scope-color: var(--bs-warning);
+  --medal-scope-rgb: var(--bs-warning-rgb);
+}
+
+.circular-progress-info {
+  --progress-stroke: var(--bs-info);
+  --medal-scope-color: var(--bs-info);
+  --medal-scope-rgb: var(--bs-info-rgb);
 }
 
 .circular-progress-label {
@@ -897,10 +909,11 @@ ul.errorlist li {
 .medallero-icon-strip {
   align-items: center;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.2rem;
   justify-content: flex-end;
   min-width: 0;
+  overflow: visible;
 }
 
 .medallero-medal-icon-small {
@@ -911,7 +924,12 @@ ul.errorlist li {
   height: 1.35rem;
   justify-content: center;
   line-height: 1;
+  margin-left: calc(-1 * var(--medallero-icon-overlap, 0px));
   width: 1.35rem;
+}
+
+.medallero-medal-icon-small:first-child {
+  margin-left: 0;
 }
 
 .medallero-detail-body {
@@ -925,6 +943,26 @@ ul.errorlist li {
   border-color: var(--medal-scope-color);
   border-top-width: 0.25rem;
   overflow: hidden;
+}
+
+.medallero-medal-card.circular-progress-primary {
+  --medal-scope-color: var(--bs-primary);
+  --medal-scope-rgb: var(--bs-primary-rgb);
+}
+
+.medallero-medal-card.circular-progress-success {
+  --medal-scope-color: var(--bs-success);
+  --medal-scope-rgb: var(--bs-success-rgb);
+}
+
+.medallero-medal-card.circular-progress-warning {
+  --medal-scope-color: var(--bs-warning);
+  --medal-scope-rgb: var(--bs-warning-rgb);
+}
+
+.medallero-medal-card.circular-progress-info {
+  --medal-scope-color: var(--bs-info);
+  --medal-scope-rgb: var(--bs-info-rgb);
 }
 
 .medallero-scope-ribbon {
@@ -952,26 +990,6 @@ ul.errorlist li {
 
 .medallero-empty-slot {
   min-height: 100%;
-}
-
-.medal-scope-all {
-  --medal-scope-color: var(--bs-primary);
-  --medal-scope-rgb: var(--bs-primary-rgb);
-}
-
-.medal-scope-male {
-  --medal-scope-color: var(--bs-success);
-  --medal-scope-rgb: var(--bs-success-rgb);
-}
-
-.medal-scope-female {
-  --medal-scope-color: var(--bs-success);
-  --medal-scope-rgb: var(--bs-success-rgb);
-}
-
-.medal-scope-mixed {
-  --medal-scope-color: var(--bs-warning);
-  --medal-scope-rgb: var(--bs-warning-rgb);
 }
 
 @media (max-width: 575.98px) {

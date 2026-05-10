@@ -1,4 +1,5 @@
 {% extends 'frontend/base.html' %}
+{% load static %}
 
 {% block title %}Medallero{% endblock %}
 
@@ -79,4 +80,8 @@
     </div>
   </div>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'frontend/js/medalleroIconStrip.js' %}"></script>
 {% endblock %}
