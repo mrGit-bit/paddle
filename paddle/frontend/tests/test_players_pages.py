@@ -124,7 +124,7 @@ def test_player_detail_orders_medallas_before_stats_and_matches(client):
     content = response.content.decode("utf-8")
 
     assert response.status_code == 200
-    stats_index = content.index('<h4 class="mb-4">Estadísticas</h4>')
+    stats_index = content.index('<h4 class="mb-0">Estadísticas</h4>')
     matches_index = content.index('<h4 class="mb-4" id="player-matches">Partidos jugados</h4>')
     assert stats_index < matches_index
 
@@ -303,7 +303,7 @@ def test_player_detail_scope_rows_render_data_href_only_when_applicable(client):
     content = response.content.decode("utf-8")
     stats_section = section_between(
         content,
-        '<h4 class="mb-4">Estadísticas</h4>',
+        '<h4 class="mb-0">Estadísticas</h4>',
         '<h4 class="mb-4" id="player-matches">Partidos jugados</h4>',
     )
 
@@ -319,8 +319,8 @@ def test_player_detail_scope_rows_render_data_href_only_when_applicable(client):
     assert "Masc." in stats_section
     assert "Mixtos" in stats_section
     assert "#1 de 4" in stats_section
-    assert ">1/100%</span>" in stats_section
-    assert ">--/--%</span>" in stats_section
+    assert ">100%</span>" in stats_section
+    assert ">--%</span>" in stats_section
     assert 'aria-label="#1 de 4"' in stats_section
     assert '<div class="progress-bar bg-primary" style="width: 100%;"></div>' in stats_section
     assert '<div class="progress-bar bg-success" style="width: 100%;"></div>' in stats_section
@@ -361,7 +361,7 @@ def test_player_detail_ranking_progress_uses_display_rank_and_ranked_total(clien
     content = response.content.decode("utf-8")
     stats_section = section_between(
         content,
-        '<h4 class="mb-4">Estadísticas</h4>',
+        '<h4 class="mb-0">Estadísticas</h4>',
         '<h4 class="mb-4" id="player-matches">Partidos jugados</h4>',
     )
     scope_rows = response.context["scope_rows"]
@@ -390,7 +390,7 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
     insights = response.context["player_insights"]
 
     assert response.status_code == 200
-    assert '<h4 class="mb-4">Estadísticas</h4>' in content
+    assert '<h4 class="mb-0">Estadísticas</h4>' in content
     assert "Rankings" in content
     assert "Últimos partidos" in content
     assert "Balance acumulado" in content
@@ -417,7 +417,7 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
     assert "player-stats-summary" in content
     assert "player-stats-summary-badge" in content
     assert "rounded-pill player-stats-summary-badge bg-primary" in content
-    assert ">--/--%</span>" in content
+    assert ">--%</span>" in content
     assert "Todos Sin partidos · --%" not in content
     assert "Balance neutro" in content
     assert "Balance = 0🏆 - 0🌴 = 0" not in content
@@ -812,7 +812,7 @@ def test_player_detail_trend_windows_use_available_matches_and_round_percent(cli
     content = response.content.decode("utf-8")
     stats_section = section_between(
         content,
-        '<h4 class="mb-4">Estadísticas</h4>',
+        '<h4 class="mb-0">Estadísticas</h4>',
         '<h4 class="mb-4" id="player-matches">Partidos jugados</h4>',
     )
     assert count_trend_wheels(stats_section) == 22

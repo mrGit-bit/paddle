@@ -21,6 +21,8 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 - `UI/UX`: Kept medallero ribbon colors scoped to each medal type and changed
   the collapsed medal strip to stay on one row with only the overlap needed
   to avoid wrapping.
+- `Tests`: Aligned player-detail assertions with the accordion heading and
+  percentage-label markup used by the current template.
 - `UI/UX`: Added pair-ranking medals to the medallero so top pairs, parejas
   catastróficas, and highlighted catastrophic pairs award medals to both
   players without mixing the pairs scope into individual ranking batches.
