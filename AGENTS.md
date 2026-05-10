@@ -1,7 +1,7 @@
 # AGENTS.md — Codex Router
 
-Instruction Set Version: 2.4.7
-Last Updated: 2026-05-09
+Instruction Set Version: 2.4.8
+Last Updated: 2026-05-10
 
 ## Authority
 
@@ -14,31 +14,29 @@ Keep `docs/PROJECT_INSTRUCTIONS.md` and this file aligned by version/date.
 
 ## Minimum Execution Rules
 
-- Verify the branch before development; if not on `develop`, warn and wait
-  before editing.
+- Verify the branch before development; if not `develop`, warn and wait.
 - For non-trivial implementation, use the latest approved non-release spec and
-  do not start before approval.
-- Small, low-risk docs, governance, or repository-guidance edits may skip a new
-  active-work spec.
+  wait for approval.
+- Small docs, governance, or repository-guidance edits may skip a new spec.
 - Keep edits scoped and never revert user changes unless explicitly requested.
 - Keep Markdown concise and specific.
 
 ## Skill Routing
 
-- Product, code, SDD planning, specs, audit gates, and repo constraints:
+- Product/code work, SDD planning, specs, audit gates, and repo constraints:
   `$sdd-workflow`.
 - Grill-me planning and pressure-tests: use `$sdd-grill-me`.
 - Handoffs, reconciliation, commits, pushes, and closure:
   `$development-cycle-closure`.
-- Governance ownership, markdown rules, versioning, and validation:
-  `$governance-maintenance`.
+- Governance ownership, markdown rules, versioning, and validation: `$governance-maintenance`.
 - Governance markdown audits: `$governance-markdown-auditor`.
-- Low-context/token-budget reviews: `$context-budget-review`.
-- Creating, adapting, or updating repository Codex skills: `$write-a-skill`.
+- Context-budget reviews: `$context-budget-review`.
+- Creating, adapting, or updating repo Codex skills: `$write-a-skill`.
+- Debugging bugs, failures, exceptions, flakes, and regressions: `$debug`.
 - Test creation, TDD loops, test refactors, and brittle assertion reviews:
   `$test-design`.
 - Django view audits: `$audit`.
-- Django template CSS and presentation audits: `$template-presentation-audit`.
+- Django template CSS/presentation audits: `$template-presentation-audit`.
 
 ## Required Validation
 

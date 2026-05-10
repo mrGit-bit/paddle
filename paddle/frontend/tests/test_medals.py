@@ -40,6 +40,15 @@ def patch_rankings(monkeypatch, players_by_scope):
         }
 
     monkeypatch.setattr(medal_service, "compute_rankings_for_scopes", fake_compute_rankings_for_scopes)
+    monkeypatch.setattr(
+        medal_service,
+        "build_pairs_ranking_sections",
+        lambda group=None: {
+            "top_pairs": [],
+            "pairs_of_the_century": [],
+            "catastrophic_pairs": [],
+        },
+    )
 
 
 def medal_names(row):
@@ -51,8 +60,8 @@ def medal_scopes(row, medal_key):
 
 
 def test_medal_config_defines_required_metadata():
-    assert len(MEDAL_DEFINITIONS) == 6
-    assert list(SCOPE_CONFIG.keys()) == ["all", "male", "female", "mixed"]
+    assert len(MEDAL_DEFINITIONS) == 13
+    assert list(SCOPE_CONFIG.keys()) == ["all", "male", "female", "mixed", "pairs"]
 
     keys = [medal["key"] for medal in MEDAL_DEFINITIONS]
     assert len(keys) == len(set(keys))
@@ -64,6 +73,35 @@ def test_medal_config_defines_required_metadata():
 
     for scope in SCOPE_CONFIG.values():
         assert {"label", "css_class", "progress_color_class"} <= set(scope)
+
+
+def test_medal_service_keeps_pair_scope_out_of_individual_ranking_batch(monkeypatch):
+    players = [ranked_player(1, "Ranked Player", position=1)]
+    calls = []
+
+    def fake_compute_rankings_for_scopes(scopes, *, group=None):
+        calls.append(tuple(scopes))
+        return {
+            scope: (players if scope == "all" else [], [], scope)
+            for scope in scopes
+            if scope != "pairs"
+        }
+
+    monkeypatch.setattr(medal_service, "compute_rankings_for_scopes", fake_compute_rankings_for_scopes)
+    monkeypatch.setattr(
+        medal_service,
+        "build_pairs_ranking_sections",
+        lambda group=None: {
+            "top_pairs": [],
+            "pairs_of_the_century": [],
+            "catastrophic_pairs": [],
+        },
+    )
+
+    rows_by_name = {row["player"].name: row for row in medal_service.build_medallero_rows()}
+
+    assert "Ranked Player" in rows_by_name
+    assert calls == [("all", "male", "female", "mixed")]
 
 
 def test_medal_service_includes_top_12_display_positions_and_ties(monkeypatch):
@@ -128,6 +166,52 @@ def test_medal_service_performance_medals_include_cutoff_ties_only_for_eligible_
     assert "Top 3 partidos" in medal_names(rows_by_name["Efficiency 90"])
     assert "Top 3 partidos" in medal_names(rows_by_name["Matches 8 Tie"])
     assert "Top 3 partidos" not in medal_names(rows_by_name["Matches 7"])
+
+
+def test_medal_service_includes_pair_medals_in_individual_rows(monkeypatch):
+    players = [
+        ranked_player(1, "Pair A", position=1),
+        ranked_player(2, "Pair B", position=2),
+        ranked_player(3, "Pair C", position=3),
+        ranked_player(4, "Pair D", position=4),
+        ranked_player(5, "Pair E", position=5),
+        ranked_player(6, "Pair F", position=6),
+        ranked_player(7, "Pair G", position=7),
+    ]
+    patch_rankings(monkeypatch, {"all": players})
+
+    monkeypatch.setattr(
+        medal_service,
+        "build_pairs_ranking_sections",
+        lambda group=None: {
+            "top_pairs": [
+                {"player1": players[0], "player2": players[1]},
+                {"player1": players[2], "player2": players[3]},
+                {"player1": players[4], "player2": players[5]},
+                {"player1": players[6], "player2": players[0]},
+                {"player1": players[1], "player2": players[2]},
+            ],
+            "pairs_of_the_century": [
+                {"player1": players[0], "player2": players[1]},
+            ],
+            "catastrophic_pairs": [
+                {"player1": players[2], "player2": players[3]},
+            ],
+        },
+    )
+
+    rows_by_name = {row["player"].name: row for row in medal_service.build_medallero_rows()}
+
+    assert "Primer puesto parejas" in medal_names(rows_by_name["Pair A"])
+    assert "Primer puesto parejas" in medal_names(rows_by_name["Pair B"])
+    assert "Segundo puesto parejas" in medal_names(rows_by_name["Pair C"])
+    assert "Segundo puesto parejas" in medal_names(rows_by_name["Pair D"])
+    assert "Tercer puesto parejas" in medal_names(rows_by_name["Pair E"])
+    assert "Tercer puesto parejas" in medal_names(rows_by_name["Pair F"])
+    assert "Cuarto puesto parejas" in medal_names(rows_by_name["Pair G"])
+    assert "Quinto puesto parejas" in medal_names(rows_by_name["Pair B"])
+    assert "Parejas catastróficas" in medal_names(rows_by_name["Pair C"])
+    assert "Parejas catastróficas diamante" in medal_names(rows_by_name["Pair A"])
 
 
 def fake_medals():

@@ -12,6 +12,9 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `UI/UX`: Added pair-ranking medals to the medallero so top pairs, parejas
+  catastróficas, and highlighted catastrophic pairs award medals to both
+  players without mixing the pairs scope into individual ranking batches.
 - `UI/UX`: Moved the player-detail `Pulsa para detalles` helper into the
   `Estadísticas` heading row and formatted ranking pills as `1 / 75%` without
   brackets.
@@ -30,6 +33,9 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
   governance and workflow reviews, with a 40% warning threshold and 60%
   conversation budget, and compacted the Django view audit skill to defer
   checklist and report details to references.
+- `Governance`: Added the `$debug` skill and Codex routing entry for
+  repeatable bug reproduction, hypothesis testing, fixes, and regression
+  coverage.
 - `Release`: Clarified that release requests only authorize deployment through
   staging, and that production promotion must wait for explicit approval after
   staging manual checks or the documented staging-approval resume command.
