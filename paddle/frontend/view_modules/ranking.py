@@ -10,6 +10,7 @@ Integration:
 """
 
 from django.shortcuts import render
+from django.urls import reverse
 
 from games.models import Player
 
@@ -17,6 +18,23 @@ from frontend.services.medals import build_medallero_rows
 from frontend.services.ranking import build_pairs_ranking_sections, compute_ranking
 
 from .common import get_new_match_ids, get_ranking_redirect, get_request_group_context, get_user_player, paginate_list
+
+
+MEDAL_SCOPE_URL_NAMES = {
+    "all": "hall_of_fame",
+    "male": "ranking_male",
+    "female": "ranking_female",
+    "mixed": "ranking_mixed",
+}
+
+
+def _add_medallero_card_hrefs(rows: list[dict], *, group=None) -> None:
+    for row in rows:
+        player = row["player"]
+        for medal in row.get("medals", []):
+            page = get_player_page_in_scope(medal["scope"], player.id, group=group)
+            url_name = MEDAL_SCOPE_URL_NAMES.get(medal["scope"])
+            medal["href"] = None if page is None or not url_name else f'{reverse(url_name)}?page={page}#top'
 
 
 def ranking_home_view(request):
@@ -127,11 +145,14 @@ def medallero_view(request):
     group_context = get_request_group_context(request)
     new_match_ids = get_new_match_ids(request) or []
 
+    medallero_rows = build_medallero_rows(group=group_context["group"])
+    _add_medallero_card_hrefs(medallero_rows, group=group_context["group"])
+
     return render(
         request,
         "frontend/medallero.html",
         {
-            "medallero_rows": build_medallero_rows(group=group_context["group"]),
+            "medallero_rows": medallero_rows,
             "new_matches_number": len(new_match_ids),
             "page_title": "Medallero",
             "group_display_name": group_context["display_name"],

@@ -1,4 +1,5 @@
 import re
+from pathlib import Path
 
 import pytest
 from django.contrib.auth import get_user_model
@@ -40,10 +41,23 @@ def patch_rankings(monkeypatch, players_by_scope):
         }
 
     monkeypatch.setattr(medal_service, "compute_rankings_for_scopes", fake_compute_rankings_for_scopes)
+    monkeypatch.setattr(
+        medal_service,
+        "build_pairs_ranking_sections",
+        lambda group=None: {
+            "top_pairs": [],
+            "pairs_of_the_century": [],
+            "catastrophic_pairs": [],
+        },
+    )
 
 
 def medal_names(row):
     return [medal["name"] for medal in row["medals"]]
+
+
+def medal_keys(row):
+    return [medal["key"] for medal in row["medals"]]
 
 
 def medal_scopes(row, medal_key):
@@ -51,19 +65,80 @@ def medal_scopes(row, medal_key):
 
 
 def test_medal_config_defines_required_metadata():
-    assert len(MEDAL_DEFINITIONS) == 6
-    assert list(SCOPE_CONFIG.keys()) == ["all", "male", "female", "mixed"]
+    assert len(MEDAL_DEFINITIONS) == 13
+    assert list(SCOPE_CONFIG.keys()) == ["all", "male", "female", "mixed", "pairs"]
 
     keys = [medal["key"] for medal in MEDAL_DEFINITIONS]
     assert len(keys) == len(set(keys))
+    assert "pairs_century" in keys
+    assert "pairs_catastrophic_diamond" not in keys
 
     required_medal_fields = {"key", "name", "icon", "description", "category", "scopes", "order"}
     for medal in MEDAL_DEFINITIONS:
         assert required_medal_fields <= set(medal)
         assert set(medal["scopes"]) <= set(SCOPE_CONFIG)
 
+    individual_orders = [
+        medal["order"] for medal in MEDAL_DEFINITIONS if "pairs" not in medal["scopes"]
+    ]
+    pair_orders = [
+        medal["order"] for medal in MEDAL_DEFINITIONS if medal["scopes"] == ["pairs"]
+    ]
+    assert min(pair_orders) > max(individual_orders)
+
+    orders_by_key = {medal["key"]: medal["order"] for medal in MEDAL_DEFINITIONS}
+    assert orders_by_key["pairs_century"] < orders_by_key["pairs_catastrophic"]
+
     for scope in SCOPE_CONFIG.values():
         assert {"label", "css_class", "progress_color_class"} <= set(scope)
+        assert scope["css_class"] == scope["progress_color_class"]
+
+    assert SCOPE_CONFIG["pairs"]["css_class"] == "circular-progress-danger"
+    assert SCOPE_CONFIG["pairs"]["progress_color_class"] == "circular-progress-danger"
+
+
+def test_medal_scope_styles_cover_configured_scopes():
+    styles = (
+        Path(__file__).resolve().parents[1]
+        / "static"
+        / "frontend"
+        / "css"
+        / "styles.css"
+    ).read_text()
+
+    for scope in SCOPE_CONFIG.values():
+        assert f".{scope['css_class']}" in styles
+        assert f".{scope['progress_color_class']}" in styles
+        assert f".medallero-medal-card.{scope['css_class']}" in styles
+
+
+def test_medal_service_keeps_pair_scope_out_of_individual_ranking_batch(monkeypatch):
+    players = [ranked_player(1, "Ranked Player", position=1)]
+    calls = []
+
+    def fake_compute_rankings_for_scopes(scopes, *, group=None):
+        calls.append(tuple(scopes))
+        return {
+            scope: (players if scope == "all" else [], [], scope)
+            for scope in scopes
+            if scope != "pairs"
+        }
+
+    monkeypatch.setattr(medal_service, "compute_rankings_for_scopes", fake_compute_rankings_for_scopes)
+    monkeypatch.setattr(
+        medal_service,
+        "build_pairs_ranking_sections",
+        lambda group=None: {
+            "top_pairs": [],
+            "pairs_of_the_century": [],
+            "catastrophic_pairs": [],
+        },
+    )
+
+    rows_by_name = {row["player"].name: row for row in medal_service.build_medallero_rows()}
+
+    assert "Ranked Player" in rows_by_name
+    assert calls == [("all", "male", "female", "mixed")]
 
 
 def test_medal_service_includes_top_12_display_positions_and_ties(monkeypatch):
@@ -130,6 +205,52 @@ def test_medal_service_performance_medals_include_cutoff_ties_only_for_eligible_
     assert "Top 3 partidos" not in medal_names(rows_by_name["Matches 7"])
 
 
+def test_medal_service_includes_pair_medals_in_individual_rows(monkeypatch):
+    players = [
+        ranked_player(1, "Pair A", position=1),
+        ranked_player(2, "Pair B", position=2),
+        ranked_player(3, "Pair C", position=3),
+        ranked_player(4, "Pair D", position=4),
+        ranked_player(5, "Pair E", position=5),
+        ranked_player(6, "Pair F", position=6),
+        ranked_player(7, "Pair G", position=7),
+    ]
+    patch_rankings(monkeypatch, {"all": players})
+
+    monkeypatch.setattr(
+        medal_service,
+        "build_pairs_ranking_sections",
+        lambda group=None: {
+            "top_pairs": [
+                {"player1": players[0], "player2": players[1]},
+                {"player1": players[2], "player2": players[3]},
+                {"player1": players[4], "player2": players[5]},
+                {"player1": players[6], "player2": players[0]},
+                {"player1": players[1], "player2": players[2]},
+            ],
+            "pairs_of_the_century": [
+                {"player1": players[0], "player2": players[1]},
+            ],
+            "catastrophic_pairs": [
+                {"player1": players[2], "player2": players[3]},
+            ],
+        },
+    )
+
+    rows_by_name = {row["player"].name: row for row in medal_service.build_medallero_rows()}
+
+    assert "pairs_first_place" in medal_keys(rows_by_name["Pair A"])
+    assert "pairs_first_place" in medal_keys(rows_by_name["Pair B"])
+    assert "pairs_second_place" in medal_keys(rows_by_name["Pair C"])
+    assert "pairs_second_place" in medal_keys(rows_by_name["Pair D"])
+    assert "pairs_third_place" in medal_keys(rows_by_name["Pair E"])
+    assert "pairs_third_place" in medal_keys(rows_by_name["Pair F"])
+    assert "pairs_fourth_place" in medal_keys(rows_by_name["Pair G"])
+    assert "pairs_fifth_place" in medal_keys(rows_by_name["Pair B"])
+    assert "pairs_catastrophic" in medal_keys(rows_by_name["Pair C"])
+    assert "pairs_century" in medal_keys(rows_by_name["Pair A"])
+
+
 def fake_medals():
     medal = {
         "key": "first_place",
@@ -140,7 +261,7 @@ def fake_medals():
         "order": 1,
         "scope": "all",
         "scope_label": "Todos",
-        "scope_css_class": "medal-scope-all",
+        "scope_css_class": "circular-progress-primary",
         "progress_color_class": "circular-progress-primary",
     }
     return [medal]
@@ -167,6 +288,7 @@ def fake_medallero_rows(group=None, medals=None):
 @pytest.mark.django_db
 def test_medallero_page_renders_publicly_with_metadata_and_empty_slots(client, monkeypatch):
     monkeypatch.setattr(ranking_views, "build_medallero_rows", fake_medallero_rows)
+    monkeypatch.setattr(ranking_views, "get_player_page_in_scope", lambda scope, player_id, page_size=12, *, group=None: 4)
 
     response = client.get(reverse("medallero"))
     content = response.content.decode("utf-8")
@@ -188,11 +310,11 @@ def test_medallero_page_renders_publicly_with_metadata_and_empty_slots(client, m
     assert content.count("medallero-medal-icon-small") == 1
     assert "Primer puesto" in content
     assert "Todos" in content
-    assert "medal-scope-all" in content
+    assert "circular-progress-primary" in content
     assert "medallero-scope-ribbon" in content
+    assert 'href="/?page=4#top"' in content
     assert "medallero-medal-icon-large" in content
     assert "Ocupa la primera posición de su ranking." not in content
-    assert "circular-progress" not in content
     assert "medallero-medal-wheel" not in content
     assert content.count("medallero-empty-slot") == 2
 
@@ -220,6 +342,34 @@ def test_medallero_summary_icon_strip_renders_every_player_medal(client, monkeyp
     assert re.search(r'class="badge medallero-total"[^>]*>4</span>', content)
     assert "medallero-icon-strip" in content
     assert content.count("medallero-medal-icon-small") == 4
+
+
+def test_medallero_summary_icon_strip_uses_dynamic_overlap_only_when_needed():
+    styles = (
+        Path(__file__).resolve().parents[1]
+        / "static"
+        / "frontend"
+        / "css"
+        / "styles.css"
+    ).read_text()
+    script = (
+        Path(__file__).resolve().parents[1]
+        / "static"
+        / "frontend"
+        / "js"
+        / "medalleroIconStrip.js"
+    ).read_text()
+
+    icon_strip_rule = re.search(r"\.medallero-icon-strip\s*\{(?P<body>[^}]+)\}", styles)
+    small_icon_rule = re.search(r"\.medallero-medal-icon-small\s*\{(?P<body>[^}]+)\}", styles)
+
+    assert icon_strip_rule is not None
+    assert small_icon_rule is not None
+    assert "flex-wrap: nowrap" in icon_strip_rule.group("body")
+    assert "gap: 0.2rem" in icon_strip_rule.group("body")
+    assert "var(--medallero-icon-overlap, 0px)" in small_icon_rule.group("body")
+    assert "Math.max(0, fullWidth - availableWidth)" in script
+    assert "--medallero-icon-overlap" in script
 
 
 @pytest.mark.django_db

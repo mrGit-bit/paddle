@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from frontend.medals.config import MEDAL_DEFINITIONS, SCOPE_CONFIG
-from frontend.services.ranking import canonical_rounded_win_rate, compute_rankings_for_scopes
+from frontend.services.ranking import build_pairs_ranking_sections, canonical_rounded_win_rate, compute_rankings_for_scopes
 
 MEDAL_BY_KEY = {medal["key"]: medal for medal in MEDAL_DEFINITIONS}
 MEDAL_SCOPE_KEYS = list(SCOPE_CONFIG.keys())
+INDIVIDUAL_RANKING_SCOPE_KEYS = [scope for scope in MEDAL_SCOPE_KEYS if scope != "pairs"]
 TOP_PAGE_POSITION = 12
 
 
@@ -94,10 +95,10 @@ def _finalize_rows(players_by_id: dict[int, dict]) -> list[dict]:
 
 
 def build_medallero_rows(*, group=None) -> list[dict]:
-    ranking_results = compute_rankings_for_scopes(MEDAL_SCOPE_KEYS, group=group)
+    ranking_results = compute_rankings_for_scopes(INDIVIDUAL_RANKING_SCOPE_KEYS, group=group)
     players_by_id: dict[int, dict] = {}
 
-    for scope in MEDAL_SCOPE_KEYS:
+    for scope in INDIVIDUAL_RANKING_SCOPE_KEYS:
         ranked_players, _, _ = ranking_results[scope]
         eligible_players = [
             player for player in ranked_players
@@ -126,4 +127,35 @@ def build_medallero_rows(*, group=None) -> list[dict]:
         ):
             _award(players_by_id, player, "top3_matches", scope)
 
+    pair_sections = build_pairs_ranking_sections(group=group)
+    pair_awards = (
+        (
+            "top_pairs",
+            (
+                "pairs_first_place",
+                "pairs_second_place",
+                "pairs_third_place",
+                "pairs_fourth_place",
+                "pairs_fifth_place",
+            ),
+        ),
+        ("pairs_of_the_century", ("pairs_century",)),
+        ("catastrophic_pairs", ("pairs_catastrophic",)),
+    )
+
+    for section_name, medal_keys in pair_awards:
+        for position, row in enumerate(pair_sections[section_name], start=1):
+            if position > len(medal_keys):
+                break
+            medal_key = medal_keys[position - 1]
+            for player in (row["player1"], row["player2"]):
+                _award(players_by_id, player, medal_key, "pairs")
+
     return _finalize_rows(players_by_id)
+
+
+def build_player_medallero_row(player, *, group=None) -> dict | None:
+    for row in build_medallero_rows(group=group):
+        if row["player"].id == player.id:
+            return row
+    return None

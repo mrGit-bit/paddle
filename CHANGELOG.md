@@ -12,7 +12,56 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+## [1.10.2] - 2026-05-10
+
+- (no notable changes)
+
+## [1.10.2] - 2026-05-10
+
+- `UI/UX`: Kept medallero ribbon colors scoped to each medal type and changed
+  the collapsed medal strip to stay on one row with only the overlap needed
+  to avoid wrapping.
+- `Tests`: Aligned player-detail assertions with the accordion heading and
+  percentage-label markup used by the current template.
+- `UI/UX`: Added pair-ranking medals to the medallero so top pairs, parejas
+  catastróficas, and highlighted catastrophic pairs award medals to both
+  players without mixing the pairs scope into individual ranking batches.
+- `UI/UX`: Moved the player-detail `Pulsa para detalles` helper into the
+  `Estadísticas` heading row and formatted ranking pills as `1 / 75%` without
+  brackets.
+- `Governance`: Tightened router and skill guidance so future work avoids CSS
+  cascade regressions, preserves user-edited text and style intent, and keeps
+  tests focused on durable behavior instead of brittle copy locks.
+- `Tests`: Relaxed medallero assertions to key- and structure-based checks so
+  later manual copy edits do not force test churn.
+- `UI/UX`: Linked medallero cards to the selected player's scope-specific
+  ranking page and kept the player-detail medal cards clickable to the same
+  destination.
+- `UI/UX`: Limited player-detail `Contendientes` nemesis and victim cards to
+  opponents with at least five shared matches before applying the existing
+  head-to-head efficiency thresholds.
+- `UI/UX`: Added a player-detail `Medallas` section before statistics, reusing
+  medallero cards with the selected player's medal card expanded by default
+  and collapsible on click.
+- `UI/UX`: Converted player-detail statistics cards into a Bootstrap accordion
+  with compact header summaries, collapsed defaults, and truncation-safe pills.
+- `Governance`: Added the `$context-budget-review` skill for low-context
+  governance and workflow reviews, with a 40% warning threshold and 60%
+  conversation budget, and compacted the Django view audit skill to defer
+  checklist and report details to references.
+- `Governance`: Added the `$debug` skill and Codex routing entry for
+  repeatable bug reproduction, hypothesis testing, fixes, and regression
+  coverage.
+- `Release`: Clarified that release requests only authorize deployment through
+  staging, and that production promotion must wait for explicit approval after
+  staging manual checks or the documented staging-approval resume command.
+- `Release`: Added release-session context guidance to summarize polling,
+  deploy logs, validation output, and diffs instead of filling the conversation
+  with full command streams; `/clear` remains an optional post-cycle
+  suggestion.
+
 ## [1.10.1] - 2026-05-07
+
 - `Dependencies`: Updated vulnerable Python and mobile npm dependencies reported
   by Dependabot, kept patched minimum Python dependency floors in
   `requirements.in`, and removed unused PostgreSQL, WhiteNoise, and
