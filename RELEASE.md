@@ -172,8 +172,8 @@ truth for the remote deploy steps.
 11. Consolidate only the loose spec files explicitly marked with
     `Release tag: vX.Y.Z` and a closure-complete `Status`
     (`implemented` or `shipped`) into `specs/release-X.Y.Z-consolidated.md`.
-12. Fail the completed release if any loose spec remains closure-complete
-    (`implemented` or `shipped`) with `Release tag: unreleased`.
+12. Leave loose specs with `Release tag: unreleased` in place for future
+    releases, even if their development cycle is already implemented.
 13. Review `CHANGELOG.md` for `## [X.Y.Z]` using the shipped specs, existing
     changelog notes, and any available completed backlog wording, then keep
     the section as compact grouped category summaries.
@@ -222,11 +222,11 @@ cycle is closed, move the loose spec to `Status: implemented`. Before running
 the release flow, mark only the actually shipped loose files with the
 requested `vX.Y.Z`. During release consolidation, the command selects only
 loose specs whose `Release tag` matches and whose `Status` is already
-closure-complete (`implemented` or `shipped`). If any closure-complete loose
-spec still says `Release tag: unreleased`, the release fails instead of
-claiming consolidation success. Also review the release changelog section and
-compress repetitive same-category bullets into grouped outcome summaries so
-release history stays easy to scan.
+closure-complete (`implemented` or `shipped`). Implemented loose specs with
+`Release tag: unreleased` remain available for the next release instead of
+being treated as consolidation errors. Also review the release changelog
+section and compress repetitive same-category bullets into grouped outcome
+summaries so release history stays easy to scan.
 
 ## Manual Functional Checks
 

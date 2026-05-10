@@ -615,10 +615,9 @@ def test_collect_release_sources_skips_unreleased_files(tmp_path):
 
     assert selection.matched == []
     assert selection.skipped == [source]
-    assert selection.suspicious_unreleased == []
 
 
-def test_collect_release_sources_flags_implemented_unreleased_specs(tmp_path):
+def test_collect_release_sources_skips_implemented_unreleased_specs(tmp_path):
     source = tmp_path / "031-example.md"
     source.write_text(
         "# Example\n\n"
@@ -638,7 +637,6 @@ def test_collect_release_sources_flags_implemented_unreleased_specs(tmp_path):
 
     assert selection.matched == []
     assert selection.skipped == [source]
-    assert selection.suspicious_unreleased == [source]
 
 
 def test_collect_release_sources_skips_tagged_specs_until_cycle_is_closed(tmp_path):
@@ -723,32 +721,6 @@ def test_commit_consolidation_writes_single_release_spec(monkeypatch, tmp_path, 
     captured = capsys.readouterr()
     assert "Changelog consolidation review for 1.6.0:" in captured.out
     assert "- Backlog requirements available for comparison: 1." in captured.out
-
-
-def test_commit_consolidation_fails_on_implemented_unreleased_specs(tmp_path):
-    repo_root = tmp_path
-    specs_dir = repo_root / "specs"
-    specs_dir.mkdir()
-    source = specs_dir / "037-example.md"
-    source.write_text("# Example\n", encoding="utf-8")
-    context = release_orchestrator.ReleaseContext(
-        repo_root=repo_root,
-        version="1.10.2",
-        version_tag="v1.10.2",
-        paths=release_orchestrator.ReleasePaths(repo_root),
-    )
-    selection = release_orchestrator.ReleaseSourceSelection(
-        matched=[],
-        skipped=[source],
-        suspicious_unreleased=[source],
-    )
-
-    with pytest.raises(release_orchestrator.ReleaseError) as exc_info:
-        release_orchestrator.commit_consolidation(context, selection)
-
-    assert "037-example.md" in str(exc_info.value)
-    assert "Release tag: unreleased" in str(exc_info.value)
-
 
 def test_run_command_retries_gh_without_invalid_env_tokens(monkeypatch):
     calls = []

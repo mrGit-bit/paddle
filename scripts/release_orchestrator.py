@@ -117,7 +117,6 @@ class DeployTarget:
 class ReleaseSourceSelection:
     matched: list[Path]
     skipped: list[Path]
-    suspicious_unreleased: list[Path] = field(default_factory=list)
 
 
 def normalize_version(value: str) -> tuple[str, str]:
@@ -916,7 +915,6 @@ def collect_release_sources(
 ) -> ReleaseSourceSelection:
     matched: list[Path] = []
     skipped: list[Path] = []
-    suspicious_unreleased: list[Path] = []
     for path in sorted(directory.glob(pattern)):
         if path.name in excluded_names:
             continue
@@ -927,16 +925,9 @@ def collect_release_sources(
         source_status = metadata.get("Status")
         if source_release_tag == release_tag and source_status in {"implemented", "shipped"}:
             matched.append(path)
-        elif source_release_tag == "unreleased" and source_status in {"implemented", "shipped"}:
-            suspicious_unreleased.append(path)
-            skipped.append(path)
         else:
             skipped.append(path)
-    return ReleaseSourceSelection(
-        matched=matched,
-        skipped=skipped,
-        suspicious_unreleased=suspicious_unreleased,
-    )
+    return ReleaseSourceSelection(matched=matched, skipped=skipped)
 
 
 def parse_markdown_section_items(source_text: str, heading: str) -> list[str]:
@@ -1000,14 +991,6 @@ def build_consolidated_markdown(version: str, release_date: date, sources: list[
 
 def commit_consolidation(context: ReleaseContext, spec_selection: ReleaseSourceSelection) -> None:
     spec_sources = spec_selection.matched
-    if spec_selection.suspicious_unreleased:
-        names = ", ".join(source.name for source in spec_selection.suspicious_unreleased)
-        raise ReleaseError(
-            "Release consolidation cannot complete while implemented or shipped loose specs still "
-            f"have `Release tag: unreleased`: {names}. Tag each shipped spec with {context.version_tag} "
-            "or move it out of closure-complete status."
-        )
-
     if not spec_sources:
         skipped_sources = spec_selection.skipped
         if skipped_sources:

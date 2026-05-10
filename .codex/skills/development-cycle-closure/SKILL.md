@@ -73,8 +73,8 @@ consolidate released SDD files before starting new SDD work:
 
 - Use the shipped production release as history.
 - Consolidate only loose files marked with the shipped `vX.Y.Z`.
-- Treat any loose spec with `Status: implemented` or `Status: shipped` and
-  `Release tag: unreleased` as a release-blocking metadata error.
+- Leave loose files with `Release tag: unreleased` in place for future
+  releases, even when their development cycle is already implemented.
 - Fold completed backlog outcomes into final release-summary wording when
   relevant.
 - Keep the changelog section grouped by stable categories.

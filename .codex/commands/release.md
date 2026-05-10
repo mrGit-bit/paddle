@@ -21,10 +21,8 @@ Execution rules:
 - Expect only closure-complete loose specs to be prepared for shipment:
   `Status: implemented` (or `shipped` if already reconciled) plus the
   requested `Release tag: vX.Y.Z`.
-- Leave unrelated in-progress loose specs on `Status: approved` with
-  `Release tag: unreleased` so consolidation skips them.
-- Treat closure-complete loose specs left at `Release tag: unreleased` as a
-  release-blocking metadata error, not as unrelated work.
+- Leave loose specs with `Release tag: unreleased` in place for future
+  releases, whether they are still approved or already implemented.
 - Keep the interaction focused on the script output.
 - Keep release sessions context-light: summarize long-running command progress
   instead of pasting repeated poll output, avoid full diffs unless diagnosing a

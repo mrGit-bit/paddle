@@ -12,12 +12,13 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
-## [1.10.2] - 2026-05-10
-
 - `Release`: Streamlined release orchestration with local release prep,
   deterministic promotion-check failures, explicit validation skip controls,
   next-patch version derivation, and mandatory consolidation guards for
   completed releases.
+
+## [1.10.2] - 2026-05-10
+
 - `UI/UX`: Kept medallero ribbon colors scoped to each medal type and changed
   the collapsed medal strip to stay on one row with only the overlap needed
   to avoid wrapping.
