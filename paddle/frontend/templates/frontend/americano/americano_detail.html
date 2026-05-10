@@ -30,7 +30,7 @@
 
   <small class="text-muted d-block americano-details">
     {% if tournament.created_by %}por {{ tournament.created_by }} · {% endif %}
-    {{ tournament.play_date }} · {{ tournament.players.count }} jugadores
+    {{ tournament.play_date }} · {{ americano_players|length }} jugadores
   </small>
 
   <!-- HoF-style classification table -->
@@ -127,7 +127,7 @@
                       {% if not can_edit %}disabled{% endif %}
                       name="match_{{ match.id }}_t1p1">
                 <option value="">jugador 1</option>
-                {% for p in tournament.players.all|dictsort:"name" %}
+                {% for p in americano_players %}
                   <option value="{{ p.id }}"
                     {% if match.team1_player1 and match.team1_player1.id == p.id %}selected{% endif %}>
                     {{ p.name }}
@@ -141,7 +141,7 @@
                       {% if not can_edit %}disabled{% endif %}
                       name="match_{{ match.id }}_t1p2">
                 <option value="">jugador 2</option>
-                {% for p in tournament.players.all|dictsort:"name" %}
+                {% for p in americano_players %}
                   <option value="{{ p.id }}"
                     {% if match.team1_player2 and match.team1_player2.id == p.id %}selected{% endif %}>
                     {{ p.name }}
@@ -173,7 +173,7 @@
                       {% if not can_edit %}disabled{% endif %}
                       name="match_{{ match.id }}_t2p1">
                 <option value="">jugador 1</option>
-                {% for p in tournament.players.all|dictsort:"name" %}
+                {% for p in americano_players %}
                   <option value="{{ p.id }}"
                     {% if match.team2_player1 and match.team2_player1.id == p.id %}selected{% endif %}>
                     {{ p.name }}
@@ -187,7 +187,7 @@
                       {% if not can_edit %}disabled{% endif %}
                       name="match_{{ match.id }}_t2p2">
                 <option value="">jugador 2</option>
-                {% for p in tournament.players.all|dictsort:"name" %}
+                {% for p in americano_players %}
                   <option value="{{ p.id }}"
                     {% if match.team2_player2 and match.team2_player2.id == p.id %}selected{% endif %}>
                     {{ p.name }}

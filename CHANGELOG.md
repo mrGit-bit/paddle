@@ -12,6 +12,10 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `Backend`: Made Americano round assignment validate first, then persist all
+  match updates inside a transaction so a later validation error cannot leave
+  earlier matches partially saved, and reduced Americano detail-page query
+  work by reusing prefetched matches and a single sorted player list.
 - `Release`: Streamlined release orchestration with local release prep,
   deterministic promotion-check failures, explicit validation skip controls,
   next-patch version derivation, and mandatory consolidation guards for

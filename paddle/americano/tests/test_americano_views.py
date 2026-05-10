@@ -4,6 +4,8 @@
 import pytest
 from django.urls import reverse
 from django.utils import timezone
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 
 from django.contrib.auth.models import User
 
@@ -645,6 +647,42 @@ def test_assign_round_blocks_duplicate_player_across_fully_assigned_matches(clie
     detail = client.get(res["Location"])
     assert "Un jugador no puede repetirse en la misma ronda." in detail.content.decode("utf-8")
 
+
+def test_assign_round_validation_error_does_not_partially_save_earlier_matches(client, user, player_user, players_pool):
+    client.login(username="u1", password="pass1234")
+
+    players = players_pool[:7] + [player_user]
+    t = _create_tournament(creator=user, name="Atomic assignment test", players=players, num_players=8)
+    r = AmericanoRound.objects.create(tournament=t, number=1)
+    m1 = AmericanoMatch.objects.create(round=r)
+    m2 = AmericanoMatch.objects.create(round=r)
+
+    p0, p1, p2, p3, p4, p5, p6, _p7 = players
+    payload = {
+        f"match_{m1.id}_court": "1",
+        f"match_{m1.id}_t1p1": str(p0.id),
+        f"match_{m1.id}_t1p2": str(p1.id),
+        f"match_{m1.id}_t2p1": str(p2.id),
+        f"match_{m1.id}_t2p2": str(p3.id),
+        f"match_{m1.id}_score1": "15",
+        f"match_{m1.id}_score2": "10",
+        f"match_{m2.id}_t1p1": str(p0.id),
+        f"match_{m2.id}_t1p2": str(p4.id),
+        f"match_{m2.id}_t2p1": str(p5.id),
+        f"match_{m2.id}_t2p2": str(p6.id),
+    }
+
+    res = client.post(reverse("americano_assign_round", args=[r.id]), data=payload)
+    assert res.status_code == 302
+
+    m1.refresh_from_db()
+    m2.refresh_from_db()
+    assert m1.court_number is None
+    assert m1.team1_player1_id is None
+    assert m1.team1_points is None
+    assert m2.team1_player1_id is None
+
+
 def test_assign_round_parse_score_value_error_results_in_none(client, user, player_user, players_pool):
     """
     Covers parse_score() ValueError branch by submitting a non-integer score.
@@ -744,3 +782,36 @@ def test_assign_round_action_new_round_saves_and_creates_next_round(client, user
     assert r2.number == 2
     assert r2.matches.count() == 8 // 4  # 2 empty matches
     assert r2.matches.filter(team1_player1__isnull=False).count() == 0
+
+
+def test_americano_detail_query_count_is_bounded_with_round_matches_and_players(client, user, player_user, players_pool):
+    client.force_login(user)
+
+    players = players_pool[:7] + [player_user]
+    t = _create_tournament(creator=user, name="Detail query test", players=players, num_players=8)
+    for number in range(1, 4):
+        round_obj = AmericanoRound.objects.create(tournament=t, number=number)
+        AmericanoMatch.objects.create(
+            round=round_obj,
+            court_number=number,
+            team1_player1=players[0],
+            team1_player2=players[1],
+            team2_player1=players[2],
+            team2_player2=players[3],
+            team1_points=15,
+            team2_points=10,
+        )
+        AmericanoMatch.objects.create(
+            round=round_obj,
+            court_number=number + 3,
+            team1_player1=players[4],
+            team1_player2=players[5],
+            team2_player1=players[6],
+            team2_player2=players[7],
+        )
+
+    with CaptureQueriesContext(connection) as captured:
+        res = client.get(reverse("americano_detail", kwargs={"pk": t.pk}))
+
+    assert res.status_code == 200
+    assert len(captured) <= 12
