@@ -72,6 +72,7 @@ MEDAL_SCOPE_URL_NAMES = {
     "male": "ranking_male",
     "female": "ranking_female",
     "mixed": "ranking_mixed",
+    "pairs": "ranking_pairs",
 }
 
 
@@ -144,12 +145,15 @@ def _add_medallero_card_hrefs(medal_row: dict | None, *, group=None) -> None:
     if not medal_row:
         return
     for medal in medal_row.get("medals", []):
+        url_name = MEDAL_SCOPE_URL_NAMES.get(medal["scope"])
+        if medal["scope"] == "pairs":
+            medal["href"] = reverse(url_name) if url_name else None
+            continue
         scoped_player, page, _ = _get_scoped_player_page_and_total(
             medal["scope"],
             medal_row["player"].id,
             group=group,
         )
-        url_name = MEDAL_SCOPE_URL_NAMES.get(medal["scope"])
         medal["href"] = None if not scoped_player or page is None or not url_name else f'{reverse(url_name)}?page={page}#top'
 
 
@@ -614,6 +618,8 @@ def _build_ranking_summary_badges(scope_rows, efficiency_scopes):
     }
     summary_rows = []
     for row in scope_rows:
+        if not row.get("scoped_player") or row.get("ranking_total", 0) <= 0:
+            continue
         efficiency_key = "gender" if row["scope"] in {"male", "female"} else row["scope"]
         efficiency = efficiency_by_key.get(efficiency_key)
         if efficiency and efficiency["selector"]["matches"] > 0:
@@ -628,7 +634,7 @@ def _build_ranking_summary_badges(scope_rows, efficiency_scopes):
         summary_rows.append(
             {
                 "label": row["label"],
-                "value": f"{position_label} / {efficiency_label}",
+                "value": f"{position_label}/{efficiency_label}",
                 "color_class": row["color_class"],
                 "text_class": "text-dark" if row["color_class"] == "bg-warning" else "",
             }
