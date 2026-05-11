@@ -1,0 +1,3 @@
+display_name: Phased PRD
+short_description: Create durable PRDs for complex work that will be delivered through phase specs.
+default_prompt: Use $phased-prd to turn this complex request into a PRD and phase plan.

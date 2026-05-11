@@ -21,6 +21,8 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
   consolidation guards.
 - `Governance`: Clarified Markdown lint handling and changelog style so entries
   stay category-grouped, outcome-focused, and concise.
+- `Governance`: Added `$phased-prd` for persistent PRDs that split complex
+  work into later approved implementation phase specs.
 
 ## [1.10.2] - 2026-05-10
 

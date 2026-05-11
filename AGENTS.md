@@ -1,6 +1,6 @@
 # AGENTS.md — Codex Router
 
-Instruction Set Version: 2.4.10
+Instruction Set Version: 2.4.11
 Last Updated: 2026-05-11
 
 ## Authority
@@ -24,10 +24,11 @@ Keep `docs/PROJECT_INSTRUCTIONS.md` aligned by version/date.
 
 ## Skill Routing
 
-- Product/code work, SDD planning, specs, audit gates, and repo constraints:
+- Product/code, SDD planning, specs, audit gates, repo constraints:
   `$sdd-workflow`.
 - Grill-me planning and pressure-tests: use `$sdd-grill-me`.
-- Handoffs, reconciliation, commits, pushes, and closure:
+- Phased PRDs: `$phased-prd`.
+- Handoffs, reconciliation, commits, pushes, closure:
   `$development-cycle-closure`.
 - Governance ownership, Markdown rules, validation: `$governance-maintenance`.
 - Governance markdown audits: `$governance-markdown-auditor`.
@@ -36,8 +37,8 @@ Keep `docs/PROJECT_INSTRUCTIONS.md` aligned by version/date.
 - Debugging bugs, failures, exceptions, flakes, and regressions: `$debug`.
 - Test creation, TDD loops, test refactors, and brittle assertion reviews:
   `$test-design`.
-- Django view audits: `$audit`.
-- Django template CSS/presentation audits: `$template-presentation-audit`.
+- View audits: `$audit`.
+- Template CSS/presentation audits: `$template-presentation-audit`.
 
 ## Required Validation
 

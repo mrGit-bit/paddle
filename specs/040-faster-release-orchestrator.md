@@ -6,7 +6,7 @@ Use for active SDD work only.
 
 - Task ID: `faster-release-orchestrator`
 - Status: `implemented`
-- Release tag: `unreleased`
+- Release tag: `v1.10.3`
 
 ## Summary
 
