@@ -57,4 +57,5 @@ and ownership boundaries.
 - Consolidated release files should be compact provenance summaries, not
   embedded copies of prior source files.
 - Release changelog entries should be grouped by stable product or workflow
-  domains when a release mixes change types.
+  domains, merge related specs and outcomes within each release, and avoid
+  verbose process detail.

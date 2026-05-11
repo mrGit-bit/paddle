@@ -29,6 +29,8 @@ Every implementation response must include:
   governance, workflow, or guidance change unless it is formatting-only.
 - Prefix mixed-release bullets with stable domain categories such as `UI/UX`,
   `Governance`, `Release`, `Backend`, `Data`, `Mobile`, `Tests`, or `Docs`.
+- Group changelog entries by category, merge similar specs or outcomes within a
+  release, and keep descriptions tight.
 - `CHANGELOG.md` records shipped outcomes, not process narration.
 - During cycle closure, reconcile completed in-scope `BACKLOG.md` items by
   removing them and ensuring the outcome is reflected in `CHANGELOG.md`.
@@ -77,7 +79,8 @@ consolidate released SDD files before starting new SDD work:
   releases, even when their development cycle is already implemented.
 - Fold completed backlog outcomes into final release-summary wording when
   relevant.
-- Keep the changelog section grouped by stable categories.
+- Keep the changelog section grouped by stable categories, with related specs
+  and outcomes merged into concise bullets.
 - Roll unshipped planned-version work into the next production release that
   ships it.
 - Create a new loose spec for post-release follow-up instead of extending a
