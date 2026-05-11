@@ -12,6 +12,8 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `UI/UX`: Compactified player-detail rankings pills and linked pair medals
+  directly to the `Parejas` ranking page.
 - `Backend`: Made Americano round assignment validate first, then persist all
   match updates inside a transaction so a later validation error cannot leave
   earlier matches partially saved, and reduced Americano detail-page query
