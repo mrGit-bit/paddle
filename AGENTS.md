@@ -1,7 +1,7 @@
 # AGENTS.md — Codex Router
 
-Instruction Set Version: 2.4.9
-Last Updated: 2026-05-10
+Instruction Set Version: 2.4.10
+Last Updated: 2026-05-11
 
 ## Authority
 
@@ -42,6 +42,6 @@ Keep `docs/PROJECT_INSTRUCTIONS.md` aligned by version/date.
 ## Required Validation
 
 - Run `python scripts/validate_governance.py` after governance edits.
-- Run markdownlint on changed Markdown; `MD013` is non-blocking.
+- Run markdownlint on Markdown; omit `MD013` and line reflows.
 - For code changes, run the smallest relevant test scope and report the command
   plus result.

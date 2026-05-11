@@ -39,7 +39,8 @@ and ownership boundaries.
   `docs/PROJECT_INSTRUCTIONS.md` and `AGENTS.md`.
 - Run `python scripts/validate_governance.py` after governance edits.
 - Run markdownlint on changed Markdown files when available.
-- Enforce `MD022` and `MD032`; treat `MD013` as non-blocking.
+- Enforce `MD022` and `MD032`; omit `MD013` reports and do not reflow long
+  lines only to satisfy line-length linting.
 - Do not add `markdownlint-disable` directives unless explicitly requested.
 - Preserve authoritative generated text unless a structural correction is
   required.

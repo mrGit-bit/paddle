@@ -12,6 +12,8 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `Governance`: Disabled markdownlint `MD013` reporting and clarified that
+  long Markdown lines should not be reflowed only for line-length linting.
 - `UI/UX`: Restored standard Bootstrap accordion expand/collapse icons on
   medallero and player-detail accordion cards.
 - `UI/UX`: Compactified player-detail rankings pills and linked pair medals
