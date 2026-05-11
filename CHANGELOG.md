@@ -12,6 +12,8 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+## [1.10.3] - 2026-05-11
+
 - `UI/UX`: Restored Bootstrap accordion icons, compacted player-detail ranking
   pills, and linked pair medals to the `Parejas` ranking page.
 - `Backend`: Made Americano round assignment validate before transactional
