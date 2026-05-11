@@ -12,6 +12,8 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `UI/UX`: Restored standard Bootstrap accordion expand/collapse icons on
+  medallero and player-detail accordion cards.
 - `UI/UX`: Compactified player-detail rankings pills and linked pair medals
   directly to the `Parejas` ranking page.
 - `Backend`: Made Americano round assignment validate first, then persist all

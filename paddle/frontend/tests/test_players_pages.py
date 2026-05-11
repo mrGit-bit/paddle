@@ -436,7 +436,7 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
     assert "Rankings" in content
     assert "Últimos partidos" in content
     assert "Balance acumulado" in content
-    assert 'id="playerStatsAccordion"' in content
+    assert 'class="accordion" id="playerStatsAccordion"' in content
     for title in [
         "Rankings",
         "Últimos partidos",
@@ -454,11 +454,11 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
     ]:
         assert f'id="{panel_id}" class="collapse" data-bs-parent="#playerStatsAccordion"' in content
         assert f'id="{panel_id}" class="collapse show"' not in content
-    assert content.count('class="medallero-player-toggle collapsed player-stats-toggle"') == 5
+    assert content.count('class="accordion-button medallero-player-toggle collapsed player-stats-toggle"') == 5
     assert content.count('data-bs-parent="#playerStatsAccordion"') == 5
     assert "player-stats-summary" in content
     assert "player-stats-summary-badge" in content
-    assert "rounded-pill player-stats-summary-badge bg-primary" in content
+    assert "rounded-pill player-stats-summary-badge bg-secondary" in content
     assert ">--%</span>" in content
     assert "Todos Sin partidos · --%" not in content
     assert "Balance neutro" in content

@@ -296,7 +296,8 @@ def test_medallero_page_renders_publicly_with_metadata_and_empty_slots(client, m
     assert response.status_code == 200
     assert re.search(r'<h1 class="display-5">[^<]*Medallero[^<]*</h1>', content)
     assert "Medal Player" in content
-    assert "medallero-player-toggle collapsed" in content
+    assert 'class="accordion medallero-list" id="medalleroAccordion"' in content
+    assert "accordion-button medallero-player-toggle collapsed" in content
     assert 'data-bs-toggle="collapse"' in content
     assert 'data-bs-target="#medalleroPlayer1"' in content
     assert 'aria-expanded="false"' in content
