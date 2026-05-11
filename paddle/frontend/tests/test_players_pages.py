@@ -172,6 +172,36 @@ def test_player_detail_renders_medal_card_collapsed_and_collapsible(client, monk
     assert "Primer puesto" in content
 
 
+def test_player_detail_links_pair_medals_to_pairs_ranking(client, monkeypatch):
+    player = Player.objects.create(name="Jugador Parejas", gender=Player.GENDER_MALE)
+    medal = {
+        "key": "pairs_first_place",
+        "name": "Primer puesto",
+        "icon": "🥇",
+        "scope": "pairs",
+        "scope_label": "Parejas",
+        "scope_css_class": "circular-progress-danger",
+    }
+
+    monkeypatch.setattr(
+        player_views,
+        "build_player_medallero_row",
+        lambda selected_player, *, group=None: {
+            "player": selected_player,
+            "medals": [medal],
+            "total_medals": 1,
+            "medal_rows": [[medal, None, None]],
+        },
+    )
+
+    response = client.get(reverse("player_detail", args=[player.id]))
+    content = response.content.decode("utf-8")
+
+    assert response.status_code == 200
+    assert response.context["profile_medal_row"]["medals"][0]["href"] == reverse("ranking_pairs")
+    assert f'href="{reverse("ranking_pairs")}"' in content
+
+
 def test_player_detail_renders_medal_empty_state(client, monkeypatch):
     player = Player.objects.create(name="Sin Medallas", gender=Player.GENDER_MALE)
     monkeypatch.setattr(
@@ -306,6 +336,11 @@ def test_player_detail_scope_rows_render_data_href_only_when_applicable(client):
         '<h4 class="mb-0">Estadísticas</h4>',
         '<h4 class="mb-4" id="player-matches">Partidos jugados</h4>',
     )
+    rankings_header = section_between(
+        content,
+        'data-bs-target="#playerStatsRankings"',
+        'id="playerStatsRankings" class="collapse"',
+    )
 
     assert response.status_code == 200
     assert "player-ranking-progress-list" in stats_section
@@ -318,6 +353,9 @@ def test_player_detail_scope_rows_render_data_href_only_when_applicable(client):
     assert "Todos" in stats_section
     assert "Masc." in stats_section
     assert "Mixtos" in stats_section
+    assert "Mixtos" not in rankings_header
+    assert "1/100%" in stats_section
+    assert "1 / 100%" not in stats_section
     assert "#1 de 4" in stats_section
     assert ">100%</span>" in stats_section
     assert ">--%</span>" in stats_section
@@ -340,6 +378,10 @@ def test_player_detail_scope_rows_render_data_href_only_when_applicable(client):
     assert "player-ranking-medal" not in stats_section
     assert "🥇" in stats_section
     assert "Sin datos" in stats_section
+    assert [row["label"] for row in response.context["player_stats_summary"]["rankings"]] == [
+        "Todos",
+        "Masc.",
+    ]
 
 
 def test_player_detail_ranking_progress_uses_display_rank_and_ranked_total(client):
@@ -394,7 +436,7 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
     assert "Rankings" in content
     assert "Últimos partidos" in content
     assert "Balance acumulado" in content
-    assert 'id="playerStatsAccordion"' in content
+    assert 'class="accordion" id="playerStatsAccordion"' in content
     for title in [
         "Rankings",
         "Últimos partidos",
@@ -412,11 +454,11 @@ def test_player_detail_insights_defaults_with_zero_matches(client):
     ]:
         assert f'id="{panel_id}" class="collapse" data-bs-parent="#playerStatsAccordion"' in content
         assert f'id="{panel_id}" class="collapse show"' not in content
-    assert content.count('class="medallero-player-toggle collapsed player-stats-toggle"') == 5
+    assert content.count('class="accordion-button medallero-player-toggle collapsed player-stats-toggle"') == 5
     assert content.count('data-bs-parent="#playerStatsAccordion"') == 5
     assert "player-stats-summary" in content
     assert "player-stats-summary-badge" in content
-    assert "rounded-pill player-stats-summary-badge bg-primary" in content
+    assert "rounded-pill player-stats-summary-badge bg-secondary" in content
     assert ">--%</span>" in content
     assert "Todos Sin partidos · --%" not in content
     assert "Balance neutro" in content

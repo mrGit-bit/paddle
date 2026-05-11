@@ -10,11 +10,11 @@
 </div>
 
 {% if medallero_rows %}
-  <div class="medallero-list" id="medalleroAccordion">
+  <div class="accordion medallero-list" id="medalleroAccordion">
     {% for row in medallero_rows %}
       <section class="card shadow mb-4 medallero-player-card">
         <button
-          class="medallero-player-toggle collapsed"
+          class="accordion-button medallero-player-toggle collapsed"
           type="button"
           data-bs-toggle="collapse"
           data-bs-target="#medalleroPlayer{{ forloop.counter }}"
