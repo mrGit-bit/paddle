@@ -12,6 +12,9 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `Governance`: Added source-of-truth, fallback disclosure, explicit-target,
+  and conflict-handling guidance to router and skill-authoring docs.
+
 ## [1.10.3] - 2026-05-11
 
 - `UI/UX`: Restored Bootstrap accordion icons, compacted player-detail ranking

@@ -30,12 +30,15 @@ Use this skill for repository-local Codex skills.
    instructions.
 5. Add one-level-deep references only when optional detail would otherwise
    bloat `SKILL.md`.
-6. Add scripts only for repeatable, deterministic work that Codex would
+6. For skills that rely on remote docs, MCP tools, scripts, or bundled
+   references, define the source of truth, fallback order, and when fallback
+   use must be disclosed.
+7. Add scripts only for repeatable, deterministic work that Codex would
    otherwise regenerate.
-7. Add or refresh `agents/openai.yaml` when the skill should appear in the UI.
-8. If router instructions change, update `AGENTS.md` and keep its
+8. Add or refresh `agents/openai.yaml` when the skill should appear in the UI.
+9. If router instructions change, update `AGENTS.md` and keep its
    version/date header aligned with `docs/PROJECT_INSTRUCTIONS.md`.
-9. Validate changed Markdown and governance metadata.
+10. Validate changed Markdown and governance metadata.
 
 ## SKILL.md Rules
 
@@ -48,6 +51,13 @@ Use this skill for repository-local Codex skills.
 - Keep the body compact and procedural.
 - Trust Codex's general knowledge; include only repo-specific workflow,
   constraints, edge cases, or validation steps.
+- Preserve explicit user targets for migrations, upgrades, and rewrites. Use
+  "latest", "current", or default-target lookup only when the user leaves the
+  target unspecified.
+- Bound the skill's change scope. State meaningful non-goals when adjacent
+  changes are likely but not intended.
+- If authoritative guidance and repository behavior disagree, instruct Codex
+  to state the conflict and stop before broad edits.
 - Keep detailed examples out unless they prevent likely mistakes.
 
 ## Progressive Disclosure

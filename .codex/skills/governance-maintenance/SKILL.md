@@ -30,6 +30,11 @@ and ownership boundaries.
   when needed.
 - New governance rules need a clear owner file or skill; avoid scattering the
   same rule across multiple surfaces.
+- When governance or skills depend on external docs, MCP tools, scripts, or
+  bundled references, name the source of truth and the fallback order.
+- Keep always-loaded router docs policy-level. Put detailed source lookup,
+  fallback disclosure, and scope-limiting workflow inside task-triggered
+  skills.
 - Preserve user-authored text/style intent in governance and skill edits. Ask
   before changing wording or style rules when the user's intention is unclear.
 
@@ -52,6 +57,11 @@ and ownership boundaries.
   constructions, verbose setup, and repeated restatement.
 - Prefer short sections, direct bullets, compact summaries, and no duplicate
   restatement.
+- Preserve explicit user targets when documenting upgrades, migrations, or
+  rewritten guidance. Do not silently substitute a "latest" target or widen
+  the task beyond the stated request.
+- If authoritative external guidance and repository behavior or governance
+  disagree, state the conflict and stop before making broad rewrites.
 - Active-work specs should capture only the scope, constraints, and checks
   needed for execution.
 - Consolidated release files should be compact provenance summaries, not
