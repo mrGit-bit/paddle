@@ -1,7 +1,7 @@
 # AGENTS.md — Codex Router
 
-Instruction Set Version: 2.4.12
-Last Updated: 2026-05-12
+Instruction Set Version: 2.4.13
+Last Updated: 2026-05-13
 
 ## Authority
 
@@ -44,5 +44,9 @@ not Codex.
 
 - Run `python scripts/validate_governance.py` after governance edits.
 - Run markdownlint on Markdown; omit `MD013` and line reflows.
+- Run configured linters for touched file types only when stable project
+  commands or tool configs exist.
+- Do not invent ad hoc Python, HTML/template, or JavaScript lint commands
+  during implementation; report missing configured linters instead.
 - For code changes, run the smallest relevant test scope and report the command
   plus result.
