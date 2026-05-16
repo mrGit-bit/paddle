@@ -5,6 +5,40 @@ on:
     branches: [ develop, staging, main ]
 
 jobs:
+  harness:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Validate governance
+        run: python scripts/validate_governance.py
+
+      - name: Validate active specs
+        run: python scripts/validate_specs.py
+
+      - name: Validate release dry run
+        run: python scripts/release_orchestrator.py --check
+
+      - name: Markdown lint
+        uses: DavidAnson/markdownlint-cli2-action@v20
+        with:
+          globs: |
+            AGENTS.md
+            README.md
+            RELEASE.md
+            CHANGELOG.md
+            docs/*.md
+            specs/*.md
+            .codex/skills/**/*.md
+            .github/PULL_REQUEST_TEMPLATE/*.md
+
   tests:
     runs-on: ubuntu-latest
 

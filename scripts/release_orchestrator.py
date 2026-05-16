@@ -445,6 +445,54 @@ def validate_ssh_assets(paths: ReleasePaths) -> list[str]:
     return errors
 
 
+def validate_release_dry_run(paths: ReleasePaths) -> list[str]:
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    try:
+        version = read_config_version(paths.version_file)
+    except ReleaseError as exc:
+        errors.append(str(exc))
+        version = ""
+
+    if paths.changelog.exists():
+        changelog_text = paths.changelog.read_text(encoding="utf-8")
+        if not UNRELEASED_SECTION_RE.search(changelog_text):
+            errors.append("CHANGELOG.md must contain a `## [Unreleased]` section.")
+        if version and count_changelog_release_headers(changelog_text, version) > 1:
+            errors.append(f"CHANGELOG.md contains multiple release headers for {version}.")
+    else:
+        errors.append("Missing CHANGELOG.md.")
+
+    if not paths.backmerge_script.exists():
+        errors.append("Missing scripts/backmerge_main_to_develop.sh.")
+    if not paths.specs_dir.exists():
+        errors.append("Missing specs directory.")
+
+    for workflow in (
+        ".github/workflows/ci.yml",
+        ".github/workflows/release.yml",
+        ".github/workflows/release-prep-no-ai.yml",
+    ):
+        if not (paths.repo_root / workflow).exists():
+            warnings.append(f"warning: missing optional release workflow {workflow}.")
+
+    for command in LOCAL_RELEASE_VALIDATION_COMMANDS:
+        if not command:
+            errors.append("Local release validation contains an empty command.")
+
+    for warning in warnings:
+        print(warning, file=sys.stderr)
+    return errors
+
+
+def run_release_dry_run(paths: ReleasePaths) -> None:
+    errors = validate_release_dry_run(paths)
+    if errors:
+        raise ReleaseError(" ".join(errors))
+    print("Release dry-run validation passed: local release inputs and workflows are present.")
+
+
 def parse_changelog_section(changelog_text: str, version: str) -> list[str]:
     pattern = rf"^## \[{re.escape(version)}\] - .*?\n(?P<body>.*?)(?=^## \[|\Z)"
     match = re.search(pattern, changelog_text, flags=re.M | re.S)
@@ -1227,6 +1275,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("version", nargs="?", help="Release version in X.Y.Z or vX.Y.Z format.")
     parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Run non-destructive local release validation without GitHub, SSH, commits, or deploys.",
+    )
+    parser.add_argument(
         "--next-patch",
         action="store_true",
         help="Derive the release version by incrementing the configured patch version.",
@@ -1255,6 +1308,12 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
 
 def resolve_requested_version(args: argparse.Namespace, paths: ReleasePaths) -> tuple[str, str]:
+    if bool(getattr(args, "check", False)):
+        version = getattr(args, "version", None)
+        if version:
+            return normalize_version(version)
+        current_version = read_config_version(paths.version_file)
+        return current_version, f"v{current_version}"
     if bool(getattr(args, "next_patch", False)):
         if getattr(args, "version", None):
             raise ReleaseError("Use either an explicit version or --next-patch, not both.")
@@ -1272,6 +1331,9 @@ def main(argv: list[str] | None = None) -> int:
     try:
         paths = ReleasePaths(repo_root)
         version, version_tag = resolve_requested_version(args, paths)
+        if bool(getattr(args, "check", False)):
+            run_release_dry_run(paths)
+            return 0
         resume_requires_staging_decision(args)
         context = ReleaseContext(
             repo_root=repo_root,

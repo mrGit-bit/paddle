@@ -12,6 +12,8 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `Governance`: Added a repository harness map, local harness check command,
+  active spec validation, CI harness gates, and release dry-run validation.
 - `Governance`: Added source-of-truth, fallback disclosure, explicit-target,
   conflict-handling, and configured-linter guidance to router and
   skill-authoring docs.
