@@ -1,0 +1,3 @@
+display_name: PRD to Specs
+short_description: Break phased PRDs into vertical-slice SDD specs.
+default_prompt: Use $prd-to-specs to turn this phased PRD into vertical-slice specs.

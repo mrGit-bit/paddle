@@ -1,6 +1,6 @@
 # AGENTS.md — Codex Router
 
-Instruction Set Version: 2.4.13
+Instruction Set Version: 2.4.14
 Last Updated: 2026-05-13
 
 ## Authority
@@ -29,6 +29,7 @@ not Codex.
 - Product/code, SDD planning, specs, audit gates: `$sdd-workflow`.
 - Grill-me planning and pressure-tests: use `$sdd-grill-me`.
 - Phased PRDs: `$phased-prd`.
+- Break phased PRDs into vertical-slice specs: `$prd-to-specs`.
 - Handoffs, reconciliation, commits, closure:
   `$development-cycle-closure`.
 - Governance ownership, Markdown, validation: `$governance-maintenance`.

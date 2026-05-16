@@ -15,6 +15,8 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 - `Governance`: Added source-of-truth, fallback disclosure, explicit-target,
   conflict-handling, and configured-linter guidance to router and
   skill-authoring docs.
+- `Governance`: Added `$prd-to-specs` to break phased PRDs into approved
+  vertical-slice implementation specs.
 
 ## [1.10.3] - 2026-05-11
 
