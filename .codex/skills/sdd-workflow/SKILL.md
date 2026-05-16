@@ -50,6 +50,9 @@ Before non-trivial implementation:
    `specs/###-short-title.md`.
 4. Start implementation only after the active-work spec is approved.
 
+If the active-work spec is missing or incomplete, notify the user and wait
+for further instructions before proceeding.
+
 Simple-change exception:
 
 - Small, low-risk documentation, governance, or repository-guidance edits may

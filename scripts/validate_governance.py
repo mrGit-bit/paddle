@@ -11,19 +11,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PROJECT = ROOT / "docs" / "PROJECT_INSTRUCTIONS.md"
 AGENTS = ROOT / "AGENTS.md"
+BACKLOG = ROOT / "BACKLOG.md"
 PROJECT_MAX_CHARS = 3200
 PROJECT_TARGET_CHARS = 2600
 AGENTS_MAX_CHARS = 2200
 AGENTS_TARGET_CHARS = 1800
-REQUIRED_SKILLS = (
-    ROOT / ".codex" / "skills" / "sdd-workflow" / "SKILL.md",
-    ROOT / ".codex" / "skills" / "development-cycle-closure" / "SKILL.md",
-    ROOT / ".codex" / "skills" / "governance-maintenance" / "SKILL.md",
-    ROOT / ".codex" / "skills" / "governance-markdown-auditor" / "SKILL.md",
-    ROOT / ".codex" / "skills" / "test-design" / "SKILL.md",
-    ROOT / ".codex" / "skills" / "audit" / "SKILL.md",
-    ROOT / ".codex" / "skills" / "template-presentation-audit" / "SKILL.md",
-)
 
 
 def read(path: Path) -> str:
@@ -38,12 +30,106 @@ def metadata(text: str, path: Path) -> tuple[str, str]:
     return version.group(1).strip(), date.group(1).strip()
 
 
+def routed_skills(agents_text: str) -> list[Path]:
+    skill_names = sorted(set(re.findall(r"\$([a-z0-9-]+)", agents_text)))
+    return [
+        ROOT / ".codex" / "skills" / name / "SKILL.md"
+        for name in skill_names
+    ]
+
+
+def backlog_errors(backlog_text: str) -> list[str]:
+    errors: list[str] = []
+    match = re.search(
+        r"^## Pending Tasks$(?P<section>.*?)(?=^## |\Z)",
+        backlog_text,
+        re.M | re.S,
+    )
+    if not match:
+        return [f"{BACKLOG.relative_to(ROOT)}: missing Pending Tasks section"]
+
+    lines = match.group("section").splitlines()
+    header_index = next(
+        (
+            index
+            for index, line in enumerate(lines)
+            if line.strip() == "| Requirement | IMP. | SIMP. | PRI. |"
+        ),
+        None,
+    )
+    if header_index is None:
+        return [f"{BACKLOG.relative_to(ROOT)}: missing pending task table"]
+    if (
+        header_index + 1 >= len(lines)
+        or lines[header_index + 1].strip() != "| --- | --- | --- | --- |"
+    ):
+        errors.append(
+            f"{BACKLOG.relative_to(ROOT)}: malformed pending task table header"
+        )
+
+    task_rows: list[tuple[int, int, int, int]] = []
+    previous_row_line: int | None = None
+    blank_after_row = False
+    for offset, line in enumerate(lines[header_index + 2 :], start=header_index + 3):
+        stripped = line.strip()
+        if not stripped:
+            if previous_row_line is not None:
+                blank_after_row = True
+            continue
+        if not stripped.startswith("|"):
+            continue
+        if blank_after_row:
+            errors.append(
+                f"{BACKLOG.relative_to(ROOT)}: blank line splits pending task table "
+                f"before section line {offset}"
+            )
+            blank_after_row = False
+        cells = [cell.strip() for cell in stripped.strip("|").split("|")]
+        if len(cells) != 4:
+            errors.append(
+                f"{BACKLOG.relative_to(ROOT)}: pending task row on section line "
+                f"{offset} has {len(cells)} columns"
+            )
+            continue
+        try:
+            importance, simplicity, priority = (
+                int(cells[1]),
+                int(cells[2]),
+                int(cells[3]),
+            )
+        except ValueError:
+            errors.append(
+                f"{BACKLOG.relative_to(ROOT)}: pending task row on section line "
+                f"{offset} has non-numeric scoring columns"
+            )
+            continue
+        expected_priority = importance * simplicity
+        if priority != expected_priority:
+            errors.append(
+                f"{BACKLOG.relative_to(ROOT)}: pending task row on section line "
+                f"{offset} has PRI {priority}; expected {expected_priority}"
+            )
+        task_rows.append((offset, importance, simplicity, priority))
+        previous_row_line = offset
+
+    for current, following in zip(task_rows, task_rows[1:]):
+        if (current[3], current[2]) < (following[3], following[2]):
+            errors.append(
+                f"{BACKLOG.relative_to(ROOT)}: pending task row on section line "
+                f"{following[0]} is out of priority order"
+            )
+            break
+
+    return errors
+
+
 def main() -> int:
     errors: list[str] = []
     warnings: list[str] = []
 
     project_text = read(PROJECT)
     agents_text = read(AGENTS)
+    backlog_text = read(BACKLOG)
 
     project_meta = metadata(project_text, PROJECT)
     agents_meta = metadata(agents_text, AGENTS)
@@ -78,9 +164,11 @@ def main() -> int:
             f"target is under {AGENTS_TARGET_CHARS}"
         )
 
-    for skill in REQUIRED_SKILLS:
+    for skill in routed_skills(agents_text):
         if not skill.exists():
             errors.append(f"Missing required routed skill: {skill.relative_to(ROOT)}")
+
+    errors.extend(backlog_errors(backlog_text))
 
     for warning in warnings:
         print(f"warning: {warning}", file=sys.stderr)
@@ -94,7 +182,7 @@ def main() -> int:
         f"{PROJECT.relative_to(ROOT)} is {project_chars} characters "
         "for ChatGPT project-instruction use; "
         f"{AGENTS.relative_to(ROOT)} is {agents_chars} characters "
-        "for Codex router use; required skills exist."
+        "for Codex router use; routed skills and backlog scoring are valid."
     )
     return 0
 

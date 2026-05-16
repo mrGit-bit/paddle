@@ -71,8 +71,7 @@ shrinking existing files and skills before proposing new governance surfaces.
 8. Recommend consolidation-first fixes that keep always-loaded docs short and
    make each task-triggered skill easy for agents to consult quickly.
 
-Read `references/review-rubric.md` when you need the compact severity and
-category rubric.
+Read `references/review-rubric.md` when you need the compact severity and category rubric.
 Read `references/report-template.md` when you need to export or update a
 reviewable governance audit report.
 

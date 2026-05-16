@@ -12,6 +12,9 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
 
 ## [Unreleased]
 
+- `Governance`: Resolved repository governance audit findings by compressing
+  the Codex router, validating routed skills and backlog priorities, and
+  clarifying on-demand PRD artifact ownership.
 - `Governance`: Added a repository harness map, local harness check command,
   active spec validation, CI harness gates, and release dry-run validation.
 - `Governance`: Added source-of-truth, fallback disclosure, explicit-target,

@@ -26,10 +26,9 @@ Rules:
 
 | Requirement | IMP. | SIMP. | PRI. |
 | --- | --- | --- | --- |
-| in the player detail page, add a new section between "Estadísticas" and "Partidos" called "Ficha de jugador" with two subsections: "tipo de jugador" and "sugerencias". both sections should contain a small text AI generated describing details of the player and suggestions for improvement. | 2 | 1 | 1 |
-
 | Add a new button for the creator of the tournament and for the admin to close the tournament and move it to state "finalizado" even in the same day of the tournament day. Creator/admin could also reopen the tournament for editing during the same day of the tournament. | 1 | 2 | 2 |
 | DevOps: establish rotation criteria for log files | 1 | 2 | 2 |
+| in the player detail page, add a new section between "Estadísticas" and "Partidos" called "Ficha de jugador" with two subsections: "tipo de jugador" and "sugerencias". both sections should contain a small text AI generated describing details of the player and suggestions for improvement. | 2 | 1 | 2 |
 | Advanced stats page for additional rankings: teams with more matches played, best win rate (min. 10 matches), hot players (ranking increase), new players | 2 | 1 | 2 |
 | Rolling news bar at the top of home page with latest ranking movements (top 10) and/or last matches added | 2 | 1 | 2 |
 | Add rate limits to prevent brute force attacks on login and registration | 1 | 1 | 1 |

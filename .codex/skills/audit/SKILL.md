@@ -88,8 +88,8 @@ When exporting a reviewable audit:
   it in when discarding.
 - Preserve existing finding IDs and user-written explanations when updating an
   existing review file.
-- Reuse the existing audit file for the same target when the filename still fits
-  the current scope.
+- Reuse the existing audit file for the same target when the filename still
+  fits the current scope.
 - If a prior discarded finding is suppressed because its explanation still
   applies, do not re-add it as a new active finding.
 - If a prior accepted finding has been fixed and verified after an explicit user

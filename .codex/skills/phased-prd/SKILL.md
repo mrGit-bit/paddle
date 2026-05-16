@@ -18,7 +18,8 @@ durable PRD before implementation specs are written.
   existing architecture, specs, tests, templates, and governance.
 - Ask only for decisions that materially change product behavior, scope,
   implementation boundaries, sequencing, validation, or rollout risk.
-- PRDs are planning artifacts under `docs/prds/<slug>.md`.
+- PRDs are on-demand planning artifacts under `docs/prds/<slug>.md`; this
+  directory is skill-owned and not part of the standing README path list.
 - Phase specs remain the implementation gate under `specs/###-phase-title.md`
   and must be approved before development starts.
 - Do not mark a PRD as shipped. Release closure happens through implemented

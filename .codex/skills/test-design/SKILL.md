@@ -10,8 +10,8 @@ Use this skill when adding, changing, or reviewing tests.
 ## Goal
 
 Tests should protect user-visible behavior, business rules, accessibility,
-layout contracts, and regression risk without blocking harmless implementation
-or wording changes.
+layout contracts, and regression risk, while not blocking implementation or
+wording changes that do not alter those outcomes.
 
 ## Testing Principles
 
@@ -23,7 +23,7 @@ or wording changes.
   product language.
 - For helper text and descriptive microcopy, prefer structural or semantic
   assertions unless the task explicitly changes the wording contract.
-- Avoid tests that freeze exact user-editable UI text, class order, or CSS
+- Avoid tests that rely on exact user-editable UI text, class order, or CSS
   declaration bodies. Prefer keys, counts, scopes, semantic attributes, parser
   selectors, or class-combination contracts that survive later manual text and
   style edits.
@@ -37,7 +37,7 @@ or wording changes.
 For non-trivial behavior changes, prefer a vertical red-green-refactor loop:
 
 1. Add one test for one observable behavior.
-2. Run it and confirm it fails for the expected reason.
+2. Run it and confirm it fails for the expected reason. If it fails for unrelated reasons, isolate the cause and determine whether the test or implementation needs adjustment.
 3. Implement the smallest change that makes it pass.
 4. Run the focused test again.
 5. Repeat for the next behavior.

@@ -15,8 +15,8 @@ skill.
   wait.
 - Use `$sdd-workflow` for repository constraints, SDD gates, audit checkpoints,
   and validation expectations.
-- Source material should be a PRD under `docs/prds/` created or maintained by
-  `$phased-prd`. If the user provides a path, use that exact PRD.
+- Source material should be an on-demand PRD under `docs/prds/` created or
+  maintained by `$phased-prd`. If the user provides a path, use that exact PRD.
 - Explore enough current repo context to use accurate domain vocabulary,
   ownership boundaries, tests, templates, models, and existing specs.
 - Create specs only after the user approves the vertical-slice breakdown.
