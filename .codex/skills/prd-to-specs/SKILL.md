@@ -48,6 +48,11 @@ skill.
 8. Keep each spec scoped to its slice and include dependencies, allowed files,
    forbidden files, execution notes, acceptance checks, validation, and required
    audit or review checkpoints.
+9. Append or update `## Approved Spec Breakdown` in the source PRD after spec
+   files are created. Include each assigned spec filename, title, `AFK`/`HITL`
+   classification, dependencies or unresolved blockers, PRD coverage, and
+   validation focus. Preserve the original PRD goals, non-goals, and phase plan;
+   do not mark the PRD as shipped.
 
 ## Breakdown Review Shape
 
@@ -75,10 +80,14 @@ Ask the user whether the granularity, dependencies, PRD coverage, and
 - Cite the source PRD path in each spec summary or execution notes.
 - Do not create release specs. Active PRD phase work uses only non-release
   specs with `Status: approved` and `Release tag: unreleased`.
+- Treat the source PRD's approved breakdown as traceability for phased
+  implementation, not as a replacement for the original phase plan.
 
 ## Validation
 
 - Run `python scripts/validate_governance.py` if router or governance files
   changed.
+- Run `python scripts/validate_specs.py` after creating or updating active
+  specs.
 - Run markdownlint on changed Markdown files when available; `MD013` is
   non-blocking.

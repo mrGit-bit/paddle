@@ -75,6 +75,9 @@ Use this structure:
 
 - Keep the PRD detailed enough that phase specs can be written later without
   rediscovering product intent.
+- A PRD may later gain `## Approved Spec Breakdown` after `$prd-to-specs`
+  creates approved implementation specs; that section is traceability and must
+  preserve the original goals, non-goals, and phase plan.
 - Use file paths only when they document current repo evidence or a stable
   ownership boundary. Avoid code snippets unless a prototype decision is
   clearer as a small schema, state machine, or contract.
