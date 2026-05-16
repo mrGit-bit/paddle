@@ -17,6 +17,8 @@ types, for example `UI/UX`, `Governance`, `Release`, `Backend`, `Data`,
   skill-authoring docs.
 - `Governance`: Added `$prd-to-specs` to break phased PRDs into approved
   vertical-slice implementation specs.
+- `Governance`: Clarified that `$prd-to-specs` outputs are implemented through
+  the normal single-spec SDD gate.
 
 ## [1.10.3] - 2026-05-11
 

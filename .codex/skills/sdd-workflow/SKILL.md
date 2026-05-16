@@ -59,6 +59,9 @@ Simple-change exception:
 Spec lifecycle:
 
 - Active work uses non-release specs only.
+- Specs created from `$prd-to-specs` follow the same active-work gate:
+  implement only one approved non-release spec at a time unless the user
+  explicitly widens scope.
 - `specs/release-*.md` files are historical release records.
 - Loose non-release specs use `Status: approved|implemented` and
   `Release tag: unreleased`.
